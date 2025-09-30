@@ -46,7 +46,7 @@ read -p "Masukkan Disk kedua (default: 20G): " DISK2
 DISK2=${DISK2:-20G}
 
 # Nama file yaml berdasarkan versi
-YAML_FILE="windows-${VERSION}.yml"
+YAML_FILE="windows${VERSION}.yml"
 
 # ========== Generate docker-compose.yml ==========
 cat > $YAML_FILE <<EOL
