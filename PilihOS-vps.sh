@@ -79,8 +79,7 @@ sleep 2
 
 docker run -it --rm \
   --name "$CONTAINER_NAME" \
-  --device /dev/kvm \
-  -v "$VMDATA_DIR":/vmdata \
+  -v $PWD/vmdata:/vmdata \
   -e RAM="$RAM" \
   -e CPU="$CPU" \
   -e DISK_SIZE="$DISK_SIZE" \
