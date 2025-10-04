@@ -25,7 +25,7 @@ echo
 
 # Input dengan default value
 read -p "Masukkan value versi (default: 10l): " VERSION
-VERSION=${VERSION:10l}
+VERSION=${VERSION:-10l}
 
 read -p "Masukkan Username RDP (default: ManzXD): " USERNAME
 USERNAME=${USERNAME:-ManzXD}
