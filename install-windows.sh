@@ -24,8 +24,8 @@ echo " 2003   | Windows Server 2003        | 0.6 GB"
 echo
 
 # Input dengan default value
-read -p "Masukkan value versi (default: 11l): " VERSION
-VERSION=${VERSION:-11l}
+read -p "Masukkan value versi (default: 10l): " VERSION
+VERSION=${VERSION:10l}
 
 read -p "Masukkan Username RDP (default: ManzXD): " USERNAME
 USERNAME=${USERNAME:-ManzXD}
