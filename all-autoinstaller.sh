@@ -95,11 +95,11 @@ install_cloudflared() {
 
     case $pilih_tunnel in
         1)
-            echo -e "${KUNING}Menginstall Cloudflared Tunnel #1...${RESET}"
+            echo -e "${KUNING}Menginstall Cloudflared Tunnel Manz...${RESET}"
             sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiNDlkMTgwNWEtODc2MS00MWRiLWI1ZTYtYTEyZGJiMWQ4N2U0IiwicyI6Ik0ySXhNbUUyWm1VdE1UWXhNUzAwTWprMExXSmtOVGN0TVdNeU9HTm1PREJrT0RReCJ9
             ;;
         2)
-            echo -e "${KUNING}Menginstall Cloudflared Tunnel #2...${RESET}"
+            echo -e "${KUNING}Menginstall Cloudflared Tunnel Dinz...${RESET}"
             sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiOThlNjIyNTEtNzUxNS00MjIyLWEyZTQtMzAxNWFhMzg4NmI2IiwicyI6IllqQXpOREUzWVRBdE5HSmlNeTAwTkdGaUxXSTVPVGt0TVdKaU56SXlPVEl6WW1NNSJ9
             ;;
         3)
