@@ -87,8 +87,8 @@ info_sistem() {
 install_cloudflared() {
     banner
     echo -e "${TEBAL}=== PILIH TUNNEL CLOUDFLARED ===${RESET}"
-    echo -e "1. Tunnel #1"
-    echo -e "2. Tunnel #2"
+    echo -e "1. Tunnel Manz"
+    echo -e "2. Tunnel Dinz"
     echo -e "3. Kembali"
     echo -ne "${TEBAL}Pilih tunnel [1-3]: ${RESET}"
     read -r pilih_tunnel
