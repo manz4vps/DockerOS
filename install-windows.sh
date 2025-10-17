@@ -1,6 +1,52 @@
 #!/bin/bash
 
-# ========== Pilihan Versi Windows ==========
+# ========== PILIH SISTEM ==========
+clear
+echo "========================================="
+echo "   PILIH SISTEM YANG INGIN DIJALANKAN   "
+echo "========================================="
+echo "1. Windows (RDP)"
+echo "2. Ubuntu Desktop (VNC)"
+echo "========================================="
+read -p "Masukkan pilihan (1/2): " SISTEM
+
+if [ "$SISTEM" == "2" ]; then
+    echo
+    echo "=== Pengaturan Ubuntu Desktop (VNC) ==="
+    echo "1. Gunakan preset resolusi 1612x720"
+    echo "2. Gunakan preset resolusi 1090x512"
+    echo "3. Masukkan resolusi manual"
+    echo
+    read -p "Pilih opsi resolusi (1-3): " OPSI
+
+    case $OPSI in
+        1)
+            RESOLUTION="1612x720"
+            ;;
+        2)
+            RESOLUTION="1090x512"
+            ;;
+        3)
+            read -p "Masukkan resolusi (contoh: 1280x720): " RESOLUTION
+            ;;
+        *)
+            echo "Pilihan tidak valid. Menggunakan resolusi default 1280x720."
+            RESOLUTION="1280x720"
+            ;;
+    esac
+
+    echo
+    echo "Menjalankan Ubuntu Desktop dengan resolusi ${RESOLUTION}..."
+    docker run -d -p 6080:80 -e RESOLUTION=$RESOLUTION -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
+    echo "========================================="
+    echo "Ubuntu Desktop VNC berjalan di port 6080"
+    echo "Akses melalui browser di: http://localhost:6080"
+    echo "========================================="
+    exit 0
+fi
+
+# ========== PILIHAN WINDOWS ==========
+echo
 echo "Pilih versi Windows:"
 echo " Value  | Version                   | Size"
 echo "--------------------------------------"
@@ -63,7 +109,7 @@ services:
       CPU_CORES: "$CPU"
       DISK_SIZE: "$DISK1"
       DISK2_SIZE: "$DISK2"
-    devices:         
+    devices:
       - /dev/kvm
       - /dev/net/tun
     cap_add:
