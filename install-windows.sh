@@ -121,7 +121,7 @@ EOL
     echo "Menjalankan docker-compose..."
     echo "========================================="
     sudo docker-compose -f $YAML_FILE up -d
-    echo "Windows berjalan. Gunakan menu '3' untuk cek status."
+    echo "Windows berjalan. Gunakan menu '4' untuk masuk ke windows."
     read -p "Tekan Enter untuk kembali ke menu..."
 fi
 
