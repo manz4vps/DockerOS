@@ -22,23 +22,56 @@ if [ "$SISTEM" == "2" ]; then
     echo "1. Gunakan preset resolusi 1612x720"
     echo "2. Gunakan preset resolusi 1090x512"
     echo "3. Masukkan resolusi manual"
+    echo "4. Kembali ke menu utama"
     echo
-    read -p "Pilih opsi resolusi (1-3): " OPSI
+    read -p "Pilih opsi resolusi (1-4): " OPSI
 
     case $OPSI in
         1) RESOLUTION="1612x720" ;;
         2) RESOLUTION="1090x512" ;;
         3) read -p "Masukkan resolusi (contoh: 1280x720): " RESOLUTION ;;
+        4) continue ;; # balik ke menu utama
         *) RESOLUTION="1280x720" ;;
     esac
 
     echo
     echo "Menjalankan Ubuntu Desktop dengan resolusi ${RESOLUTION}..."
-    docker run -d -p 6080:80 -e RESOLUTION=$RESOLUTION -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
+    CONTAINER_NAME="ubuntu_vnc"
+
+    # Hapus container lama kalau ada
+    if [ "$(docker ps -aq -f name=^${CONTAINER_NAME}$)" ]; then
+        echo "Container lama terdeteksi, menghapus..."
+        docker rm -f $CONTAINER_NAME >/dev/null 2>&1
+    fi
+
+    # Jalankan container baru
+    CONTAINER_ID=$(docker run -d --name $CONTAINER_NAME \
+        -p 6080:80 \
+        -e RESOLUTION=$RESOLUTION \
+        -v /dev/shm:/dev/shm \
+        dorowu/ubuntu-desktop-lxde-vnc)
+
+    if [ $? -ne 0 ]; then
+        echo "Gagal menjalankan container VNC!"
+        read -p "Tekan Enter untuk kembali ke menu..."
+        continue
+    fi
+
     echo "========================================="
     echo "Ubuntu Desktop VNC berjalan di port 6080"
     echo "Akses melalui browser di: http://localhost:6080"
+    echo "Container ID: $CONTAINER_ID"
     echo "========================================="
+    echo
+    echo "Menampilkan log secara real-time..."
+    echo "(Tekan Ctrl + P lalu Ctrl + Q untuk keluar tanpa menghentikan VNC)"
+    echo "========================================="
+    sleep 2
+
+    # Auto-attach ke log container
+    docker attach $CONTAINER_NAME
+
+    echo
     read -p "Tekan Enter untuk kembali ke menu..."
 fi
 
