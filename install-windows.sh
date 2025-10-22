@@ -21,58 +21,60 @@ if [ "$SISTEM" == "2" ]; then
     DATA_DIR="$HOME/vnc_data"
 
     echo
-    # Cek apakah container sudah ada (jalan atau berhenti)
+    # Cek apakah container sudah ada
     if [ "$(docker ps -a -q -f name=^${CONTAINER_NAME}$)" ]; then
-        STATUS=$(docker inspect -f '{{.State.Status}}' $CONTAINER_NAME)
-        if [ "$STATUS" == "running" ]; then
-            echo "Ubuntu Desktop VNC sedang berjalan!"
-            echo "========================================="
-            echo "1. Lihat log"
-            echo "2. Ubah resolusi dan restart (data aman)"
-            echo "3. Hentikan container"
-            echo "4. Kembali ke menu utama"
-            echo "========================================="
-            read -p "Pilih opsi (1-4): " OPSI_VNC
-
-            case $OPSI_VNC in
-                1)
-                    echo
-                    echo "Menampilkan log (Ctrl + P lalu Ctrl + Q untuk keluar tanpa stop)"
-                    docker attach $CONTAINER_NAME
-                    ;;
-                2)
-                    read -p "Masukkan resolusi baru (contoh: 1280x720): " RESOLUTION
-                    echo "Mengubah resolusi menjadi $RESOLUTION ..."
-                    docker rm -f $CONTAINER_NAME >/dev/null 2>&1
-                    docker run -d --name $CONTAINER_NAME \
-                        -p 6080:80 \
-                        -e RESOLUTION=$RESOLUTION \
-                        -v /dev/shm:/dev/shm \
-                        -v "$DATA_DIR":/home/ubuntu \
-                        dorowu/ubuntu-desktop-lxde-vnc >/dev/null
-                    echo "Container di-restart dengan resolusi baru!"
-                    echo "Akses lagi di: http://localhost:6080"
-                    ;;
-                3)
-                    echo "Menghentikan container..."
-                    docker stop $CONTAINER_NAME >/dev/null 2>&1
-                    echo "Container Ubuntu Desktop sudah dihentikan (data aman)."
-                    ;;
-                4) continue ;;
-                *) echo "Pilihan tidak valid."; sleep 1 ;;
-            esac
-            read -p "Tekan Enter untuk kembali ke menu..."
-            continue
+        if [ "$(docker ps -q -f name=^${CONTAINER_NAME}$)" ]; then
+            echo "Ubuntu Desktop VNC saat ini sudah berjalan!"
         else
             echo "Container ditemukan tapi sedang berhenti."
-            echo "Menjalankan kembali Ubuntu Desktop tanpa reset data..."
-            docker start $CONTAINER_NAME >/dev/null
-            echo "Container sudah dijalankan ulang!"
-            echo "Akses lagi di: http://localhost:6080"
-            read -p "Tekan Enter untuk melihat log..."
-            docker attach $CONTAINER_NAME
-            continue
         fi
+        echo "========================================="
+        echo "1. Jalankan / lanjutkan tanpa reset data"
+        echo "2. Ubah resolusi (data aman)"
+        echo "3. Lihat log"
+        echo "4. Hentikan container"
+        echo "5. Kembali ke menu utama"
+        echo "========================================="
+        read -p "Pilih opsi (1-5): " OPSI_VNC
+
+        case $OPSI_VNC in
+            1)
+                echo "Menjalankan kembali Ubuntu Desktop tanpa reset data..."
+                docker start $CONTAINER_NAME >/dev/null
+                echo "Container sudah dijalankan ulang!"
+                echo "Akses lagi di: http://localhost:6080"
+                ;;
+            2)
+                echo
+                read -p "Masukkan resolusi baru (contoh: 1280x720): " RESOLUTION
+                echo "Mengubah resolusi menjadi $RESOLUTION ..."
+                docker rm -f $CONTAINER_NAME >/dev/null 2>&1
+                docker run -d --name $CONTAINER_NAME \
+                    -p 6080:80 \
+                    -e RESOLUTION=$RESOLUTION \
+                    -v /dev/shm:/dev/shm \
+                    -v "$DATA_DIR":/root \
+                    dorowu/ubuntu-desktop-lxde-vnc >/dev/null
+                echo "Container di-restart dengan resolusi baru!"
+                echo "Akses lagi di: http://localhost:6080"
+                ;;
+            3)
+                echo
+                echo "Menampilkan log (Ctrl + P lalu Ctrl + Q untuk keluar tanpa stop)"
+                echo "========================================="
+                docker attach $CONTAINER_NAME
+                ;;
+            4)
+                echo "Menghentikan container..."
+                docker stop $CONTAINER_NAME >/dev/null 2>&1
+                echo "Container Ubuntu Desktop sudah dihentikan."
+                ;;
+            5) continue ;;
+            *) echo "Pilihan tidak valid."; sleep 1 ;;
+        esac
+
+        read -p "Tekan Enter untuk kembali ke menu..."
+        continue
     fi
 
     echo
@@ -96,12 +98,12 @@ if [ "$SISTEM" == "2" ]; then
     echo "Menjalankan Ubuntu Desktop dengan resolusi ${RESOLUTION}..."
     mkdir -p "$DATA_DIR"
 
-    docker run -d --name $CONTAINER_NAME \
+    CONTAINER_ID=$(docker run -d --name $CONTAINER_NAME \
         -p 6080:80 \
         -e RESOLUTION=$RESOLUTION \
         -v /dev/shm:/dev/shm \
-        -v "$DATA_DIR":/home/ubuntu \
-        dorowu/ubuntu-desktop-lxde-vnc >/dev/null
+        -v "$DATA_DIR":/root \
+        dorowu/ubuntu-desktop-lxde-vnc)
 
     if [ $? -ne 0 ]; then
         echo "Gagal menjalankan container VNC!"
@@ -113,10 +115,12 @@ if [ "$SISTEM" == "2" ]; then
     echo "Ubuntu Desktop VNC berjalan di port 6080"
     echo "Akses melalui browser di: http://localhost:6080"
     echo "Data tersimpan di: $DATA_DIR"
+    echo "Container ID: $CONTAINER_ID"
     echo "========================================="
     echo
     echo "Menampilkan log secara real-time..."
     echo "(Tekan Ctrl + P lalu Ctrl + Q untuk keluar tanpa menghentikan VNC)"
+    echo "========================================="
     sleep 2
     docker attach $CONTAINER_NAME
     read -p "Tekan Enter untuk kembali ke menu..."
