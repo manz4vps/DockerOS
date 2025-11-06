@@ -58,7 +58,7 @@ jalankan_script() {
         local kode=$?
         rm -f "$temp_script"
         if [ $kode -eq 0 ]; then
-            echo -e "${HIJAU}✓ Script berhasil dijalankan${RESET}"
+            echo -e "${HIJAU}✅ Script berhasil dijalankan${RESET}"
         else
             echo -e "${MERAH}✗ Script gagal dijalankan (kode $kode)${RESET}"
         fi
@@ -66,21 +66,7 @@ jalankan_script() {
         echo -e "${MERAH}✗ Gagal mengunduh script${RESET}"
     fi
     echo
-    read -p "Tekan Enter untuk lanjut..."
-}
-
-# Info sistem
-info_sistem() {
-    echo -e "${TEBAL}INFORMASI SISTEM${RESET}"
-    echo "Hostname : $(hostname)"
-    echo "User     : $(whoami)"
-    echo "Direktori: $(pwd)"
-    echo "Sistem   : $(uname -srm)"
-    echo "Uptime   : $(uptime -p)"
-    echo "Memori   : $(free -h | awk '/Mem:/ {print $3\"/\"$2}')"
-    echo "Disk     : $(df -h / | awk 'NR==2 {print $3\"/\"$2 \" (\"$5\")\"}')"
-    echo
-    read -p "Tekan Enter untuk lanjut..."
+    read -p "Tekan Enter untuk kembali ke menu utama..."
 }
 
 # === CLOUDFARED INSTALL ===
@@ -110,7 +96,17 @@ install_cloudflared() {
             ;;
     esac
     echo
-    read -p "Tekan Enter untuk lanjut..."
+    read -p "Tekan Enter untuk kembali ke menu utama..."
+}
+
+# === INSTALL PLAYIT ===
+install_playit() {
+    banner
+    echo -e "${BIRU}${TEBAL}🎮 Menginstall Playit...${RESET}"
+    cek_curl
+    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit)
+    echo
+    read -p "Tekan Enter untuk kembali ke menu utama..."
 }
 
 # === MENU UTAMA ===
@@ -118,16 +114,16 @@ tampilkan_menu() {
     banner
     menu_content=$(cat <<EOF
 ${TEBAL}========== MENU UTAMA ===========${RESET}
-${TEBAL}1.${RESET} Panel
-${TEBAL}2.${RESET} Wings
-${TEBAL}3.${RESET} Update
-${TEBAL}4.${RESET} Uninstall
-${TEBAL}5.${RESET} Blueprint
-${TEBAL}6.${RESET} Cloudflare (raw script)
-${TEBAL}7.${RESET} Ganti Tema
-${TEBAL}8.${RESET} Cloudflared Tunnel 🔒
-${TEBAL}9.${RESET} Info Sistem
-${TEBAL}10.${RESET} Keluar
+${TEBAL}1.${RESET} 🧩 Panel
+${TEBAL}2.${RESET} 🪶 Wings
+${TEBAL}3.${RESET} 🔄 Update
+${TEBAL}4.${RESET} ❌ Uninstall
+${TEBAL}5.${RESET} 🧱 Blueprint
+${TEBAL}6.${RESET} ☁️  Cloudflare (raw script)
+${TEBAL}7.${RESET} 🎨 Ganti Tema
+${TEBAL}8.${RESET} 🔒 Cloudflared Tunnel
+${TEBAL}9.${RESET} 🎮 Playit
+${TEBAL}10.${RESET} 🚪 Keluar
 ${TEBAL}=================================${RESET}
 EOF
 )
@@ -148,8 +144,8 @@ while true; do
         6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
         7) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/change%20theme.sh" ;;
         8) install_cloudflared ;;
-        9) info_sistem ;;
-        10) echo "Keluar..."; exit 0 ;;
-        *) echo -e "${MERAH}${TEBAL}Pilihan tidak valid!${RESET}"; read -p "Tekan Enter untuk lanjut..." ;;
+        9) install_playit ;;
+        10) echo -e "${HIJAU}👋 Keluar...${RESET}"; exit 0 ;;
+        *) echo -e "${MERAH}${TEBAL}Pilihan tidak valid!${RESET}"; read -p "Tekan Enter untuk kembali..." ;;
     esac
 done
