@@ -8,6 +8,7 @@ PLAYIT_BINARY="/usr/local/bin/playit"
 PLAYIT_SERVICE="/etc/systemd/system/playit.service"
 WORKING_DIR="/root"
 BINARY_SRC="playit-linux-amd64"
+DOWNLOAD_URL="https://github.com/playit-cloud/playit-agent/releases/download/v0.15.26/playit-linux-amd64"
 
 # Check if script is run as root
 if [[ $EUID -ne 0 ]]; then
@@ -15,10 +16,17 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# Check if source binary exists
+# Check if Playit binary exists in the current directory, if not, download it
 if [[ ! -f "$BINARY_SRC" ]]; then
-    echo "Error: $BINARY_SRC not found in the current directory." >&2
-    exit 1
+    echo "Playit binary not found, downloading from GitHub..."
+    if ! wget -q "$DOWNLOAD_URL" -O "$BINARY_SRC"; then
+        echo "Error: Failed to download Playit binary from $DOWNLOAD_URL" >&2
+        exit 1
+    fi
+    chmod +x "$BINARY_SRC"
+    echo "Download complete and binary is executable."
+else
+    echo "Found existing $BINARY_SRC file, skipping download."
 fi
 
 # Move binary to /usr/local/bin
@@ -31,11 +39,7 @@ fi
 # Ensure the binary is executable
 chmod +x "$PLAYIT_BINARY"
 
-# Change to systemd directory
-echo "Navigating to /etc/systemd/system..."
-cd /etc/systemd/system || { echo "Error: Failed to change to /etc/systemd/system." >&2; exit 1; }
-
-# Create playit.service file
+# Create systemd service file
 echo "Creating systemd service file at $PLAYIT_SERVICE..."
 cat <<EOF > "$PLAYIT_SERVICE"
 [Unit]
@@ -53,33 +57,17 @@ Environment="PLAYIT_CONFIG_PATH=/root/.playit/config.toml"
 WantedBy=multi-user.target
 EOF
 
-# Check if service file was created successfully
-if [[ ! -f "$PLAYIT_SERVICE" ]]; then
-    echo "Error: Failed to create $PLAYIT_SERVICE." >&2
-    exit 1
-fi
-
 # Reload systemd daemon
 echo "Reloading systemd daemon..."
-if ! systemctl daemon-reload; then
-    echo "Error: Failed to reload systemd daemon." >&2
-    exit 1
-fi
+systemctl daemon-reload
 
 # Enable and start the service
-echo "Enabling and starting playit service..."
-if ! systemctl enable playit; then
-    echo "Error: Failed to enable playit service." >&2
-    exit 1
-fi
-
-if ! systemctl start playit; then
-    echo "Error: Failed to start playit service." >&2
-    exit 1
-fi
+echo "Enabling and starting Playit service..."
+systemctl enable playit
+systemctl start playit
 
 # Verify service status
-echo "Checking playit service status..."
+echo "Checking Playit service status..."
 systemctl status playit --no-pager
 
-echo "Playit service installed and started successfully!"
+echo "✅ Playit service installed and started successfully!"
