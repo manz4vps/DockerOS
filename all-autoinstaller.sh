@@ -116,14 +116,13 @@ tampilkan_menu() {
 ${TEBAL}========== MENU UTAMA ===========${RESET}
 ${TEBAL}1.${RESET} 🧩 Panel
 ${TEBAL}2.${RESET} 🪶 Wings
-${TEBAL}3.${RESET} 🔄 Update
-${TEBAL}4.${RESET} ❌ Uninstall
+${TEBAL}3.${RESET} 🛠️ Install Playit
+${TEBAL}4.${RESET} 🖥️ Playit Run 24/7
 ${TEBAL}5.${RESET} 🧱 Blueprint
 ${TEBAL}6.${RESET} ☁️  Cloudflare (raw script)
 ${TEBAL}7.${RESET} 🎨 Pasang Tema
 ${TEBAL}8.${RESET} 🔒 Cloudflared Tunnel
-${TEBAL}9.${RESET} 🎮 Playit
-${TEBAL}10.${RESET} 🚪 Keluar
+${TEBAL}9.${RESET} 🚪 Keluar
 ${TEBAL}=================================${RESET}
 EOF
 )
@@ -138,14 +137,13 @@ while true; do
     case $pilihan in
         1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
         2) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
-        3) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/update.sh" ;;
-        4) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/uninstall.sh" ;;
+        3) jalankan_script "" ;;
+        4) install_playit ;;
         5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
         6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
         7) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/change%20theme.sh" ;;
         8) install_cloudflared ;;
-        9) install_playit ;;
-        10) echo -e "${HIJAU}👋 Keluar...${RESET}"; exit 0 ;;
+        9) echo -e "${HIJAU}👋 Keluar...${RESET}"; exit 0 ;;
         *) echo -e "${MERAH}${TEBAL}Pilihan tidak valid!${RESET}"; read -p "Tekan Enter untuk kembali..." ;;
     esac
 done
