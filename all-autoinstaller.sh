@@ -120,7 +120,7 @@ ${TEBAL}3.${RESET} 🔄 Update
 ${TEBAL}4.${RESET} ❌ Uninstall
 ${TEBAL}5.${RESET} 🧱 Blueprint
 ${TEBAL}6.${RESET} ☁️  Cloudflare (raw script)
-${TEBAL}7.${RESET} 🎨 Ganti Tema
+${TEBAL}7.${RESET} 🎨 Pasang Tema
 ${TEBAL}8.${RESET} 🔒 Cloudflared Tunnel
 ${TEBAL}9.${RESET} 🎮 Playit
 ${TEBAL}10.${RESET} 🚪 Keluar
