@@ -127,7 +127,7 @@ ${TEBAL}=================================${RESET}
 EOF
 )
     echo -e "${BIRU}${menu_content}${RESET}"
-    echo -ne "${TEBAL}Masukkan pilihan [1-10]: ${RESET}"
+    echo -ne "${TEBAL}Masukkan pilihan [1-9]: ${RESET}"
 }
 
 # === LOOP UTAMA ===
