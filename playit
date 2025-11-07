@@ -7,7 +7,6 @@ set -e
 PLAYIT_BINARY="/usr/local/bin/playit"
 PLAYIT_SERVICE="/etc/systemd/system/playit.service"
 WORKING_DIR="/root"
-DOWNLOAD_URL="https://github.com/playit-cloud/playit-agent/releases/download/v0.15.26/playit-linux-amd64"
 BINARY_SRC="playit-linux-amd64"
 
 # Check if script is run as root
