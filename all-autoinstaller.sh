@@ -150,7 +150,7 @@ install_blueprint_minecraft() {
     echo -e "${KUNING}Mengunduh blueprint...${RESET}"
     cd /var/www/pterodactyl || { echo "Folder tidak ditemukan!"; return; }
 
-    wget -q https://github.com/NotJishnuisback/Free123/raw/refs/heads/main/minecraftplayermanager.blueprint
+    wget -q https://github.com/manz4vps/DockerOS/raw/refs/heads/main/minecraftplayermanager.blueprint
     wget -q https://github.com/NotJishnuisback/Free123/raw/refs/heads/main/mcplugins.blueprint
     echo -e "${HIJAU}Blueprints berhasil diunduh.${RESET}"
 
