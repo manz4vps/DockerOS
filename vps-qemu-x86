@@ -135,12 +135,25 @@ EOF
 genisoimage -quiet -output "$SEED_ISO" -volid cidata -joliet -rock "$USER_DATA" "$META_DATA"
 
 # ==========================
-# 💾 Fake RAM
+# 💽 Buat Disk VM
 # ==========================
-BACKING="/tmp/${VM_NAME}.mem.fake"
-[ ! -f "$BACKING" ] && truncate -s 0 "$BACKING"
-MEM_OBJ="-object memory-backend-file,id=mem1,size=${REQUEST_MEM},mem-path=${BACKING},share=on,prealloc=off"
-NUMA_OPT="-numa node,memdev=mem1"
+if [ -f "$DISK_IMG" ]; then
+  read -p "⚠️ Disk image sudah ada. Mau ganti ke disk baru ($DISK_SIZE)? (y/n): " jawab
+  if [[ "$jawab" =~ ^[Yy]$ ]]; then
+    rm -f "$DISK_IMG"
+    info "Creating new disk with size ${DISK_SIZE}..."
+    qemu-img create -f qcow2 "$DISK_IMG" "$DISK_SIZE"
+    qemu-img resize debian11.qcow2 "$DISK_SIZE"
+    cp debian11.qcow2 "$DISK_IMG"
+  else
+    warn "Pakai disk lama (${DISK_IMG})."
+  fi
+else
+  info "Creating disk ${DISK_SIZE}..."
+  qemu-img create -f qcow2 "$DISK_IMG" "$DISK_SIZE"
+  qemu-img resize debian11.qcow2 "$DISK_SIZE"
+  cp debian11.qcow2 "$DISK_IMG"
+fi
 
 # ==========================
 # 🧠 CPU & KVM Check
