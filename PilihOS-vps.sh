@@ -33,17 +33,48 @@ clear
 # Menu utama
 while true; do
   echo -e "${BOLD}${CYAN}🚀 === MENU OS VPS ===${RESET}"
-  echo -e "${YELLOW}1)${RESET} 🧱 Buat OS VPS Baru"
-  echo -e "${YELLOW}2)${RESET} 🔍 Lihat Container Aktif"
-  echo -e "${YELLOW}3)${RESET} ⏹️  Stop Container"
-  echo -e "${YELLOW}4)${RESET} 🗑️  Hapus Container"
-  echo -e "${YELLOW}5)${RESET} 💻 Jalankan VPS"
-  echo -e "${YELLOW}6)${RESET} ❌ Keluar"
+  echo -e "${YELLOW}1)${RESET} 💻 Buat VPS QEMU x86"
+  echo -e "${YELLOW}2)${RESET} 🧱 Buat OS VPS Baru"
+  echo -e "${YELLOW}3)${RESET} 🔍 Lihat Container Aktif"
+  echo -e "${YELLOW}4)${RESET} ⏹️  Stop Container"
+  echo -e "${YELLOW}5)${RESET} 🗑️  Hapus Container"
+  echo -e "${YELLOW}6)${RESET} 💻 Jalankan VPS"
+  echo -e "${YELLOW}7)${RESET} ❌ Keluar"
   echo
-  read -rp "Pilih opsi (1-6): " MENU
+  read -rp "Pilih opsi (1-7): " MENU
 
   case "$MENU" in
     1)
+      clear
+      echo -e "${CYAN}🧠 Membuat VPS QEMU x86...${RESET}"
+      read -rp "Masukkan nama file VPS (contoh: qemu-x86.sh): " FILE_NAME
+      FILE_NAME="${FILE_NAME:-qemu-x86.sh}"
+
+      RAW_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-qemu-x86"
+
+      echo -e "${GREEN}📥 Mengunduh script QEMU dari GitHub...${RESET}"
+      curl -fsSL "$RAW_URL" -o "$FILE_NAME" || {
+        echo -e "${RED}❌ Gagal mengunduh script dari GitHub!${RESET}"
+        read -rp "Tekan [Enter] untuk kembali..."
+        continue
+      }
+
+      chmod +x "$FILE_NAME"
+      echo -e "${GREEN}✅ File ${FILE_NAME} berhasil diunduh & disiapkan!${RESET}"
+      echo -e "📂 Lokasi: ${CYAN}$PWD/${FILE_NAME}${RESET}"
+      echo
+
+      read -rp "🚀 Mau langsung jalankan sekarang? (y/n): " RUN_NOW
+      if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
+        echo -e "${GREEN}Menjalankan VPS QEMU...${RESET}"
+        sleep 1
+        bash "$FILE_NAME"
+      else
+        echo -e "${YELLOW}📁 File tersimpan. Jalankan nanti dengan: ${CYAN}bash ${FILE_NAME}${RESET}"
+      fi
+      ;;
+
+    2)
       clear
       echo -e "${BOLD}${CYAN}🧰 Pilih OS yang mau dijalankan:${RESET}"
       echo -e "${YELLOW}1)${RESET} Debian 11"
@@ -103,14 +134,14 @@ EOF
       fi
       ;;
 
-    2)
+    3)
       clear
       echo -e "${CYAN}🔍 Daftar container aktif:${RESET}"
       docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
       echo
       read -rp "Tekan [Enter] untuk kembali..." ;;
       
-    3)
+    4)
       clear
       docker ps --format "table {{.Names}}\t{{.Status}}"
       echo
@@ -120,7 +151,7 @@ EOF
       echo
       read -rp "Tekan [Enter] untuk kembali..." ;;
       
-    4)
+    5)
       clear
       docker ps -a --format "table {{.Names}}\t{{.Status}}"
       echo
@@ -130,7 +161,7 @@ EOF
       echo
       read -rp "Tekan [Enter] untuk kembali..." ;;
       
-    5)
+    6)
       clear
       echo -e "${CYAN}💻 Daftar file container (.sh) yang tersedia:${RESET}"
       ls -1 *.sh 2>/dev/null || echo "Belum ada file .sh"
@@ -149,7 +180,7 @@ EOF
       bash "$SCRIPT_NAME"
       ;;
 
-    6)
+    7)
       echo -e "${GREEN}👋 Keluar dari script. Sampai jumpa bro!${RESET}"
       exit 0
       ;;
