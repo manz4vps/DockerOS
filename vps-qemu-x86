@@ -115,7 +115,15 @@ chpasswd:
     root:root
   expire: False
 runcmd:
-  - [ sh, -c, "echo '🔥 Welcome bro! Debian 11 ready' > /etc/motd" ]
+  - [ bash, -c, "apt update -y && apt install -y bc" ]
+  - [ bash, -c, "echo '🔥 Welcome bro! Auto-login Debian 11 ready' > /etc/motd" ]
+  - [ bash, -c, "echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' >> /etc/motd" ]
+  - [ bash, -c, "disk_used=$(df -h / | awk 'NR==2{print $3}') && disk_total=$(df -h / | awk 'NR==2{print $2}') && disk_percent=$(df -h / | awk 'NR==2{print $5}') && echo \"💾 Disk Usage : ${disk_used} / ${disk_total} (${disk_percent})\" >> /etc/motd" ]
+  - [ bash, -c, "ram_used=$(free -h | awk '/Mem:/ {print $3}') && ram_total=$(free -h | awk '/Mem:/ {print $2}') && echo \"🧠 RAM Usage  : ${ram_used} / ${ram_total}\" >> /etc/motd" ]
+  - [ bash, -c, "cpu_model=$(awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo) && echo \"⚙️ CPU Model  : ${cpu_model}\" >> /etc/motd" ]
+  - [ bash, -c, "uptime_formatted=$(uptime -p | sed 's/^up //') && echo \"⏱️ Uptime     : ${uptime_formatted}\" >> /etc/motd" ]
+  - [ bash, -c, "ip_addr=$(hostname -I | awk '{print $1}') && echo \"🌐 IP Address  : ${ip_addr}\" >> /etc/motd" ]
+  - [ bash, -c, "echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' >> /etc/motd" ]
   - [ systemctl, enable, ssh ]
   - [ systemctl, restart, ssh ]
 EOF
