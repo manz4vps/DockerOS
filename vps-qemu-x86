@@ -23,17 +23,7 @@ err(){ echo -e "${RED}[ERR]${RESET} $*"; }
 # ==========================
 echo -e "${CYAN}=== 🔍 Checking and Installing Dependencies ===${RESET}"
 
-REQUIRED_PKGS=(
-  qemu-system-x86
-  qemu-utils
-  cloud-utils
-  genisoimage
-  unzip
-  openssh-server
-  git
-  sudo
-  net-tools
-)
+REQUIRED_PKGS=(qemu-system-x86 qemu-utils cloud-utils genisoimage unzip openssh-server git sudo net-tools)
 
 MISSING=()
 for pkg in "${REQUIRED_PKGS[@]}"; do
@@ -95,14 +85,14 @@ else
 fi
 
 # ==========================
-# 👤 Cloud-init (SSH Login)
+# 👤 Cloud-init (SSH Login + MOTD Keren)
 # ==========================
 info "Building cloud-init seed ISO with SSH password login..."
-cat > "$USER_DATA" <<EOF
+cat > "$USER_DATA" <<'EOF'
 #cloud-config
 users:
-  - name: debian
-    plain_text_passwd: debian
+  - name: root
+    plain_text_passwd: root
     groups: [sudo]
     shell: /bin/bash
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
@@ -110,19 +100,25 @@ ssh_pwauth: True
 disable_root: false
 chpasswd:
   list: |
-    debian:debian
     root:root
   expire: False
 runcmd:
   - [ bash, -c, "apt update -y && apt install -y bc" ]
-  - [ bash, -c, "echo '🔥 Welcome bro! Auto-login Debian 11 ready' > /etc/motd" ]
-  - [ bash, -c, "echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' >> /etc/motd" ]
-  - [ bash, -c, "disk_used=$(df -h / | awk 'NR==2{print \$3}') && disk_total=$(df -h / | awk 'NR==2{print \$2}') && disk_percent=$(df -h / | awk 'NR==2{print \$5}') && echo \"💾 Disk Usage : \${disk_used} / \${disk_total} (\${disk_percent})\" >> /etc/motd" ]
-  - [ bash, -c, "ram_used=$(free -h | awk '/Mem:/ {print \$3}') && ram_total=$(free -h | awk '/Mem:/ {print \$2}') && echo \"🧠 RAM Usage  : \${ram_used} / \${ram_total}\" >> /etc/motd" ]
-  - [ bash, -c, "cpu_model=$(awk -F': ' '/model name/ {print \$2; exit}' /proc/cpuinfo) && echo \"⚙️ CPU Model  : \${cpu_model}\" >> /etc/motd" ]
-  - [ bash, -c, "uptime_formatted=\$(uptime -p | sed 's/^up //') && echo \"⏱️ Uptime     : \${uptime_formatted}\" >> /etc/motd" ]
-  - [ bash, -c, "ip_addr=\$(hostname -I | awk '{print \$1}') && echo \"🌐 IP Address  : \${ip_addr}\" >> /etc/motd" ]
-  - [ bash, -c, "echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' >> /etc/motd" ]
+  - [ bash, -c, "{
+      CYAN='\\e[36m'; GREEN='\\e[32m'; RESET='\\e[0m';
+      DISK_USE=$(df -h / | awk 'NR==2{print $3\"/\"$2\" (\"$5\")\"}');
+      MEM_USED=$(free -h | awk '/Mem:/ {print $3}');
+      MEM_TOTAL=$(free -h | awk '/Mem:/ {print $2}');
+      CPU_MODEL=$(awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo);
+      CPU_CORE=$(nproc);
+      echo -e '🔥 Welcome bro! Auto-login Debian 11 ready' > /etc/motd;
+      echo -e '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' >> /etc/motd;
+      echo -e \"${CYAN}📊 Host Info:${RESET}\" >> /etc/motd;
+      echo -e \"🧠 RAM: ${GREEN}${MEM_USED}/${MEM_TOTAL}${RESET}\" >> /etc/motd;
+      echo -e \"💾 Disk: ${GREEN}${DISK_USE}${RESET}\" >> /etc/motd;
+      echo -e \"⚙️  CPU: ${GREEN}${CPU_MODEL} (${CPU_CORE} Core)${RESET}\" >> /etc/motd;
+      echo -e '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' >> /etc/motd;
+    }" ]
   - [ systemctl, enable, ssh ]
   - [ systemctl, restart, ssh ]
 EOF
@@ -135,24 +131,24 @@ EOF
 genisoimage -quiet -output "$SEED_ISO" -volid cidata -joliet -rock "$USER_DATA" "$META_DATA"
 
 # ==========================
-# 💽 Buat Disk VM
+# 🔌 Cari Port SSH Kosong (bukan 22/2222)
 # ==========================
-if [ -f "$DISK_IMG" ]; then
-  read -p "⚠️ Disk image sudah ada. Mau ganti ke disk baru ($DISK_SIZE)? (y/n): " jawab
-  if [[ "$jawab" =~ ^[Yy]$ ]]; then
-    rm -f "$DISK_IMG"
-    info "Creating new disk with size ${DISK_SIZE}..."
-    qemu-img create -f qcow2 "$DISK_IMG" "$DISK_SIZE"
-    qemu-img resize debian11.qcow2 "$DISK_SIZE"
-    cp debian11.qcow2 "$DISK_IMG"
-  else
-    warn "Pakai disk lama (${DISK_IMG})."
-  fi
-else
-  info "Creating disk ${DISK_SIZE}..."
-  qemu-img create -f qcow2 "$DISK_IMG" "$DISK_SIZE"
-  qemu-img resize debian11.qcow2 "$DISK_SIZE"
-  cp debian11.qcow2 "$DISK_IMG"
+find_free_port() {
+  local base=10023
+  local max=10100
+  for ((port=base; port<=max; port++)); do
+    if ! netstat -tuln | grep -q ":$port"; then
+      echo "$port"
+      return
+    fi
+  done
+  echo "0"
+}
+
+SSH_PORT=$(find_free_port)
+if [ "$SSH_PORT" == "0" ]; then
+  err "Gagal mencari port kosong untuk SSH!"
+  exit 1
 fi
 
 # ==========================
@@ -171,27 +167,6 @@ else
 fi
 
 # ==========================
-# 🔌 Cari Port SSH yang Kosong
-# ==========================
-find_free_port() {
-  local base=10022
-  local max=10100
-  for ((port=base; port<=max; port++)); do
-    if ! netstat -tuln | grep -q ":$port"; then
-      echo "$port"
-      return
-    fi
-  done
-  echo "0"
-}
-
-SSH_PORT=$(find_free_port)
-if [ "$SSH_PORT" == "0" ]; then
-  err "Gagal mencari port kosong untuk SSH!"
-  exit 1
-fi
-
-# ==========================
 # 🚀 Jalankan VM
 # ==========================
 info "Launching Debian 11 VM 🚀"
@@ -204,7 +179,6 @@ exec qemu-system-x86_64 \
   -name "$VM_NAME" \
   -smp cores=$REQUEST_CORES,threads=$REQUEST_THREADS,sockets=1,maxcpus=$TOTAL_VCPU \
   -m "$REQUEST_MEM" \
-  $MEM_OBJ $NUMA_OPT \
   -drive if=virtio,file="$DISK_IMG",format=qcow2 \
   -drive if=virtio,file="$SEED_ISO",format=raw \
   -netdev user,id=net0,hostfwd=tcp:127.0.0.1:${SSH_PORT}-:22 -device virtio-net-pci,netdev=net0 \
