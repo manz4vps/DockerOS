@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ==================================
+# 🧠 Auto sudo su kalau bukan root
+# ==================================
+if [ "$(id -u)" -ne 0 ]; then
+  echo -e "\e[33m[WARN]\e[0m Kamu belum root — menjalankan ulang pakai sudo su..."
+  exec sudo su -c "bash '$0'"
+  exit
+fi
+
+# ==========================
+# ⚙️  Warna + Fungsi Utility
+# ==========================
+GREEN='\e[32m'; YELLOW='\e[33m'; RED='\e[31m'; CYAN='\e[36m'; RESET='\e[0m'
+info(){ echo -e "${GREEN}[OK]${RESET} $*"; }
+warn(){ echo -e "${YELLOW}[WARN]${RESET} $*"; }
+err(){ echo -e "${RED}[ERR]${RESET} $*"; }
+
+# ==========================
+# 🧩 Auto Install Dependency
+# ==========================
+echo -e "${CYAN}=== 🔍 Checking and Installing Dependencies ===${RESET}"
+
+REQUIRED_PKGS=(
+  qemu-system-x86
+  qemu-utils
+  cloud-utils
+  genisoimage
+  unzip
+  openssh-server
+  git
+  sudo
+)
+
+MISSING=()
+for pkg in "${REQUIRED_PKGS[@]}"; do
+  if ! dpkg -s "$pkg" >/dev/null 2>&1; then
+    MISSING+=("$pkg")
+  fi
+done
+
+if [ "${#MISSING[@]}" -ne 0 ]; then
+  warn "Missing packages: ${MISSING[*]}"
+  info "Installing missing packages..."
+  sudo apt update -y
+  sudo apt install -y "${MISSING[@]}"
+else
+  info "All dependencies already installed."
+fi
+
+mkdir -p vms
+cd vms
+
+# ==========================
+# 🧠 Input Interaktif
+# ==========================
+echo -e "\n${CYAN}=== ⚙️  QEMU Auto VM Setup (Debian 11) ===${RESET}"
+read -p "🧠 Berapa RAM yang mau dipake (misal: 32G): " REQUEST_MEM
+read -p "🧩 Berapa jumlah core: " REQUEST_CORES
+read -p "🔁 Berapa thread per core: " REQUEST_THREADS
+read -p "💾 Ukuran disk (misal: 40G): " DISK_SIZE
+
+VM_NAME="auto-vm"
+DISK_IMG="disk.qcow2"
+DEBIAN_URL="https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-genericcloud-amd64.qcow2"
+USER_DATA="user-data"
+META_DATA="meta-data"
+SEED_ISO="seed.iso"
+
+TOTAL_VCPU=$(( REQUEST_CORES * REQUEST_THREADS ))
+
+# ==========================
+# 📦 Download Debian 11 Image
+# ==========================
+if [ ! -f "debian11.qcow2" ]; then
+  info "Downloading Debian 11 cloud image..."
+  wget -q --show-progress -O debian11.qcow2 "$DEBIAN_URL"
+else
+  info "Debian 11 cloud image already exists."
+fi
+
+# ==========================
+# 💽 Buat Disk VM
+# ==========================
+if [ ! -f "$DISK_IMG" ]; then
+  info "Creating ${DISK_SIZE} disk..."
+  qemu-img create -f qcow2 "$DISK_IMG" "$DISK_SIZE"
+  qemu-img resize debian11.qcow2 "$DISK_SIZE"
+  cp debian11.qcow2 "$DISK_IMG"
+else
+  warn "Disk image already exists — skipping creation."
+fi
+
+# ==========================
+# 👤 Cloud-init (SSH Login)
+# ==========================
+info "Building cloud-init seed ISO with SSH password login..."
+cat > "$USER_DATA" <<EOF
+#cloud-config
+users:
+  - name: debian
+    plain_text_passwd: debian
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+ssh_pwauth: True
+disable_root: false
+chpasswd:
+  list: |
+    debian:debian
+    root:root
+  expire: False
+runcmd:
+  - [ sh, -c, "echo '🔥 Welcome bro! Auto-login Debian 11 ready' > /etc/motd" ]
+  - [ systemctl, enable, ssh ]
+  - [ systemctl, restart, ssh ]
+EOF
+
+cat > "$META_DATA" <<EOF
+instance-id: iid-local01
+local-hostname: debian11
+EOF
+
+genisoimage -quiet -output "$SEED_ISO" -volid cidata -joliet -rock "$USER_DATA" "$META_DATA"
+
+# ==========================
+# 💾 Fake RAM
+# ==========================
+BACKING="/tmp/${VM_NAME}.mem.fake"
+[ ! -f "$BACKING" ] && truncate -s 0 "$BACKING"
+MEM_OBJ="-object memory-backend-file,id=mem1,size=${REQUEST_MEM},mem-path=${BACKING},share=on,prealloc=off"
+NUMA_OPT="-numa node,memdev=mem1"
+
+# ==========================
+# 🧠 CPU & KVM Check
+# ==========================
+HOST_CPUS=$(nproc --all 2>/dev/null || echo 1)
+if [ "$TOTAL_VCPU" -gt "$HOST_CPUS" ]; then
+  warn "Host cuma punya $HOST_CPUS core, tapi kamu minta $TOTAL_VCPU — tetap lanjut (virtual only)"
+fi
+
+if [ -e /dev/kvm ]; then
+  KVM_OPT="-enable-kvm -cpu host"
+else
+  warn "KVM tidak tersedia, pakai emulasi TCG (lebih lambat)"
+  KVM_OPT="-machine accel=tcg"
+fi
+
+# ==========================
+# 🚀 Jalankan VM
+# ==========================
+info "Launching Debian 11 VM 🚀"
+info "RAM: ${REQUEST_MEM}, Core: ${REQUEST_CORES}, Thread/Core: ${REQUEST_THREADS}, Disk: ${DISK_SIZE}"
+info "SSH Port: 10022 (bukan 22/2222)"
+sleep 1
+
+exec qemu-system-x86_64 \
+  $KVM_OPT \
+  -name "$VM_NAME" \
+  -smp cores=$REQUEST_CORES,threads=$REQUEST_THREADS,sockets=1,maxcpus=$TOTAL_VCPU \
+  -m "$REQUEST_MEM" \
+  $MEM_OBJ $NUMA_OPT \
+  -drive if=virtio,file="$DISK_IMG",format=qcow2 \
+  -drive if=virtio,file="$SEED_ISO",format=raw \
+  -netdev user,id=net0,hostfwd=tcp:10022-:22 -device virtio-net-pci,netdev=net0 \
+  -nographic -serial mon:stdio
