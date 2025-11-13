@@ -32,6 +32,8 @@ REQUIRED_PKGS=(
   openssh-server
   git
   sudo
+  net-tools
+  wget
 )
 
 MISSING=()
@@ -44,8 +46,8 @@ done
 if [ "${#MISSING[@]}" -ne 0 ]; then
   warn "Missing packages: ${MISSING[*]}"
   info "Installing missing packages..."
-  sudo apt update -y
-  sudo apt install -y "${MISSING[@]}"
+  apt update -y
+  apt install -y "${MISSING[@]}"
 else
   info "All dependencies already installed."
 fi
@@ -57,14 +59,15 @@ cd vms
 # 🧠 Input Interaktif
 # ==========================
 echo -e "\n${CYAN}=== ⚙️  QEMU Auto VM Setup (Debian 11) ===${RESET}"
-read -p "🧠 Berapa RAM yang mau dipake (misal: 32G): " REQUEST_MEM
+read -p "🧠 Berapa RAM yang mau dipake (misal: 4G): " REQUEST_MEM
 read -p "🧩 Berapa jumlah core: " REQUEST_CORES
 read -p "🔁 Berapa thread per core: " REQUEST_THREADS
-read -p "💾 Ukuran disk (misal: 40G): " DISK_SIZE
+read -p "💾 Ukuran disk (misal: 20G): " DISK_SIZE
 
 VM_NAME="auto-vm"
 DISK_IMG="disk.qcow2"
 DEBIAN_URL="https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-genericcloud-amd64.qcow2"
+BASE_IMG="debian11.qcow2"
 USER_DATA="user-data"
 META_DATA="meta-data"
 SEED_ISO="seed.iso"
@@ -72,23 +75,22 @@ SEED_ISO="seed.iso"
 TOTAL_VCPU=$(( REQUEST_CORES * REQUEST_THREADS ))
 
 # ==========================
-# 📦 Download Debian 11 Image
+# 📦 Download Debian 11 Image (Auto)
 # ==========================
-if [ ! -f "debian11.qcow2" ]; then
-  info "Downloading Debian 11 cloud image..."
-  wget -q --show-progress -O debian11.qcow2 "$DEBIAN_URL"
+if [ ! -f "$BASE_IMG" ]; then
+  info "Debian 11 base image not found — downloading..."
+  wget -q --show-progress -O "$BASE_IMG" "$DEBIAN_URL"
 else
-  info "Debian 11 cloud image already exists."
+  info "Debian 11 base image already exists."
 fi
 
 # ==========================
 # 💽 Buat Disk VM
 # ==========================
 if [ ! -f "$DISK_IMG" ]; then
-  info "Creating ${DISK_SIZE} disk..."
-  qemu-img create -f qcow2 "$DISK_IMG" "$DISK_SIZE"
-  qemu-img resize debian11.qcow2 "$DISK_SIZE"
-  cp debian11.qcow2 "$DISK_IMG"
+  info "Creating VM disk ($DISK_SIZE)..."
+  cp "$BASE_IMG" "$DISK_IMG"
+  qemu-img resize "$DISK_IMG" "$DISK_SIZE"
 else
   warn "Disk image already exists — skipping creation."
 fi
@@ -96,7 +98,7 @@ fi
 # ==========================
 # 👤 Cloud-init (SSH Login)
 # ==========================
-info "Building cloud-init seed ISO with SSH password login..."
+info "Generating cloud-init ISO..."
 cat > "$USER_DATA" <<EOF
 #cloud-config
 users:
@@ -113,7 +115,7 @@ chpasswd:
     root:root
   expire: False
 runcmd:
-  - [ sh, -c, "echo '🔥 Welcome bro! Auto-login Debian 11 ready' > /etc/motd" ]
+  - [ sh, -c, "echo '🔥 Welcome bro! Debian 11 ready' > /etc/motd" ]
   - [ systemctl, enable, ssh ]
   - [ systemctl, restart, ssh ]
 EOF
@@ -138,22 +140,43 @@ NUMA_OPT="-numa node,memdev=mem1"
 # ==========================
 HOST_CPUS=$(nproc --all 2>/dev/null || echo 1)
 if [ "$TOTAL_VCPU" -gt "$HOST_CPUS" ]; then
-  warn "Host cuma punya $HOST_CPUS core, tapi kamu minta $TOTAL_VCPU — tetap lanjut (virtual only)"
+  warn "Host cuma punya $HOST_CPUS core, tapi kamu minta $TOTAL_VCPU — lanjut aja (virtual only)"
 fi
 
 if [ -e /dev/kvm ]; then
   KVM_OPT="-enable-kvm -cpu host"
 else
-  warn "KVM tidak tersedia, pakai emulasi TCG (lebih lambat)"
+  warn "⚠️ KVM tidak tersedia — pakai emulasi TCG (lebih lambat)"
   KVM_OPT="-machine accel=tcg"
+fi
+
+# ==========================
+# 🔌 Cari Port SSH Kosong Otomatis
+# ==========================
+find_free_port() {
+  local base=10022
+  local max=10100
+  for ((port=base; port<=max; port++)); do
+    if ! netstat -tuln | grep -q ":$port"; then
+      echo "$port"
+      return
+    fi
+  done
+  echo "0"
+}
+
+SSH_PORT=$(find_free_port)
+if [ "$SSH_PORT" == "0" ]; then
+  err "Gagal mencari port kosong untuk SSH!"
+  exit 1
 fi
 
 # ==========================
 # 🚀 Jalankan VM
 # ==========================
-info "Launching Debian 11 VM 🚀"
-info "RAM: ${REQUEST_MEM}, Core: ${REQUEST_CORES}, Thread/Core: ${REQUEST_THREADS}, Disk: ${DISK_SIZE}"
-info "SSH Port: 10022 (bukan 22/2222)"
+info "🚀 Menjalankan Debian 11 VM..."
+info "RAM: ${REQUEST_MEM}, Core: ${REQUEST_CORES}, Threads/Core: ${REQUEST_THREADS}, Disk: ${DISK_SIZE}"
+info "SSH Port: ${SSH_PORT}"
 sleep 1
 
 exec qemu-system-x86_64 \
@@ -164,5 +187,5 @@ exec qemu-system-x86_64 \
   $MEM_OBJ $NUMA_OPT \
   -drive if=virtio,file="$DISK_IMG",format=qcow2 \
   -drive if=virtio,file="$SEED_ISO",format=raw \
-  -netdev user,id=net0,hostfwd=tcp:10022-:22 -device virtio-net-pci,netdev=net0 \
+  -netdev user,id=net0,hostfwd=tcp:127.0.0.1:${SSH_PORT}-:22 -device virtio-net-pci,netdev=net0 \
   -nographic -serial mon:stdio
