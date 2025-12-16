@@ -1,13 +1,14 @@
 #!/bin/bash  
 
-# Warna (FIX: pakai \033 biar kebaca di cat)
-MERAH="\033[31m"
-HIJAU="\033[32m"
-KUNING="\033[33m"
-BIRU="\033[36m"
-PUTIH="\033[37m"
-RESET="\033[0m"
-TEBAL="\033[1m"
+Warna
+
+MERAH="\e[31m"
+HIJAU="\e[32m"
+KUNING="\e[33m"
+BIRU="\e[36m"
+PUTIH="\e[37m"
+RESET="\e[0m"
+TEBAL="\e[1m"
 
 # Banner
 banner() {
