@@ -127,8 +127,8 @@ install_cloudflared() {
 
 # === MENU UTAMA ===
 tampilkan_menu() {
-banner
-menu_content=$(cat <<EOF
+        banner
+        menu_content=$(cat <<EOF
 ${TEBAL}========== MENU UTAMA ===========${RESET}
 ${TEBAL}1.${RESET} 🧩 Panel
 ${TEBAL}2.${RESET} 🪶 Wings
