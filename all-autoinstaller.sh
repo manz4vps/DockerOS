@@ -96,15 +96,39 @@ install_addon_panel() {
 # === CLOUDFARED INSTALL ===
 install_cloudflared() {
     banner
-    echo "1. Tunnel Manz"
-    echo "2. Tunnel Dinz"
-    echo "3. Kembali"
-    read -p "Pilih: " p
-    case $p in
-        1) cloudflared service install TOKEN_MANZ ;;
-        2) cloudflared service install TOKEN_DINZ ;;
+    echo -e "${TEBAL}=== PILIH TUNNEL CLOUDFLARED ===${RESET}"
+    echo -e "1. Tunnel Manz"
+    echo -e "2. Tunnel Dinz"
+    echo -e "3. Kembali"
+    echo -ne "${TEBAL}Pilih tunnel [1-3]: ${RESET}"
+    read -r pilih_tunnel
+
+    # CEK CLOUDFLARED SAJA (TANPA INSTALL)
+    if ! command -v cloudflared &>/dev/null; then
+        echo -e "${MERAH}${TEBAL}Cloudflared belum terpasang!${RESET}"
+        echo -e "${KUNING}Silakan install lewat menu 6 terlebih dahulu.${RESET}"
+        read -p "Tekan Enter..."
+        return
+    fi
+
+    case $pilih_tunnel in
+        1)
+            echo -e "${KUNING}Menginstall Cloudflared Tunnel Manz...${RESET}"
+            sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiNDlkMTgwNWEtODc2MS00MWRiLWI1ZTYtYTEyZGJiMWQ4N2U0IiwicyI6Ik0ySXhNbUUyWm1VdE1UWXhNUzAwTWprMExXSmtOVGN0TVdNeU9HTm1PREJrT0RReCJ9
+            ;;
+        2)
+            echo -e "${KUNING}Menginstall Cloudflared Tunnel Dinz...${RESET}"
+            sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiOThlNjIyNTEtNzUxNS00MjIyLWEyZTQtMzAxNWFhMzg4NmI2IiwicyI6IllqQXpOREUzWVRBdE5HSmlNeTAwTkdGaUxXSTVPVGt0TVdKaU56SXlPVEl6WW1NNSJ9
+            ;;
+        3)
+            return
+            ;;
+        *)
+            echo -e "${MERAH}Pilihan tidak valid!${RESET}"
+            ;;
     esac
-    read -p "Enter..."
+
+    read -p "Tekan Enter untuk kembali ke menu utama..."
 }
 
 # === MENU UTAMA (FIX WARNA + CURL SAFE) ===
