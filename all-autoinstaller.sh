@@ -1,6 +1,6 @@
 #!/bin/bash  
 
-# Warna
+#Warna
 
 MERAH="\e[31m"
 HIJAU="\e[32m"
