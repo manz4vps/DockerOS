@@ -69,6 +69,42 @@ jalankan_script() {
     read -p "Tekan Enter untuk kembali ke menu utama..."
 }
 
+# === INSTALL ADDON PANEL (8 BLUEPRINT) ===
+install_addon_panel() {
+    banner
+    echo -e "${TEBAL}=== INSTALL ADDON PANEL (8 ADDON) ===${RESET}"
+
+    cek_curl
+    cd /var/www/pterodactyl || { echo -e "${MERAH}Folder tidak ditemukan!${RESET}"; return; }
+
+    addons=(
+        "mcplugins.blueprint"
+        "minecraftplayermanager.blueprint"
+        "loader.blueprint"
+        "serverbackgrounds.blueprint"
+        "simplefavicons.blueprint"
+        "startupchanger.blueprint"
+        "subdomains.blueprint"
+        "versionchanger.blueprint"
+    )
+
+    for addon in "${addons[@]}"; do
+        echo -e "${KUNING}Mengunduh $addon...${RESET}"
+        wget -q "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/$addon"
+
+        if [ -f "$addon" ]; then
+            echo -e "${BIRU}Menginstall $addon...${RESET}"
+            blueprint -i "$addon" && echo -e "${HIJAU}✓ $addon berhasil diinstal${RESET}"
+        else
+            echo -e "${MERAH}✗ Gagal mengunduh $addon${RESET}"
+        fi
+        echo
+    done
+
+    echo -e "${HIJAU}${TEBAL}Semua addon berhasil diproses.${RESET}"
+    read -p "Tekan Enter untuk kembali ke menu utama..."
+}
+
 # === CLOUDFARED INSTALL ===
 install_cloudflared() {
     banner
@@ -81,92 +117,21 @@ install_cloudflared() {
 
     case $pilih_tunnel in
         1)
-            echo -e "${KUNING}Menginstall Cloudflared Tunnel Manz...${RESET}"
-            sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiNDlkMTgwNWEtODc2MS00MWRiLWI1ZTYtYTEyZGJiMWQ4N2U0IiwicyI6Ik0ySXhNbUUyWm1VdE1UWXhNUzAwTWprMExXSmtOVGN0TVdNeU9HTm1PREJrT0RReCJ9
+            sudo cloudflared service install TOKEN_MANZ
             ;;
         2)
-            echo -e "${KUNING}Menginstall Cloudflared Tunnel Dinz...${RESET}"
-            sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiOThlNjIyNTEtNzUxNS00MjIyLWEyZTQtMzAxNWFhMzg4NmI2IiwicyI6IllqQXpOREUzWVRBdE5HSmlNeTAwTkdGaUxXSTVPVGt0TVdKaU56SXlPVEl6WW1NNSJ9
+            sudo cloudflared service install TOKEN_DINZ
             ;;
-        3)
-            echo "Kembali ke menu utama..."
-            ;;
-        *)
-            echo -e "${MERAH}Pilihan tidak valid!${RESET}"
-            ;;
+        3) ;;
+        *) echo -e "${MERAH}Pilihan tidak valid!${RESET}" ;;
     esac
-    echo
-    read -p "Tekan Enter untuk kembali ke menu utama..."
-}
-
-# === INSTALL PLAYIT ===
-install_playit() {
-    banner
-    echo -e "${BIRU}${TEBAL}🎮 Menginstall Playit...${RESET}"
-    cek_curl
-    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit)
-    echo
-    read -p "Tekan Enter untuk kembali ke menu utama..."
-}
-
-# === PASANG THEME (NEBULA + EUPHORIA) ===
-pasang_tema() {
-    banner
-    echo -e "${TEBAL}=== PILIH THEME PANEL ===${RESET}"
-    echo -e "1. 🌌 Nebula Theme"
-    echo -e "2. 🎨 Euphoria Theme"
-    echo -e "3. Kembali"
-    echo -ne "${TEBAL}Pilih theme [1-3]: ${RESET}"
-    read -r pilih_theme
-
-    case $pilih_theme in
-        1)
-            echo -e "${KUNING}Menginstall Nebula Theme...${RESET}"
-            jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/change%20theme.sh"
-            ;;
-        2)
-            echo -e "${KUNING}Menginstall Euphoria Theme...${RESET}"
-            cd /var/www/pterodactyl || { echo "Folder tidak ditemukan!"; return; }
-            wget -q https://github.com/manz4vps/DockerOS/raw/refs/heads/main/euphoriatheme.blueprint
-            blueprint -i euphoriatheme.blueprint
-            echo -e "${HIJAU}Euphoria Theme berhasil diinstal!${RESET}"
-            ;;
-        3)
-            echo "Kembali ke menu utama..."
-            ;;
-        *)
-            echo -e "${MERAH}Pilihan tidak valid!${RESET}"
-            ;;
-    esac
-    read -p "Tekan Enter untuk kembali ke menu utama..."
-}
-
-# === INSTALL BLUEPRINT: MINECRAFT PLAYER MANAGER ===
-install_blueprint_minecraft() {
-    banner
-    echo -e "${TEBAL}=== INSTALL MINECRAFT PLAYER MANAGER ===${RESET}"
-
-    cek_curl
-    echo -e "${KUNING}Mengunduh blueprint...${RESET}"
-    cd /var/www/pterodactyl || { echo "Folder tidak ditemukan!"; return; }
-
-    wget -q https://github.com/manz4vps/DockerOS/raw/refs/heads/main/minecraftplayermanager.blueprint
-    wget -q https://github.com/manz4vps/DockerOS/raw/refs/heads/main/mcplugins.blueprint
-    echo -e "${HIJAU}Blueprints berhasil diunduh.${RESET}"
-
-    echo -e "${KUNING}Menginstall mcplugins.blueprint...${RESET}"
-    blueprint -i mcplugins.blueprint && echo -e "${HIJAU}mcplugins terpasang.${RESET}"
-
-    echo -e "${KUNING}Menginstall minecraftplayermanager.blueprint...${RESET}"
-    blueprint -i minecraftplayermanager.blueprint && echo -e "${HIJAU}Minecraft Player Manager terpasang.${RESET}"
-
     read -p "Tekan Enter untuk kembali ke menu utama..."
 }
 
 # === MENU UTAMA ===
 tampilkan_menu() {
     banner
-    menu_content=$(cat <<EOF
+    cat <<EOF
 ${TEBAL}========== MENU UTAMA ===========${RESET}
 ${TEBAL}1.${RESET} 🧩 Panel
 ${TEBAL}2.${RESET} 🪶 Wings
@@ -174,14 +139,12 @@ ${TEBAL}3.${RESET} 🛠️ Install Playit
 ${TEBAL}4.${RESET} 🖥️ Playit Run 24/7
 ${TEBAL}5.${RESET} 🧱 Blueprint
 ${TEBAL}6.${RESET} ☁️  Cloudflare (raw script)
-${TEBAL}7.${RESET} 🎨 Pasang Tema (Nebula/Euphoria)
+${TEBAL}7.${RESET} 🎨 Pasang Tema
 ${TEBAL}8.${RESET} 🔒 Cloudflared Tunnel
-${TEBAL}9.${RESET} 🎮 Minecraft Player Manager
+${TEBAL}9.${RESET} 🧩 Install Addon
 ${TEBAL}10.${RESET} 🚪 Keluar
 ${TEBAL}=================================${RESET}
 EOF
-)
-    echo -e "${BIRU}${menu_content}${RESET}"
     echo -ne "${TEBAL}Masukkan pilihan [1-10]: ${RESET}"
 }
 
@@ -198,8 +161,8 @@ while true; do
         6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
         7) pasang_tema ;;
         8) install_cloudflared ;;
-        9) install_blueprint_minecraft ;;
+        9) install_addon_panel ;;
         10) echo -e "${HIJAU}👋 Keluar...${RESET}"; exit 0 ;;
-        *) echo -e "${MERAH}${TEBAL}Pilihan tidak valid!${RESET}"; read -p "Tekan Enter untuk kembali..." ;;
+        *) echo -e "${MERAH}Pilihan tidak valid!${RESET}"; read -p "Tekan Enter..." ;;
     esac
 done
