@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash  
 
-# ===== WARNA (AMAN CURL PIPE) =====
+# Warna
 MERAH="\033[31m"
 HIJAU="\033[32m"
 KUNING="\033[33m"
@@ -9,7 +9,7 @@ PUTIH="\033[37m"
 RESET="\033[0m"
 TEBAL="\033[1m"
 
-# ===== BANNER =====
+# Banner
 banner() {
     clear
     echo -e "${BIRU}${TEBAL}"
@@ -20,32 +20,59 @@ banner() {
     echo -e "${RESET}"
 }
 
-# ===== CEK CURL =====
+# Cek curl
 cek_curl() {
-    if ! command -v curl >/dev/null 2>&1; then
-        echo -e "${KUNING}Menginstall curl...${RESET}"
-        apt-get update && apt-get install -y curl
+    if ! command -v curl &>/dev/null; then
+        echo -e "${MERAH}${TEBAL}Error: curl belum terpasang.${RESET}"
+        if command -v apt-get &>/dev/null; then
+            apt-get update && apt-get install -y curl
+        elif command -v yum &>/dev/null; then
+            yum install -y curl
+        elif command -v dnf &>/dev/null; then
+            dnf install -y curl
+        else
+            echo -e "${MERAH}Gagal install curl.${RESET}"
+            exit 1
+        fi
     fi
 }
 
-# ===== JALANKAN SCRIPT URL =====
+# Jalankan script dari URL
 jalankan_script() {
-    local url="$1"
+    local url=$1
     cek_curl
     bash <(curl -fsSL "$url")
-    read -p "Tekan Enter untuk kembali ke menu..."
+    read -p "Tekan Enter untuk kembali ke menu utama..."
 }
 
-# ===== INSTALL ADDON PANEL (8) =====
+# === INSTALL PLAYIT ===
+install_playit() {
+    jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh"
+}
+
+# === PASANG TEMA ===
+pasang_tema() {
+    banner
+    echo "1. Nebula Theme"
+    echo "2. Euphoria Theme"
+    echo "3. Kembali"
+    read -p "Pilih: " t
+    case $t in
+        1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/change%20theme.sh" ;;
+        2)
+            cd /var/www/pterodactyl || return
+            curl -fsSLO https://github.com/manz4vps/DockerOS/raw/refs/heads/main/euphoriatheme.blueprint
+            blueprint -i euphoriatheme.blueprint
+            ;;
+    esac
+    read -p "Enter..."
+}
+
+# === INSTALL ADDON PANEL (8 BLUEPRINT) ===
 install_addon_panel() {
     banner
-    echo -e "${TEBAL}INSTALL ADDON PANEL (8 BLUEPRINT)${RESET}"
-
-    cd /var/www/pterodactyl || {
-        echo -e "${MERAH}Folder Pterodactyl tidak ditemukan!${RESET}"
-        read -p "Enter..."
-        return
-    }
+    echo -e "${TEBAL}=== INSTALL ADDON PANEL (8 ADDON) ===${RESET}"
+    cd /var/www/pterodactyl || return
 
     addons=(
         mcplugins.blueprint
@@ -59,31 +86,28 @@ install_addon_panel() {
     )
 
     for addon in "${addons[@]}"; do
-        echo -e "${KUNING}→ $addon${RESET}"
-        wget -q "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/$addon"
+        curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/$addon"
         blueprint -i "$addon"
     done
 
-    echo -e "${HIJAU}Semua addon selesai.${RESET}"
     read -p "Tekan Enter..."
 }
 
-# ===== CLOUDFLARED =====
+# === CLOUDFARED INSTALL ===
 install_cloudflared() {
     banner
     echo "1. Tunnel Manz"
     echo "2. Tunnel Dinz"
     echo "3. Kembali"
-    read -p "Pilih: " pilih
-
-    case $pilih in
+    read -p "Pilih: " p
+    case $p in
         1) cloudflared service install TOKEN_MANZ ;;
         2) cloudflared service install TOKEN_DINZ ;;
     esac
-
     read -p "Enter..."
 }
 
+# === MENU UTAMA (FIX WARNA + CURL SAFE) ===
 tampilkan_menu() {
     banner
     printf "%b\n" \
@@ -96,25 +120,26 @@ tampilkan_menu() {
 "${TEBAL}6.${RESET} ☁️  Cloudflare (raw script)" \
 "${TEBAL}7.${RESET} 🎨 Pasang Tema" \
 "${TEBAL}8.${RESET} 🔒 Cloudflared Tunnel" \
-"${TEBAL}9.${RESET} 🧩 Install Addon (8)" \
+"${TEBAL}9.${RESET} 🧩 Install Addon" \
 "${TEBAL}10.${RESET} 🚪 Keluar" \
-"${TEBAL}==============================${RESET}"
+"${TEBAL}================================${RESET}"
     echo -ne "${TEBAL}Masukkan pilihan [1-10]: ${RESET}"
 }
 
-# ===== LOOP =====
+# === LOOP UTAMA ===
 while true; do
     tampilkan_menu
-    read pilih
-    case $pilih in
-        1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/main/panel.sh" ;;
-        2) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/main/wings.sh" ;;
-        3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/main/playitInstaller.sh" ;;
-        4) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/main/blueprint.sh" ;;
-        5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/main/cloudflare.sh" ;;
-        6) install_cloudflared ;;
-        7) install_addon_panel ;;
-        8) exit 0 ;;
-        *) echo "Pilihan salah"; sleep 1 ;;
+    read -r pilihan
+    case $pilihan in
+        1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
+        2) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
+        3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
+        4) install_playit ;;
+        5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
+        6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
+        7) pasang_tema ;;
+        8) install_cloudflared ;;
+        9) install_addon_panel ;;
+        10) exit 0 ;;
     esac
 done
