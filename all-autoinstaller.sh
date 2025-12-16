@@ -1,16 +1,15 @@
-#!/bin/bash  
+#!/bin/bash
 
-# warna
+# ===== WARNA (AMAN CURL PIPE) =====
+MERAH="\033[31m"
+HIJAU="\033[32m"
+KUNING="\033[33m"
+BIRU="\033[36m"
+PUTIH="\033[37m"
+RESET="\033[0m"
+TEBAL="\033[1m"
 
-MERAH="\e[31m"
-HIJAU="\e[32m"
-KUNING="\e[33m"
-BIRU="\e[36m"
-PUTIH="\e[37m"
-RESET="\e[0m"
-TEBAL="\e[1m"
-
-# Banner
+# ===== BANNER =====
 banner() {
     clear
     echo -e "${BIRU}${TEBAL}"
@@ -21,145 +20,101 @@ banner() {
     echo -e "${RESET}"
 }
 
-# Cek curl
+# ===== CEK CURL =====
 cek_curl() {
-    if ! command -v curl &>/dev/null; then
-        echo -e "${MERAH}${TEBAL}Error: curl belum terpasang.${RESET}"
+    if ! command -v curl >/dev/null 2>&1; then
         echo -e "${KUNING}Menginstall curl...${RESET}"
-        if command -v apt-get &>/dev/null; then
-            sudo apt-get update && sudo apt-get install -y curl
-        elif command -v yum &>/dev/null; then
-            sudo yum install -y curl
-        elif command -v dnf &>/dev/null; then
-            sudo dnf install -y curl
-        else
-            echo -e "${MERAH}Gagal menginstall curl otomatis.${RESET}"
-            exit 1
-        fi
-        echo -e "${HIJAU}curl berhasil dipasang!${RESET}"
+        apt-get update && apt-get install -y curl
     fi
 }
 
-# Jalankan script dari URL
+# ===== JALANKAN SCRIPT URL =====
 jalankan_script() {
-    local url=$1
-    local nama_script=$(basename "$url" .sh)
-    nama_script=$(echo "$nama_script" | sed 's/.*/\u&/')
-
-    echo -e "${KUNING}${TEBAL}Menjalankan: ${BIRU}${nama_script}${RESET}"
+    local url="$1"
     cek_curl
-
-    local temp_script=$(mktemp)
-    echo -e "${KUNING}Mengunduh script...${RESET}"
-
-    if curl -fsSL "$url" -o "$temp_script"; then
-        echo -e "${HIJAU}✓ Unduhan berhasil${RESET}"
-        chmod +x "$temp_script"
-        bash "$temp_script"
-        local kode=$?
-        rm -f "$temp_script"
-        if [ $kode -eq 0 ]; then
-            echo -e "${HIJAU}✅ Script berhasil dijalankan${RESET}"
-        else
-            echo -e "${MERAH}✗ Script gagal dijalankan (kode $kode)${RESET}"
-        fi
-    else
-        echo -e "${MERAH}✗ Gagal mengunduh script${RESET}"
-    fi
-    echo
-    read -p "Tekan Enter untuk kembali ke menu utama..."
+    bash <(curl -fsSL "$url")
+    read -p "Tekan Enter untuk kembali ke menu..."
 }
 
-# === INSTALL ADDON PANEL (8 BLUEPRINT) ===
+# ===== INSTALL ADDON PANEL (8) =====
 install_addon_panel() {
     banner
-    echo -e "${TEBAL}=== INSTALL ADDON PANEL (8 ADDON) ===${RESET}"
+    echo -e "${TEBAL}INSTALL ADDON PANEL (8 BLUEPRINT)${RESET}"
 
-    cek_curl
-    cd /var/www/pterodactyl || { echo -e "${MERAH}Folder tidak ditemukan!${RESET}"; return; }
+    cd /var/www/pterodactyl || {
+        echo -e "${MERAH}Folder Pterodactyl tidak ditemukan!${RESET}"
+        read -p "Enter..."
+        return
+    }
 
     addons=(
-        "mcplugins.blueprint"
-        "minecraftplayermanager.blueprint"
-        "loader.blueprint"
-        "serverbackgrounds.blueprint"
-        "simplefavicons.blueprint"
-        "startupchanger.blueprint"
-        "subdomains.blueprint"
-        "versionchanger.blueprint"
+        mcplugins.blueprint
+        minecraftplayermanager.blueprint
+        loader.blueprint
+        serverbackgrounds.blueprint
+        simplefavicons.blueprint
+        startupchanger.blueprint
+        subdomains.blueprint
+        versionchanger.blueprint
     )
 
     for addon in "${addons[@]}"; do
-        echo -e "${KUNING}Mengunduh $addon...${RESET}"
+        echo -e "${KUNING}→ $addon${RESET}"
         wget -q "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/$addon"
-
-        if [ -f "$addon" ]; then
-            echo -e "${BIRU}Menginstall $addon...${RESET}"
-            blueprint -i "$addon" && echo -e "${HIJAU}✓ $addon berhasil diinstal${RESET}"
-        else
-            echo -e "${MERAH}✗ Gagal mengunduh $addon${RESET}"
-        fi
-        echo
+        blueprint -i "$addon"
     done
 
-    echo -e "${HIJAU}${TEBAL}Semua addon berhasil diproses.${RESET}"
-    read -p "Tekan Enter untuk kembali ke menu utama..."
+    echo -e "${HIJAU}Semua addon selesai.${RESET}"
+    read -p "Tekan Enter..."
 }
 
-# === CLOUDFARED INSTALL ===
+# ===== CLOUDFLARED =====
 install_cloudflared() {
     banner
-    echo -e "${TEBAL}=== PILIH TUNNEL CLOUDFLARED ===${RESET}"
-    echo -e "1. Tunnel Manz"
-    echo -e "2. Tunnel Dinz"
-    echo -e "3. Kembali"
-    echo -ne "${TEBAL}Pilih tunnel [1-3]: ${RESET}"
-    read -r pilih_tunnel
+    echo "1. Tunnel Manz"
+    echo "2. Tunnel Dinz"
+    echo "3. Kembali"
+    read -p "Pilih: " pilih
 
-    case $pilih_tunnel in
-        1) sudo cloudflared service install TOKEN_MANZ ;;
-        2) sudo cloudflared service install TOKEN_DINZ ;;
-        3) ;;
-        *) echo -e "${MERAH}Pilihan tidak valid!${RESET}" ;;
+    case $pilih in
+        1) cloudflared service install TOKEN_MANZ ;;
+        2) cloudflared service install TOKEN_DINZ ;;
     esac
-    read -p "Tekan Enter untuk kembali ke menu utama..."
+
+    read -p "Enter..."
 }
 
-# === MENU UTAMA ===
 tampilkan_menu() {
     banner
-    menu_content=$(cat <<EOF
-${TEBAL}========== MENU UTAMA ===========${RESET}
-${TEBAL}1.${RESET} 🧩 Panel
-${TEBAL}2.${RESET} 🪶 Wings
-${TEBAL}3.${RESET} 🛠️ Install Playit
-${TEBAL}4.${RESET} 🖥️ Playit Run 24/7
-${TEBAL}5.${RESET} 🧱 Blueprint
-${TEBAL}6.${RESET} ☁️  Cloudflare (raw script)
-${TEBAL}7.${RESET} 🎨 Pasang Tema
-${TEBAL}8.${RESET} 🔒 Cloudflared Tunnel
-${TEBAL}9.${RESET} 🧩 Install Addon
-${TEBAL}10.${RESET} 🚪 Keluar
-${TEBAL}=================================${RESET}
-EOF
+    printf "%b\n" \
+"${TEBAL}========== MENU UTAMA ==========${RESET}" \
+"${TEBAL}1.${RESET} 🧩 Panel" \
+"${TEBAL}2.${RESET} 🪶 Wings" \
+"${TEBAL}3.${RESET} 🛠️ Install Playit" \
+"${TEBAL}4.${RESET} 🖥️ Playit Run 24/7" \
+"${TEBAL}5.${RESET} 🧱 Blueprint" \
+"${TEBAL}6.${RESET} ☁️  Cloudflare (raw script)" \
+"${TEBAL}7.${RESET} 🎨 Pasang Tema" \
+"${TEBAL}8.${RESET} 🔒 Cloudflared Tunnel" \
+"${TEBAL}9.${RESET} 🧩 Install Addon (8)" \
+"${TEBAL}10.${RESET} 🚪 Keluar" \
+"${TEBAL}==============================${RESET}"
     echo -ne "${TEBAL}Masukkan pilihan [1-10]: ${RESET}"
 }
 
-# === LOOP UTAMA ===
+# ===== LOOP =====
 while true; do
     tampilkan_menu
-    read -r pilihan
-    case $pilihan in
-        1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
-        2) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
-        3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
-        4) install_playit ;;
-        5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
-        6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
-        7) pasang_tema ;;
-        8) install_cloudflared ;;
-        9) install_addon_panel ;;
-        10) echo -e "${HIJAU}👋 Keluar...${RESET}"; exit 0 ;;
-        *) echo -e "${MERAH}Pilihan tidak valid!${RESET}"; read -p "Tekan Enter..." ;;
+    read pilih
+    case $pilih in
+        1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/main/panel.sh" ;;
+        2) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/main/wings.sh" ;;
+        3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/main/playitInstaller.sh" ;;
+        4) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/main/blueprint.sh" ;;
+        5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/main/cloudflare.sh" ;;
+        6) install_cloudflared ;;
+        7) install_addon_panel ;;
+        8) exit 0 ;;
+        *) echo "Pilihan salah"; sleep 1 ;;
     esac
 done
