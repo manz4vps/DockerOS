@@ -1,13 +1,13 @@
 #!/bin/bash  
 
-# Warna
-MERAH="\e[31m"
-HIJAU="\e[32m"
-KUNING="\e[33m"
-BIRU="\e[36m"
-PUTIH="\e[37m"
-RESET="\e[0m"
-TEBAL="\e[1m"
+# Warna (FIX: pakai \033 biar kebaca di cat)
+MERAH="\033[31m"
+HIJAU="\033[32m"
+KUNING="\033[33m"
+BIRU="\033[36m"
+PUTIH="\033[37m"
+RESET="\033[0m"
+TEBAL="\033[1m"
 
 # Banner
 banner() {
@@ -116,12 +116,8 @@ install_cloudflared() {
     read -r pilih_tunnel
 
     case $pilih_tunnel in
-        1)
-            sudo cloudflared service install TOKEN_MANZ
-            ;;
-        2)
-            sudo cloudflared service install TOKEN_DINZ
-            ;;
+        1) sudo cloudflared service install TOKEN_MANZ ;;
+        2) sudo cloudflared service install TOKEN_DINZ ;;
         3) ;;
         *) echo -e "${MERAH}Pilihan tidak valid!${RESET}" ;;
     esac
