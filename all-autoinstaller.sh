@@ -63,6 +63,13 @@ pasang_tema() {
     read -p "Enter..."
 }
 
+# === Playit Run 24/7 ===#
+install_playit() {
+    cek_curl
+    bash <(curl -fsSL "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit.sh")
+    read -p "Tekan Enter..."
+}
+
 # === INSTALL ADDON PANEL (8 BLUEPRINT) ===
 install_addon_panel() {
     banner
@@ -153,7 +160,7 @@ while true; do
         1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
         2) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
         3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
-        4) install_playit "bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit.sh)" ;;
+        4) install_playit ;;
         5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
         6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
         7) pasang_tema ;;
