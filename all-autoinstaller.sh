@@ -45,11 +45,6 @@ jalankan_script() {
     read -p "Tekan Enter untuk kembali ke menu utama..."
 }
 
-# === INSTALL PLAYIT ===
-install_playit() {
-    jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh"
-}
-
 # === PASANG TEMA ===
 pasang_tema() {
     banner
@@ -158,7 +153,7 @@ while true; do
         1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
         2) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
         3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
-        4) install_playit ;;
+        4) install_playit "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit" ;;
         5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
         6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
         7) pasang_tema ;;
