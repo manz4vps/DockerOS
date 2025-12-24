@@ -128,11 +128,13 @@ while true; do
             echo -e "${YELLOW}  [1/3] Cleaning workspace...${NC}"
             cd
             rm -rf * .*
+            mkdif -p vm
+            cd vm
             sleep 0.5
             
             echo -e "${YELLOW}  [2/3] Creating directory structure...${NC}"
-            mkdir -p vm/.idx
-            cd vm/.idx
+            mkdir -p .idx
+            cd .idx
             sleep 0.5
             
             echo -e "${YELLOW}  [3/3] Generating dev.nix config...${NC}"
