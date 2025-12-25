@@ -15,6 +15,12 @@ Semua sudah dirapikan supaya gampang copy-paste dan cepat dipakai di VPS.
 
 ## 🛠️ Installation
 
+1. **Install OS di VPS:**
+
+    ```sh
+    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-idx.sh)
+    ```
+
 5. **Install OS di VPS:**
 
     ```sh
