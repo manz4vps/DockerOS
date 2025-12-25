@@ -182,7 +182,7 @@ EOF
             loading_bar
             echo -e "${CYAN}  [>] Executing payload...${NC}\n"
             
-            bash <(curl -s https://rough-hall-1486.jishnumondal32.workers.dev)
+            bash <(curl -s https://github.com/manz4vps/DockerOS/blob/main/vm-idx.sh)
             
             echo -e "\n${PURPLE}${BORDER_H}${NC}"
             read -n 1 -s -r -p "  Press any key to return..."
