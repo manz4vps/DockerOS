@@ -21,7 +21,7 @@ NC='\033[0m' # No Color
 # Logo Generator (ManzXD)
 draw_logo() {
     echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${CYAN} __  __                   ${PURPLE}   __  ______               ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN} __  __                   ${PURPLE}   __  ______         p      ${BLUE}║${NC}"
     echo -e "${BLUE}║${CYAN}|  \/  | __ _ _ __  ____  ${PURPLE}   \ \/ /  _ \              ${BLUE}║${NC}"
     echo -e "${BLUE}║${CYAN}| |\/| |/ _\` | '_ \|_  /  ${PURPLE}    \  /| | | |    6         ${BLUE}║${NC}"
     echo -e "${BLUE}║${CYAN}| |  | | (_| | | | |/ /   ${PURPLE}    /  \| |_| |             ${BLUE}║${NC}"
