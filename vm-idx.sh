@@ -20,12 +20,12 @@ NC='\033[0m' # No Color (Reset)
 display_header() {
     clear
     echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${CYAN}   ██╗   ██╗    ███╗   ███╗                             ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}   ██║   ██║    ████╗ ████║                             ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}   ██║   ██║    ██╔████╔██║                             ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}   ╚██╗ ██╔╝    ██║╚██╔╝██║                             ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}    ╚████╔╝     ██║ ╚═╝ ██║                             ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}     ╚═══╝      ╚═╝     ╚═╝                             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}      ██╗   ██╗    ███╗   ███╗                          ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}      ██║   ██║    ████╗ ████║                          ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}      ██║   ██║    ██╔████╔██║                          ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}      ╚██╗ ██╔╝    ██║╚██╔╝██║                          ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}       ╚████╔╝     ██║ ╚═╝ ██║                          ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}        ╚═══╝      ╚═╝     ╚═╝                          ${BLUE}║${NC}"
     echo -e "${BLUE}║${WHITE}                                                        ${BLUE}║${NC}"
     echo -e "${BLUE}║${YELLOW}            P O W E R E D   B Y   M A N Z               ${BLUE}║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
