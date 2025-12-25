@@ -19,16 +19,16 @@ NC='\033[0m' # No Color (Reset)
 # Function to display header (Now COLORFUL)
 display_header() {
     clear
-    echo -e "${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${CYAN}      __      __      ${PURPLE}    __  __                  ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}      \ \    / /      ${PURPLE}   |  \/  |                 ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}       \ \  / /       ${PURPLE}   | \  / |                 ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}        \ \/ /        ${PURPLE}   | |\/| |                 ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}         \  /         ${PURPLE}   | |  | |                 ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}          \/          ${PURPLE}   |_|  |_|                 ${BLUE}║${NC}"
-    echo -e "${BLUE}║${WHITE}                                                          ${BLUE}║${NC}"
-    echo -e "${BLUE}║${YELLOW}              P O W E R E D   B Y   M A N Z               ${BLUE}║${NC}"
-    echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║${CYAN}   ██╗   ██╗    ███╗   ███╗                             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}   ██║   ██║    ████╗ ████║                             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}   ██║   ██║    ██╔████╔██║                             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}   ╚██╗ ██╔╝    ██║╚██╔╝██║                             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}    ╚████╔╝     ██║ ╚═╝ ██║                             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}     ╚═══╝      ╚═╝     ╚═╝                             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${WHITE}                                                        ${BLUE}║${NC}"
+    echo -e "${BLUE}║${YELLOW}            P O W E R E D   B Y   M A N Z               ${BLUE}║${NC}"
+    echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
     echo
 }
 
