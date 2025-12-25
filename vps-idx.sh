@@ -16,21 +16,19 @@ WHITE='\033[1;37m'
 GREY='\033[0;37m'
 NC='\033[0m' # No Color
 
-# --- UI CONSTANTS ---
-# Garis panjang yang kamu suka
-BORDER_H="══════════════════════════════════════════════════════════"
-
 # --- SYSTEM FUNCTIONS ---
 
 # Logo Generator (ManzXD)
-banner() {
-    clear
-    echo -e "${BLUE}${CYAN}"
-    echo "====================================="
-    echo "        LAUNCHER SCRIPT OTOMATIS     "
-    echo "          Dibuat oleh Manz4Ndaa      "
-    echo "====================================="
-    echo -e "${NC}"
+draw_logo() {
+    echo -e "${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║${CYAN} __  __                   ${PURPLE}   __  ______               ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}|  \/  | __ _ _ __  ____  ${PURPLE}   \ \/ /  _ \              ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}| |\/| |/ _\` | '_ \|_  /  ${PURPLE}    \  /| | | |             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}| |  | | (_| | | | |/ /   ${PURPLE}    /  \| |_| |             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}|_|  |_|\__,_|_| |_/___|  ${PURPLE}   /_/\_\____/              ${BLUE}║${NC}"
+    echo -e "${BLUE}║${WHITE}                                                          ${BLUE}║${NC}"
+    echo -e "${BLUE}║${YELLOW}              P O W E R E D   B Y   M A N Z               ${BLUE}║${NC}"
+    echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
 }
 
 # Header Standar
@@ -187,10 +185,10 @@ EOF
             
         4)
             clear
-            echo -e "\n${RED}╔${BORDER_H}╗${NC}"
+            echo -e "\n${RED}╔══════════════════════════════════════════════════════════╗${NC}"
             echo -e "${RED}║${WHITE}             SESSION TERMINATED BY USER               ${RED}║${NC}"
             echo -e "${RED}║${YELLOW}            Terima Kasih - ManzXD Corp                ${RED}║${NC}"
-            echo -e "${RED}╚${BORDER_H}╝${NC}\n"
+            echo -e "${RED}╚══════════════════════════════════════════════════════════╝${NC}\n"
             exit 0
             ;;
             
