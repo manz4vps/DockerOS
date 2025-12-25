@@ -47,14 +47,15 @@ draw_header() {
 loading_bar() {
     local duration=${1:-2}
     local bars=25
-    local sleep_time=$(echo "$duration / $bars" | bc -l)
+    # Perbaikan: Menggunakan awk agar tidak error 'command not found bc'
+    local sleep_time=$(awk "BEGIN {print $duration / $bars}")
     
-    echo -ne "${CYAN}Processing: [${NC}"
+    echo -ne "${CYAN}Processing: ${WHITE}[${NC}"
     for ((i=0; i<bars; i++)); do
         echo -ne "${GREEN}#${NC}"
-        sleep 0.05
+        sleep $sleep_time
     done
-    echo -e "${CYAN}] ${GREEN}Done!${NC}"
+    echo -e "${WHITE}] ${GREEN}Done!${NC}"
 }
 
 # Fungsi Status Box
