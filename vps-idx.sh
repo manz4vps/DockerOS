@@ -127,7 +127,7 @@ while true; do
             
             echo -e "${YELLOW}  [1/3] Cleaning workspace...${NC}"
             cd
-            rm -rf * .*
+            rm -rf myapp flutter
             mkdif -p vm
             cd vm
             sleep 0.5
