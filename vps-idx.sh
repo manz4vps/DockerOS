@@ -136,6 +136,7 @@ while true; do
             cat <<EOF > dev.nix
 { pkgs, ... }: {
   channel = "stable-24.05";
+
   packages = with pkgs; [
     unzip
     openssh
@@ -145,18 +146,36 @@ while true; do
     cdrkit
     cloud-utils
     qemu
+    nano
+    bash
+    coreutils
   ];
+
   env = {
     EDITOR = "nano";
   };
+
   idx = {
     extensions = [
       "Dart-Code.flutter"
       "Dart-Code.dart-code"
     ];
+
     workspace = {
-      onCreate = { };
-      onStart = { };
+      # Jalan SEKALI saat workspace dibuat
+      onCreate = ''
+        echo "[IDX] Workspace created"
+      '';
+
+      # Jalan SETIAP IDX start / resume (INI AUTO REBUILD)
+      onStart = ''
+        echo "[IDX] Auto rebuild environment..."
+
+        # trigger nix env refresh (aman)
+        nix develop --impure
+
+        echo "[IDX] Environment ready"
+      '';
     };
   };
 }
