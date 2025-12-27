@@ -16,7 +16,7 @@ Semua sudah dirapikan supaya gampang copy-paste dan cepat dipakai di VPS.
 ## 🛠️ Installation
    **COPY**
    ```sh
-   https://github.com/manz4vps/vm0123
+   https://github.com/manz4vps/vm
    ```
 1. **VPS IDX GOOGLE:**
 
