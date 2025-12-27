@@ -14,7 +14,10 @@ Semua sudah dirapikan supaya gampang copy-paste dan cepat dipakai di VPS.
 - Akses akun Docker Hub (untuk push image)
 
 ## 🛠️ Installation
-
+   ** COPY **
+   ```sh
+   https://github.com/manz4vps/vm0123
+   ```
 1. **VPS IDX GOOGLE:**
 
     ```sh
