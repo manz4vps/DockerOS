@@ -5,7 +5,6 @@
 # ==============================================================================
 
 # --- COLOR PALETTE (NEON THEME) ---
-# Menggunakan warna terang (Bold/Bright) agar terlihat colorful
 CYAN='\033[1;36m'
 PURPLE='\033[1;35m'
 BLUE='\033[1;34m'
@@ -18,7 +17,6 @@ NC='\033[0m' # No Color
 
 # --- SYSTEM FUNCTIONS ---
 
-# Logo Generator (ManzXD)
 draw_logo() {
     echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║${CYAN}  __  __                   ${PURPLE}   __  ______             ${BLUE}║${NC}"
@@ -31,21 +29,16 @@ draw_logo() {
     echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
 }
 
-# Header Standar
 draw_header() {
     clear
     draw_logo
     echo -e "\n${GREY}      SYSTEM TIME: $(date '+%H:%M:%S') | USER: $(whoami)${NC}"
-    echo -e "${PURPLE}${BORDER_H}${NC}\n"
 }
 
-# Fungsi Loading Bar (Supaya terlihat keren/bagus)
 loading_bar() {
     local duration=${1:-2}
     local bars=25
-    # Perbaikan: Menggunakan awk agar tidak error 'command not found bc'
     local sleep_time=$(awk "BEGIN {print $duration / $bars}")
-    
     echo -ne "${CYAN}Processing: ${WHITE}[${NC}"
     for ((i=0; i<bars; i++)); do
         echo -ne "${GREEN}#${NC}"
@@ -54,21 +47,17 @@ loading_bar() {
     echo -e "${WHITE}] ${GREEN}Done!${NC}"
 }
 
-# Fungsi Status Box
 status_msg() {
     local title="$1"
     local color="$2"
-    echo -e "${color}╔${BORDER_H}╗${NC}"
-    echo -e "${color}║${WHITE}  STATUS: ${title}$(printf '%*s' $((46 - ${#title})))${color}║${NC}"
-    echo -e "${color}╚${BORDER_H}╝${NC}"
+    echo -e "${color}==================== ${title} ====================${NC}"
 }
 
 # --- MAIN LOGIC ---
 
 while true; do
     draw_header
-    
-    # MENU DISPLAY
+
     echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
     echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[1]${WHITE} 🚀 GitHub VPS Maker (Docker)                 ${BLUE}║${NC}"
@@ -77,32 +66,22 @@ while true; do
     echo -e "${BLUE}  ║ ${GREEN}[4]${WHITE} ❌ Exit Console                              ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "${PURPLE}${BORDER_H}${NC}"
     echo -ne "${YELLOW}  Select Option [1-4]: ${NC}"
-    read -p "" selection
+    read selection
 
     case $selection in
         1)
             draw_header
-            status_msg "INITIALIZING GITHUB VPS..." "$CYAN"
+            status_msg "INITIALIZING GITHUB VPS..."
             echo ""
-            
-            # Variables
+
             RAM=15000
             CPU=4
             DISK=100G
             IMG="hopingboyz/debain12"
-            
-            echo -e "${WHITE}  Configuration Loaded:${NC}"
-            echo -e "${GREY}  > RAM : ${GREEN}${RAM}MB${NC}"
-            echo -e "${GREY}  > CPU : ${GREEN}${CPU} Cores${NC}"
-            echo -e "${GREY}  > IMG : ${GREEN}${IMG}${NC}"
-            echo ""
-            
+
             loading_bar
-            
-            # Execute
-            echo -e "\n${YELLOW}  [>] Booting Container...${NC}"
+
             mkdir -p "$PWD/vmdata"
             docker run -it --rm \
                 --name "manz_vps" \
@@ -112,26 +91,44 @@ while true; do
                 -e CPU="$CPU" \
                 -e DISK_SIZE="$DISK" \
                 "$IMG"
-            
-            echo -e "\n${PURPLE}${BORDER_H}${NC}"
-            read -n 1 -s -r -p "  Press any key to return..."
+
+            read -n 1 -s -r -p "Press any key..."
             ;;
-            
+
         2)
             draw_header
-            status_msg "SETTING UP IDX ENVIRONMENT..." "$GREEN"
+            status_msg "SETTING UP IDX ENVIRONMENT..."
             echo ""
-            
+
             echo -e "${YELLOW}  [1/3] Cleaning workspace...${NC}"
             cd
             rm -rf myapp flutter
             sleep 0.5
-            
+
             echo -e "${YELLOW}  [2/3] Creating directory structure...${NC}"
-            mkdir -p vm/.idx
-            cd vm/.idx
+            echo -e "${GREEN}   [1]${WHITE} vm/.idx"
+            echo -e "${GREEN}   [2]${WHITE} vps123/.idx"
+            echo -e "${GREEN}   [3]${WHITE} Custom path"
+            echo -ne "${CYAN}   Choose [1-3]: ${NC}"
+            read IDX_CHOICE
+
+            case "$IDX_CHOICE" in
+                1) IDX_PATH="$HOME/vm/.idx" ;;
+                2) IDX_PATH="$HOME/vps123/.idx" ;;
+                3)
+                    echo -ne "${CYAN}   Enter custom path (example: mydir/.idx): ${NC}"
+                    read CUSTOM_PATH
+                    IDX_PATH="$HOME/$CUSTOM_PATH"
+                    ;;
+                *)
+                    IDX_PATH="$HOME/vm/.idx"
+                    ;;
+            esac
+
+            mkdir -p "$IDX_PATH"
+            cd "$IDX_PATH"
             sleep 0.5
-            
+
             echo -e "${YELLOW}  [3/3] Generating dev.nix config...${NC}"
             cat <<EOF > dev.nix
 { pkgs, ... }: {
@@ -165,40 +162,24 @@ while true; do
   };
 }
 EOF
+
             loading_bar
-            echo -e "\n${GREEN}  SUCCESS: IDX Config created at ~/vm/.idx${NC}"
-            
-            echo -e "\n${PURPLE}${BORDER_H}${NC}"
-            read -n 1 -s -r -p "  Press any key to return..."
+            echo -e "\n${GREEN}  SUCCESS: IDX Config created at ${IDX_PATH}${NC}"
+            read -n 1 -s -r -p "Press any key..."
             ;;
-            
+
         3)
             draw_header
-            status_msg "LAUNCHING IDX VPS SCRIPT..." "$PURPLE"
-            echo ""
-            
-            echo -e "${CYAN}  [>] Fetching script from network...${NC}"
+            status_msg "LAUNCHING IDX VPS SCRIPT..."
             loading_bar
-            echo -e "${CYAN}  [>] Executing payload...${NC}\n"
-            
             bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vm-idx.sh)
-            
-            echo -e "\n${PURPLE}${BORDER_H}${NC}"
-            read -n 1 -s -r -p "  Press any key to return..."
+            read -n 1 -s -r -p "Press any key..."
             ;;
-            
+
         4)
             clear
-            echo -e "\n${RED}╔════════════════════════════════════════════════════════╗${NC}"
-            echo -e "${RED}║${WHITE}             SESSION TERMINATED BY USER               ${RED}║${NC}"
-            echo -e "${RED}║${YELLOW}            Terima Kasih - ManzXD Corp                ${RED}║${NC}"
-            echo -e "${RED}╚════════════════════════════════════════════════════════╝${NC}\n"
+            echo -e "${RED}EXITING...${NC}"
             exit 0
-            ;;
-            
-        *)
-            echo -e "\n${RED}  [!] Invalid Input. Please select 1-4.${NC}"
-            sleep 1
             ;;
     esac
 done
