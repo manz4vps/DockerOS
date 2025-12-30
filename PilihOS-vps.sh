@@ -92,7 +92,7 @@ EOF
     3)
       clear
       echo -e "${CYAN}🚀 Menjalankan VPS IDX Installer...${RESET}"
-      curl -fsSL https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-idx.sh | bash
+      bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-idx.sh)
       read -rp "Tekan [Enter] untuk kembali..."
       ;;
 
