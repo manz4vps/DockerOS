@@ -14,7 +14,7 @@ Semua sudah dirapikan supaya gampang copy-paste dan cepat dipakai di VPS.
 - Akses akun Docker Hub (untuk push image)
 
 ## 🛠️ Installation
-   **COPY**
+   **COPY:**
    ```sh
    https://github.com/manz4vps/vm
    ```
