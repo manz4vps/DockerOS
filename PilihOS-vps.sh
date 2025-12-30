@@ -30,12 +30,15 @@ echo -e "\033[1;34m$msg2\033[0m"
 sleep 2
 clear
 
+RAW_IDX_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-idx.sh"
+IDX_FILE="vps-idx-installer.sh"
+
 # Menu utama
 while true; do
   echo -e "${BOLD}${CYAN}🚀 === MENU OS VPS ===${RESET}"
-  echo -e "${YELLOW}1)${RESET} 💻 Buat VPS QEMU x86"
-  echo -e "${YELLOW}2)${RESET} 🧱 Buat OS VPS Baru"
-  echo -e "${YELLOW}3)${RESET} 🔍 Lihat Container Aktif"
+  echo -e "${YELLOW}1)${RESET} 🧱 Buat OS VPS Baru"
+  echo -e "${YELLOW}2)${RESET} 🔍 Lihat Container Aktif"
+  echo -e "${YELLOW}3)${RESET} 🧠 VPS IDX Installer"
   echo -e "${YELLOW}4)${RESET} ⏹️  Stop Container"
   echo -e "${YELLOW}5)${RESET} 🗑️  Hapus Container"
   echo -e "${YELLOW}6)${RESET} 💻 Jalankan VPS"
@@ -45,36 +48,6 @@ while true; do
 
   case "$MENU" in
     1)
-      clear
-      echo -e "${CYAN}🧠 Membuat VPS QEMU x86...${RESET}"
-      read -rp "Masukkan nama file VPS (contoh: qemu-x86.sh): " FILE_NAME
-      FILE_NAME="${FILE_NAME:-qemu-x86.sh}"
-
-      RAW_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-qemu-x86"
-
-      echo -e "${GREEN}📥 Mengunduh script QEMU dari GitHub...${RESET}"
-      curl -fsSL "$RAW_URL" -o "$FILE_NAME" || {
-        echo -e "${RED}❌ Gagal mengunduh script dari GitHub!${RESET}"
-        read -rp "Tekan [Enter] untuk kembali..."
-        continue
-      }
-
-      chmod +x "$FILE_NAME"
-      echo -e "${GREEN}✅ File ${FILE_NAME} berhasil diunduh & disiapkan!${RESET}"
-      echo -e "📂 Lokasi: ${CYAN}$PWD/${FILE_NAME}${RESET}"
-      echo
-
-      read -rp "🚀 Mau langsung jalankan sekarang? (y/n): " RUN_NOW
-      if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
-        echo -e "${GREEN}Menjalankan VPS QEMU...${RESET}"
-        sleep 1
-        bash "$FILE_NAME"
-      else
-        echo -e "${YELLOW}📁 File tersimpan. Jalankan nanti dengan: ${CYAN}bash ${FILE_NAME}${RESET}"
-      fi
-      ;;
-
-    2)
       clear
       echo -e "${BOLD}${CYAN}🧰 Pilih OS yang mau dijalankan:${RESET}"
       echo -e "${YELLOW}1)${RESET} Debian 11"
@@ -105,7 +78,6 @@ while true; do
       mkdir -p "$VMDATA_DIR"
       FILE_NAME="${CONTAINER_NAME}.sh"
 
-      # Buat file .sh
       cat > "$FILE_NAME" <<EOF
 #!/bin/bash
 docker run -it --rm \\
@@ -119,64 +91,51 @@ docker run -it --rm \\
 EOF
 
       chmod +x "$FILE_NAME"
-      echo
       echo -e "${GREEN}✅ File ${FILE_NAME} berhasil dibuat!${RESET}"
-      echo -e "📂 Disimpan di: ${CYAN}$PWD/${FILE_NAME}${RESET}"
-      echo
-
-      read -rp "🚀 Mau langsung jalankan VPS sekarang? (y/n): " RUN_NOW
-      if [[ "$RUN_NOW" =~ ^[Yy]$ ]]; then
-        echo -e "${GREEN}Menjalankan VPS ${CONTAINER_NAME}...${RESET}"
-        sleep 1
-        bash "$FILE_NAME"
-      else
-        echo -e "${YELLOW}📁 File tersimpan. Jalankan nanti dengan: ${CYAN}bash ${FILE_NAME}${RESET}"
-      fi
+      read -rp "🚀 Jalankan sekarang? (y/n): " RUN_NOW
+      [[ "$RUN_NOW" =~ ^[Yy]$ ]] && bash "$FILE_NAME"
       ;;
+
+    2)
+      clear
+      docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+      read -rp "Tekan [Enter] untuk kembali..." ;;
 
     3)
       clear
-      echo -e "${CYAN}🔍 Daftar container aktif:${RESET}"
-      docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
-      echo
-      read -rp "Tekan [Enter] untuk kembali..." ;;
-      
+      echo -e "${CYAN}🧠 Mengunduh VPS IDX Installer...${RESET}"
+      curl -fsSL "$RAW_IDX_URL" -o "$IDX_FILE" || {
+        echo -e "${RED}❌ Gagal download script IDX!${RESET}"
+        read -rp "Tekan [Enter]..."
+        continue
+      }
+      chmod +x "$IDX_FILE"
+      echo -e "${GREEN}✅ VPS IDX Installer siap dijalankan${RESET}"
+      read -rp "🚀 Jalankan sekarang? (y/n): " RUN_IDX
+      [[ "$RUN_IDX" =~ ^[Yy]$ ]] && bash "$IDX_FILE"
+      ;;
+
     4)
       clear
       docker ps --format "table {{.Names}}\t{{.Status}}"
-      echo
-      read -rp "Masukkan nama container yang mau di-stop (atau 0 untuk kembali): " STOP_NAME
+      read -rp "Nama container (0 kembali): " STOP_NAME
       [[ "$STOP_NAME" == "0" ]] && continue
-      docker stop "$STOP_NAME" && echo -e "${YELLOW}⏹️  Container $STOP_NAME dihentikan.${RESET}"
-      echo
-      read -rp "Tekan [Enter] untuk kembali..." ;;
-      
+      docker stop "$STOP_NAME"
+      read -rp "Tekan [Enter]..." ;;
+
     5)
       clear
       docker ps -a --format "table {{.Names}}\t{{.Status}}"
-      echo
-      read -rp "Masukkan nama container yang mau dihapus (atau 0 untuk kembali): " RM_NAME
+      read -rp "Nama container (0 kembali): " RM_NAME
       [[ "$RM_NAME" == "0" ]] && continue
-      docker rm -f "$RM_NAME" && echo -e "${RED}🗑️  Container $RM_NAME dihapus.${RESET}"
-      echo
-      read -rp "Tekan [Enter] untuk kembali..." ;;
-      
+      docker rm -f "$RM_NAME"
+      read -rp "Tekan [Enter]..." ;;
+
     6)
       clear
-      echo -e "${CYAN}💻 Daftar file container (.sh) yang tersedia:${RESET}"
       ls -1 *.sh 2>/dev/null || echo "Belum ada file .sh"
-      echo
-      read -rp "Masukkan nama file (contoh: debian11.sh) atau 0 untuk kembali: " SCRIPT_NAME
+      read -rp "Nama file (0 kembali): " SCRIPT_NAME
       [[ "$SCRIPT_NAME" == "0" ]] && continue
-
-      if [ ! -f "$SCRIPT_NAME" ]; then
-        echo -e "${RED}❌ File $SCRIPT_NAME tidak ditemukan!${RESET}"
-        read -rp "Tekan [Enter] untuk kembali..."
-        continue
-      fi
-
-      echo -e "${GREEN}🚀 Menjalankan file ${SCRIPT_NAME}...${RESET}"
-      sleep 1
       bash "$SCRIPT_NAME"
       ;;
 
@@ -187,7 +146,7 @@ EOF
 
     *)
       echo -e "${RED}❌ Pilihan tidak valid!${RESET}"
-      read -rp "Tekan [Enter] untuk kembali..." ;;
+      read -rp "Tekan [Enter]..." ;;
   esac
 
   clear
