@@ -50,7 +50,8 @@ pasang_tema() {
     banner
     echo "1. Nebula Theme"
     echo "2. Euphoria Theme"
-    echo "3. Kembali"
+    echo "3. NookTheme"
+    echo "4. Kembali"
     read -p "Pilih: " t
     case $t in
         1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/change%20theme.sh" ;;
@@ -59,6 +60,8 @@ pasang_tema() {
             curl -fsSLO https://github.com/manz4vps/DockerOS/raw/refs/heads/main/euphoriatheme.blueprint
             blueprint -i euphoriatheme.blueprint
             ;;
+        3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/NookTheme.sh" ;;
+        
     esac
     read -p "Enter..."
 }
