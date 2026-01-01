@@ -395,24 +395,20 @@ EOF
                 cat <<'EOF' >> "$HOME/.bashrc"
 
 # ==========================================
-# AUTO START VM (DENGAN CD /HOME/USER)
+# AUTO START VM (FOREGROUND / LANGSUNG TAMPIL)
 # ==========================================
 
+# Cek dulu, kalau VM BELUM jalan, baru kita jalankan.
 if ! pgrep -f "qemu-system-x86_64" > /dev/null; then
     
-    echo "🚀 VM mati. Menjalankan auto-start dari /home/user..."
+    echo "🚀 VM belum aktif. Menjalankan sekarang..."
     
-    # Penjelasan perintah di bawah:
-    # 1. ( ... ) : Membuat "ruang khusus" (subshell) agar 'cd' tidak mengubah folder terminal kamu saat ini.
-    # 2. cd /home/user : Pindah ke folder tempat script berada.
-    # 3. && : Jika pindah folder berhasil, baru jalankan script.
-    # 4. ./vm-autostart.sh : Menjalankan script yang ada di folder itu (karena sudah di-cd).
-    
-    (cd /home/user && nohup ./vm-autostart.sh >/dev/null 2>&1 &)
-    
-    sleep 1
+    # Masuk ke folder user, lalu jalankan scriptnya secara langsung.
+    # (cd ... ) memastikan kita pindah folder hanya untuk perintah ini saja.
+    (cd /home/user && bash ./vm-autostart.sh)
 
 else
+    # Kalau sudah jalan, cuma kasih info aja.
     echo "✅ VM sudah berjalan."
 fi
 EOF
