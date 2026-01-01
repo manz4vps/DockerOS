@@ -394,14 +394,26 @@ EOF
             else
                 cat <<'EOF' >> "$HOME/.bashrc"
 
-# ==== IDX VM AUTOSTART ====
-VM_FLAG="$HOME/.vm_started"
+# ==========================================
+# AUTO START VM (BY PROCESS CHECK)
+# ==========================================
 
-if [ ! -f "$VM_FLAG" ]; then
-  touch "$VM_FLAG"
-  nohup "$HOME/vm-autostart.sh" >/dev/null 2>&1 &
-fi
-EOF
+# Cek apakah proses QEMU sudah jalan?
+# Jika TIDAK (!), maka jalankan scriptnya.
+if ! pgrep -f "qemu-system-x86_64" > /dev/null; then
+    
+    echo "🚀 VM tidak terdeteksi. Menjalankan auto-start..."
+    
+    # Jalankan script di background, buang output agar terminal bersih
+    nohup bash "$HOME/vm-autostart.sh" >/dev/null 2>&1 &
+    
+    # Beri jeda 1 detik agar proses sempat terdaftar sebelum terminal siap
+    sleep 1
+
+else
+    # Opsional: Beritahu bahwa VM sudah jalan (bisa dihapus kalau mau silent)
+    echo "✅ VM sudah berjalan di background."
+fiEOF
                 echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
             fi
 
