@@ -186,73 +186,234 @@ EOF
             echo -e "${YELLOW}  [1/2] Creating vm-autostart.sh...${NC}"
             cat <<'EOF' > "$HOME/vm-autostart.sh"
 #!/bin/bash
-# ======================================
-# IDX VM AUTOSTART (HEADLESS)
-# ======================================
+set -euo pipefail
 
-VM_DIR="$HOME/vms"
-LOG="$HOME/vm.log"
+# =============================
+# VM Starter (Start Only)
+# =============================
 
-# ----------------------------
-# Load VM config
-# ----------------------------
-load_vm_config() {
-    local vm="$1"
-    source "$VM_DIR/$vm.conf"
+# --- COLOR DEFINITIONS ---
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Initialize VM Directory
+VM_DIR="${VM_DIR:-$HOME/vms}"
+
+# Function to display header
+display_header() {
+    clear
+    echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║${CYAN}         VM STARTER MODUL                               ${BLUE}║${NC}"
+    echo -e "${BLUE}║${YELLOW}         P O W E R E D   B Y   M A N Z               ${BLUE}║${NC}"
+    echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
+    echo
 }
 
-# ----------------------------
-# Check VM running
-# ----------------------------
-is_vm_running() {
-    local vm="$1"
-    pgrep -f "qemu-system.*$IMG" >/dev/null
+# Function to display colored output
+print_status() {
+    local type=$1
+    local message=$2
+    case $type in
+        "INFO") echo -e "\033[1;34m📋 [INFO]\033[0m $message" ;;
+        "WARN") echo -e "\033[1;33m⚠️  [WARN]\033[0m $message" ;;
+        "ERROR") echo -e "\033[1;31m❌ [ERROR]\033[0m $message" ;;
+        "SUCCESS") echo -e "\033[1;32m✅ [SUCCESS]\033[0m $message" ;;
+        "INPUT") echo -e "\033[1;36m🎯 [INPUT]\033[0m $message" ;;
+        *) echo "[$type] $message" ;;
+    esac
 }
 
-# ----------------------------
-# Start VM
-# ----------------------------
-start_vm() {
-    local vm="$1"
-    load_vm_config "$vm"
-
-    if is_vm_running "$vm"; then
-        return
+# Check dependencies
+check_dependencies() {
+    if ! command -v qemu-system-x86_64 &> /dev/null; then
+        print_status "ERROR" "🔧 QEMU not found. Please install qemu-system-x86_64"
+        exit 1
     fi
-
-    echo "[AUTO] $(date) start $VM_NAME" >> "$LOG"
-
-    nohup qemu-system-x86_64 \
-        -machine accel=kvm:tcg \
-        -cpu host \
-        -m "$RAM" \
-        -smp "$CPU" \
-        -drive file="$IMG",if=virtio,format=qcow2 \
-        -netdev user,id=n0,hostfwd=tcp::"$SSH_PORT"-:22 \
-        -device virtio-net-pci,netdev=n0 \
-        -nographic \
-        >> "$LOG" 2>&1 &
 }
 
-# ============================
-# AUTOSTART LOOP
-# ============================
-VM_FLAG="$HOME/.vm_started"
+# Get list of existing VMs
+get_vm_list() {
+    if [ -d "$VM_DIR" ]; then
+        find "$VM_DIR" -name "*.conf" -exec basename {} .conf \; 2>/dev/null | sort
+    fi
+}
 
-[ -f "$VM_FLAG" ] && exit
-touch "$VM_FLAG"
+# Load VM Config
+load_vm_config() {
+    local vm_name=$1
+    local config_file="$VM_DIR/$vm_name.conf"
+    if [[ -f "$config_file" ]]; then
+        unset VM_NAME OS_TYPE IMG_FILE SEED_FILE SSH_PORT USERNAME PASSWORD MEMORY CPUS DISK_SIZE GUI_MODE PORT_FORWARDS
+        source "$config_file"
+        return 0
+    else
+        print_status "ERROR" "📂 Configuration for VM '$vm_name' not found"
+        return 1
+    fi
+}
 
-while true; do
-    for cfg in "$VM_DIR"/*.conf; do
-        vm=$(basename "$cfg" .conf)
-
-        if ! is_vm_running "$vm"; then
-            start_vm "$vm"
-            sleep 3
+# Check if VM is running
+is_vm_running() {
+    local vm_name=$1
+    # Check by image file path in process list
+    if load_vm_config "$vm_name" 2>/dev/null; then
+        if pgrep -f "qemu-system.*$IMG_FILE" >/dev/null; then
+            return 0
         fi
-    done
-    sleep 5
+    fi
+    return 1
+}
+
+# Check image lock
+check_image_lock() {
+    local img_file=$1
+    local vm_name=$2
+    if lsof "$img_file" 2>/dev/null | grep -q qemu-system; then
+        return 1
+    fi
+    return 0
+}
+
+# Stop VM (Needed if user wants to restart)
+stop_vm() {
+    local vm_name=$1
+    if load_vm_config "$vm_name"; then
+        print_status "INFO" "🛑 Stopping VM: $vm_name"
+        pkill -f "qemu-system.*$IMG_FILE"
+        sleep 2
+        if is_vm_running "$vm_name"; then
+            pkill -9 -f "qemu-system.*$IMG_FILE"
+        fi
+        rm -f "${IMG_FILE}.lock" 2>/dev/null
+    fi
+}
+
+# === MAIN START FUNCTION ===
+start_vm() {
+    local vm_name=$1
+    
+    if load_vm_config "$vm_name"; then
+        # Check if VM is already running
+        if is_vm_running "$vm_name"; then
+            print_status "WARN" "⚠️  VM '$vm_name' is already running"
+            read -p "$(print_status "INPUT" "🔄 Stop and restart? (y/N): ")" restart_choice
+            if [[ "$restart_choice" =~ ^[Yy]$ ]]; then
+                stop_vm "$vm_name"
+                sleep 2
+            else
+                return 1
+            fi
+        fi
+        
+        # Check lock
+        if ! check_image_lock "$IMG_FILE" "$vm_name"; then
+             print_status "WARN" "🔒 Image file seems locked by another process."
+             read -p "$(print_status "INPUT" "Force remove lock and start? (y/N): ")" force_unlock
+             if [[ "$force_unlock" =~ ^[Yy]$ ]]; then
+                rm -f "${IMG_FILE}.lock"
+             else
+                return 1
+             fi
+        fi
+
+        print_status "INFO" "🚀 Starting VM: $vm_name"
+        print_status "INFO" "🔌 SSH: ssh -p $SSH_PORT $USERNAME@localhost"
+        print_status "INFO" "🔑 Password: $PASSWORD"
+        
+        # Validation checks
+        if [[ ! -f "$IMG_FILE" ]]; then
+            print_status "ERROR" "❌ VM image file not found: $IMG_FILE"
+            return 1
+        fi
+        if [[ ! -f "$SEED_FILE" ]]; then
+            print_status "ERROR" "❌ Seed file missing. Cannot recreate in this simplified script."
+            return 1
+        fi
+        
+        # QEMU Command
+        local qemu_cmd=(
+            qemu-system-x86_64
+            -enable-kvm
+            -m "$MEMORY"
+            -smp "$CPUS"
+            -cpu host
+            -drive "file=$IMG_FILE,format=qcow2,if=virtio"
+            -drive "file=$SEED_FILE,format=raw,if=virtio"
+            -boot order=c
+            -device virtio-net-pci,netdev=n0
+            -netdev "user,id=n0,hostfwd=tcp::$SSH_PORT-:22"
+            -device virtio-balloon-pci
+            -object rng-random,filename=/dev/urandom,id=rng0
+            -device virtio-rng-pci,rng=rng0
+        )
+
+        # Port Forwards
+        if [[ -n "${PORT_FORWARDS:-}" ]]; then
+            IFS=',' read -ra forwards <<< "$PORT_FORWARDS"
+            for forward in "${forwards[@]}"; do
+                IFS=':' read -r host_port guest_port <<< "$forward"
+                qemu_cmd+=(-device "virtio-net-pci,netdev=n${#qemu_cmd[@]}")
+                qemu_cmd+=(-netdev "user,id=n${#qemu_cmd[@]},hostfwd=tcp::$host_port-:$guest_port")
+            done
+        fi
+
+        # Display Mode
+        if [[ "${GUI_MODE:-false}" == true ]]; then
+            qemu_cmd+=(-vga virtio -display gtk,gl=on)
+            print_status "INFO" "🖥️  Starting in GUI mode..."
+        else
+            qemu_cmd+=(-nographic -serial mon:stdio)
+            print_status "INFO" "📟 Starting in console mode..."
+            print_status "INFO" "🛑 Press Ctrl+A then X to exit QEMU console"
+        fi
+
+        echo "📊 Configuration: ${MEMORY}MB RAM, ${CPUS} CPUs, ${DISK_SIZE} disk"
+        
+        # Execute
+        if ! "${qemu_cmd[@]}"; then
+            print_status "ERROR" "❌ Failed to start VM."
+            rm -f "${IMG_FILE}.lock" 2>/dev/null
+            return 1
+        fi
+        
+        print_status "INFO" "🛑 VM $vm_name has been shut down"
+    fi
+}
+
+# === MAIN LOGIC ===
+check_dependencies
+display_header
+
+# Get VMs
+vms=($(get_vm_list))
+vm_count=${#vms[@]}
+
+if [ $vm_count -eq 0 ]; then
+    print_status "WARN" "No VMs found in $VM_DIR"
+    exit 0
+fi
+
+print_status "INFO" "📂 Found $vm_count existing VM(s):"
+for i in "${!vms[@]}"; do
+    status="💤"
+    if is_vm_running "${vms[$i]}"; then
+        status="🚀 (Running)"
+    fi
+    printf "  %2d) %s %s\n" $((i+1)) "${vms[$i]}" "$status"
 done
+echo
+
+read -p "$(print_status "INPUT" "🚀 Enter VM number to start: ")" vm_num
+
+if [[ "$vm_num" =~ ^[0-9]+$ ]] && [ "$vm_num" -ge 1 ] && [ "$vm_num" -le $vm_count ]; then
+    start_vm "${vms[$((vm_num-1))]}"
+else
+    print_status "ERROR" "❌ Invalid selection"
+fi
 EOF
             chmod +x "$HOME/vm-autostart.sh"
             sleep 1
