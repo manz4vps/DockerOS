@@ -1,5 +1,5 @@
 #!/bin/bash
-
+clear
 read -p "Enter your domain (e.g., panel.example.com): " DOMAIN
 
 # --- Dependencies ---
