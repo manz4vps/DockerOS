@@ -186,38 +186,72 @@ EOF
             echo -e "${YELLOW}  [1/2] Creating vm-autostart.sh...${NC}"
             cat <<'EOF' > "$HOME/vm-autostart.sh"
 #!/bin/bash
+# ======================================
+# IDX VM AUTOSTART (HEADLESS)
+# ======================================
 
-# Pastikan vm.conf ada, kalau tidak buat dummy atau exit
-if [ ! -f "$HOME/vm.conf" ]; then
-    echo "[ERROR] $HOME/vm.conf not found. Please setup VM first." > "$HOME/vm.log"
-    exit 1
-fi
-
-source "$HOME/vm.conf"
+VM_DIR="$HOME/vms"
 LOG="$HOME/vm.log"
 
+# ----------------------------
+# Load VM config
+# ----------------------------
+load_vm_config() {
+    local vm="$1"
+    source "$VM_DIR/$vm.conf"
+}
+
+# ----------------------------
+# Check VM running
+# ----------------------------
+is_vm_running() {
+    local vm="$1"
+    pgrep -f "qemu-system.*$IMG" >/dev/null
+}
+
+# ----------------------------
+# Start VM
+# ----------------------------
+start_vm() {
+    local vm="$1"
+    load_vm_config "$vm"
+
+    if is_vm_running "$vm"; then
+        return
+    fi
+
+    echo "[AUTO] $(date) start $VM_NAME" >> "$LOG"
+
+    nohup qemu-system-x86_64 \
+        -machine accel=kvm:tcg \
+        -cpu host \
+        -m "$RAM" \
+        -smp "$CPU" \
+        -drive file="$IMG",if=virtio,format=qcow2 \
+        -netdev user,id=n0,hostfwd=tcp::"$SSH_PORT"-:22 \
+        -device virtio-net-pci,netdev=n0 \
+        -nographic \
+        >> "$LOG" 2>&1 &
+}
+
+# ============================
+# AUTOSTART LOOP
+# ============================
+VM_FLAG="$HOME/.vm_started"
+
+[ -f "$VM_FLAG" ] && exit
+touch "$VM_FLAG"
+
 while true; do
-  if pgrep -f "qemu-system.*$IMG" >/dev/null; then
+    for cfg in "$VM_DIR"/*.conf; do
+        vm=$(basename "$cfg" .conf)
+
+        if ! is_vm_running "$vm"; then
+            start_vm "$vm"
+            sleep 3
+        fi
+    done
     sleep 5
-    continue
-  fi
-
-  echo "[INFO] $(date) VM $VM_NAME starting..." >> "$LOG"
-
-  qemu-system-x86_64 \
-    -machine accel=tcg,thread=multi \
-    -cpu max \
-    -m "$RAM" \
-    -smp "$CPU" \
-    -drive file="$IMG",format=qcow2,if=virtio \
-    -drive file="$SEED",format=raw,if=virtio \
-    -netdev user,id=n0,hostfwd=tcp::"$SSH_PORT"-:22 \
-    -device virtio-net-pci,netdev=n0 \
-    -nographic \
-    >> "$LOG" 2>&1
-
-  echo "[WARN] $(date) VM stopped, restarting..." >> "$LOG"
-  sleep 3
 done
 EOF
             chmod +x "$HOME/vm-autostart.sh"
