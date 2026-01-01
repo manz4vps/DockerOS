@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# MANZ XD - ULTIMATE CONSOLE
+# MANZ XD - ULTIMATE CONSOLE (V2 - AutoStart Added)
 # ==============================================================================
 
 # --- COLOR PALETTE (NEON THEME) ---
@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 
 draw_logo() {
     echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${CYAN}  __  __                   ${PURPLE}   __  ______             ${BLUE}║${NC}"
+    echo -e "${BLUE}║${CYAN}   __  __                    ${PURPLE}   __  ______             ${BLUE}║${NC}"
     echo -e "${BLUE}║${CYAN}  |  \/  | __ _ _ __  ____  ${PURPLE}   \ \/ /  _ \            ${BLUE}║${NC}"
     echo -e "${BLUE}║${CYAN}  | |\/| |/ _\` | '_ \|_  /  ${PURPLE}    \  /| | | |          ${BLUE}║${NC}"
     echo -e "${BLUE}║${CYAN}  | |  | | (_| | | | |/ /   ${PURPLE}    /  \| |_| |           ${BLUE}║${NC}"
@@ -63,10 +63,11 @@ while true; do
     echo -e "${BLUE}  ║ ${GREEN}[1]${WHITE} 🚀 GitHub VPS Maker (Docker)                 ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[2]${WHITE} 🔧 IDX Tool Setup (Config & Clean)           ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[3]${WHITE} ⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[4]${WHITE} ❌ Exit Console                              ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}[4]${WHITE} 🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}[5]${WHITE} ❌ Exit Console                               ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -ne "${YELLOW}  Select Option [1-4]: ${NC}"
+    echo -ne "${YELLOW}  Select Option [1-5]: ${NC}"
     read selection
 
     case $selection in
@@ -177,6 +178,78 @@ EOF
             ;;
 
         4)
+            draw_header
+            status_msg "INSTALLING AUTO-START SCRIPT..." "${CYAN}"
+            echo ""
+
+            # 1. Membuat file vm-autostart.sh
+            echo -e "${YELLOW}  [1/2] Creating vm-autostart.sh...${NC}"
+            cat <<'EOF' > "$HOME/vm-autostart.sh"
+#!/bin/bash
+
+# Pastikan vm.conf ada, kalau tidak buat dummy atau exit
+if [ ! -f "$HOME/vm.conf" ]; then
+    echo "[ERROR] $HOME/vm.conf not found. Please setup VM first." > "$HOME/vm.log"
+    exit 1
+fi
+
+source "$HOME/vm.conf"
+LOG="$HOME/vm.log"
+
+while true; do
+  if pgrep -f "qemu-system.*$IMG" >/dev/null; then
+    sleep 5
+    continue
+  fi
+
+  echo "[INFO] $(date) VM $VM_NAME starting..." >> "$LOG"
+
+  qemu-system-x86_64 \
+    -machine accel=tcg,thread=multi \
+    -cpu max \
+    -m "$RAM" \
+    -smp "$CPU" \
+    -drive file="$IMG",format=qcow2,if=virtio \
+    -drive file="$SEED",format=raw,if=virtio \
+    -netdev user,id=n0,hostfwd=tcp::"$SSH_PORT"-:22 \
+    -device virtio-net-pci,netdev=n0 \
+    -nographic \
+    >> "$LOG" 2>&1
+
+  echo "[WARN] $(date) VM stopped, restarting..." >> "$LOG"
+  sleep 3
+done
+EOF
+            chmod +x "$HOME/vm-autostart.sh"
+            sleep 1
+
+            # 2. Menambahkan trigger ke .bashrc
+            echo -e "${YELLOW}  [2/2] Registering to .bashrc...${NC}"
+            
+            # Cek apakah sudah terpasang sebelumnya biar ga double
+            if grep -q "IDX VM AUTOSTART" "$HOME/.bashrc"; then
+                echo -e "${RED}  Already installed in .bashrc! Skipping.${NC}"
+            else
+                cat <<'EOF' >> "$HOME/.bashrc"
+
+# ==== IDX VM AUTOSTART ====
+VM_FLAG="$HOME/.vm_started"
+
+if [ ! -f "$VM_FLAG" ]; then
+  touch "$VM_FLAG"
+  nohup "$HOME/vm-autostart.sh" >/dev/null 2>&1 &
+fi
+EOF
+                echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
+            fi
+
+            loading_bar
+            echo -e "\n${GREEN}  SUCCESS: Auto-Start System Installed!${NC}"
+            echo -e "${WHITE}  Script will run automatically next time you restart IDX/Terminal.${NC}"
+            read -n 1 -s -r -p "Press any key..."
+            ;;
+
+        5)
             clear
             echo -e "${RED}EXITING...${NC}"
             exit 0
