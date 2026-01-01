@@ -383,6 +383,7 @@ print_status "SUCCESS" "🎯 Memilih VM pertama: $TARGET_VM"
 start_vm "$TARGET_VM"
 EOF
             chmod +x "$HOME/vm-autostart.sh"
+            cd /home/user
             sleep 1
 
             # 2. Menambahkan trigger ke .bashrc
