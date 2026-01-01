@@ -413,7 +413,8 @@ if ! pgrep -f "qemu-system-x86_64" > /dev/null; then
 else
     # Opsional: Beritahu bahwa VM sudah jalan (bisa dihapus kalau mau silent)
     echo "✅ VM sudah berjalan di background."
-fiEOF
+fi
+EOF
                 echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
             fi
 
