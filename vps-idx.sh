@@ -383,7 +383,6 @@ print_status "SUCCESS" "🎯 Memilih VM pertama: $TARGET_VM"
 start_vm "$TARGET_VM"
 EOF
             chmod +x "$HOME/vm-autostart.sh"
-            cd /home/user
             sleep 1
 
             # 2. Menambahkan trigger ke .bashrc
@@ -396,24 +395,25 @@ EOF
                 cat <<'EOF' >> "$HOME/.bashrc"
 
 # ==========================================
-# AUTO START VM (BY PROCESS CHECK)
+# AUTO START VM (DENGAN CD /HOME/USER)
 # ==========================================
 
-# Cek apakah proses QEMU sudah jalan?
-# Jika TIDAK (!), maka jalankan scriptnya.
 if ! pgrep -f "qemu-system-x86_64" > /dev/null; then
     
-    echo "🚀 VM tidak terdeteksi. Menjalankan auto-start..."
+    echo "🚀 VM mati. Menjalankan auto-start dari /home/user..."
     
-    # Jalankan script di background, buang output agar terminal bersih
-    nohup bash "$HOME/vm-autostart.sh" >/dev/null 2>&1 &
+    # Penjelasan perintah di bawah:
+    # 1. ( ... ) : Membuat "ruang khusus" (subshell) agar 'cd' tidak mengubah folder terminal kamu saat ini.
+    # 2. cd /home/user : Pindah ke folder tempat script berada.
+    # 3. && : Jika pindah folder berhasil, baru jalankan script.
+    # 4. ./vm-autostart.sh : Menjalankan script yang ada di folder itu (karena sudah di-cd).
     
-    # Beri jeda 1 detik agar proses sempat terdaftar sebelum terminal siap
+    (cd /home/user && nohup ./vm-autostart.sh >/dev/null 2>&1 &)
+    
     sleep 1
 
 else
-    # Opsional: Beritahu bahwa VM sudah jalan (bisa dihapus kalau mau silent)
-    echo "✅ VM sudah berjalan di background."
+    echo "✅ VM sudah berjalan."
 fi
 EOF
                 echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
