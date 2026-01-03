@@ -8,14 +8,14 @@
 # ==========================================
 
 # --- PANEL MANZ ---
-panel_m="TOKEN_PANEL_MANZ_DISINI"
+panel_m="sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiNDlkMTgwNWEtODc2MS00MWRiLWI1ZTYtYTEyZGJiMWQ4N2U0IiwicyI6Ik0ySXhNbUUyWm1VdE1UWXhNUzAwTWprMExXSmtOVGN0TVdNeU9HTm1PREJrT0RReCJ9"
 
 # --- PANEL DINZ ---
-panel_d="TOKEN_PANEL_DINZ_DISINI"
+panel_d="sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiOThlNjIyNTEtNzUxNS00MjIyLWEyZTQtMzAxNWFhMzg4NmI2IiwicyI6IllqQXpOREUzWVRBdE5HSmlNeTAwTkdGaUxXSTVPVGt0TVdKaU56SXlPVEl6WW1NNSJ9"
 
 # --- NODE MANZ ---
-node_m_1="TOKEN_MANZ_NODE_1_DISINI"
-node_m_2="TOKEN_MANZ_NODE_2_DISINI"
+node_m_1="sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiYzhmODFlMmYtNDRiMi00ZGY3LWI4MGMtMDZlODEwMTdiOWU3IiwicyI6Ill6YzFNamhrTVdFdE1EazVNeTAwWWpnMkxUa3hZek10TVRJNVlqTTJOakV5WldRNSJ9"
+node_m_2="sudo cloudflared service install eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiOTViYzIyMGQtNmZmNi00ODEwLWFiZTMtODgyMjdmMGRhOGMxIiwicyI6Ik9HTmlaams0TUdRdFlqUTNZeTAwWkRCa0xXSTFOR0V0WlRreE5UWmhZbUkxWlRFMyJ9"
 
 # --- NODE DINZ ---
 node_d_1="TOKEN_DINZ_NODE_1_DISINI"
