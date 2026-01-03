@@ -129,7 +129,7 @@ while true; do
         5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
         6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
         7) pasang_tema ;;
-        8) install_cloudflared ;;
+        8) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
         9) install_addon_panel ;;
         10) exit 0 ;;
     esac
