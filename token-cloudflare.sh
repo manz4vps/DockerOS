@@ -1,13 +1,11 @@
 #!/bin/bash
 
-# Cloudflared Installer (Colorful & Loop Fix)
+# Cloudflared Installer (Smart Logic: Stay on Fail, Back on Success)
 # Created by ManzXD
 
 # ==========================================
 # 1. KONFIGURASI TOKEN
 # ==========================================
-# Cukup masukkan TOKEN-nya saja (eyJh...)
-# JANGAN pake spasi di dalam tanda kutip.
 
 # --- PANEL (CUMA 1 SLOT) ---
 panel_man="eyJhIjoiNjkxYTIzNWIxYTFiMWYxM2E0NDdiOTUyZTUyYmVhYjUiLCJ0IjoiNDlkMTgwNWEtODc2MS00MWRiLWI1ZTYtYTEyZGJiMWQ4N2U0IiwicyI6Ik0ySXhNbUUyWm1VdE1UWXhNUzAwTWprMExXSmtOVGN0TVdNeU9HTm1PREJrT0RReCJ9"
@@ -41,7 +39,6 @@ din10=""
 # ==========================================
 # 2. SYSTEM FUNCTIONS & COLORS
 # ==========================================
-# Warna
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -49,7 +46,6 @@ CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m' # No Color
 
-# Header Sederhana
 header() {
     clear
     echo -e "${CYAN}==========================================${NC}"
@@ -57,7 +53,7 @@ header() {
     echo -e "${CYAN}==========================================${NC}"
 }
 
-# Fungsi Install
+# Fungsi Install (Return 0 jika sukses, 1 jika gagal)
 run_install() {
     local label=$1
     local token=$2
@@ -66,26 +62,28 @@ run_install() {
         echo -e "\n${RED}❌ [ERROR] Token untuk $label belum diisi!${NC}"
         echo -e "${YELLOW}Silahkan edit file ini dan isi tokennya dulu.${NC}"
         echo ""
-        read -p "Tekan Enter untuk kembali..."
-        return
+        read -p "Tekan Enter untuk lanjut..."
+        return 1 # Gagal
     fi
 
     echo -e "\n${YELLOW}🔄 Processing: $label...${NC}"
     
-    # Uninstall service lama
     sudo cloudflared service uninstall >/dev/null 2>&1
     
-    # Install service baru
     if sudo cloudflared service install "$token"; then
         echo -e "${GREEN}✅ [SUCCESS] $label installed successfully!${NC}"
+        echo ""
+        read -p "Tekan Enter untuk ke Menu Utama..."
+        return 0 # Sukses
     else
         echo -e "${RED}❌ [ERROR] Failed to install. Token invalid.${NC}"
+        echo -e "${YELLOW}(Silakan perbaiki token atau pilih node lain)${NC}"
+        echo ""
+        read -p "Tekan Enter untuk mencoba lagi..."
+        return 1 # Gagal
     fi
-    echo ""
-    read -p "Tekan Enter untuk lanjut..."
 }
 
-# Fungsi Menu Item dengan Indikator Warna
 show_menu() {
     local num=$1
     local label=$2
@@ -97,7 +95,6 @@ show_menu() {
     fi
 }
 
-# Cek Cloudflared
 if ! command -v cloudflared &>/dev/null; then
     echo -e "${RED}Error: cloudflared is not installed.${NC}"
     exit 1
@@ -129,9 +126,10 @@ while true; do
                 read -p "Pilih Panel [0-2]: " p_opt
                 
                 case $p_opt in
-                    1) run_install "Panel Manz" "$panel_man" ;;
-                    2) run_install "Panel Dinz" "$panel_din" ;;
-                    0) break ;; # Keluar dari loop Panel, balik ke Main
+                    # Logic: Jalankan install. Jika sukses (&&), break. Jika gagal, diam di loop.
+                    1) run_install "Panel Manz" "$panel_man" && break ;; 
+                    2) run_install "Panel Dinz" "$panel_din" && break ;;
+                    0) break ;; 
                     *) echo -e "${RED}Pilihan tidak valid!${NC}"; sleep 1 ;;
                 esac
             done
@@ -166,12 +164,19 @@ while true; do
                            echo -e "${CYAN}==========================================${NC}"
                            read -p "Pilih Node [0-10]: " opt
                            case $opt in
-                               1) run_install "Node Manz 1" "$man1" ;; 2) run_install "Node Manz 2" "$man2" ;;
-                               3) run_install "Node Manz 3" "$man3" ;; 4) run_install "Node Manz 4" "$man4" ;;
-                               5) run_install "Node Manz 5" "$man5" ;; 6) run_install "Node Manz 6" "$man6" ;;
-                               7) run_install "Node Manz 7" "$man7" ;; 8) run_install "Node Manz 8" "$man8" ;;
-                               9) run_install "Node Manz 9" "$man9" ;; 10) run_install "Node Manz 10" "$man10" ;;
-                               0) break ;; # Balik ke Menu Pilih Pemilik Node
+                               # && break 2 artinya: Jika Sukses, keluar dari 2 loop (balik ke Main Menu)
+                               # Jika Gagal, perintah break tidak jalan, jadi tetap di menu ini.
+                               1) run_install "Node Manz 1" "$man1" && break 2 ;; 
+                               2) run_install "Node Manz 2" "$man2" && break 2 ;;
+                               3) run_install "Node Manz 3" "$man3" && break 2 ;; 
+                               4) run_install "Node Manz 4" "$man4" && break 2 ;;
+                               5) run_install "Node Manz 5" "$man5" && break 2 ;; 
+                               6) run_install "Node Manz 6" "$man6" && break 2 ;;
+                               7) run_install "Node Manz 7" "$man7" && break 2 ;; 
+                               8) run_install "Node Manz 8" "$man8" && break 2 ;;
+                               9) run_install "Node Manz 9" "$man9" && break 2 ;; 
+                               10) run_install "Node Manz 10" "$man10" && break 2 ;;
+                               0) break ;; 
                                *) echo -e "${RED}Pilihan salah!${NC}"; sleep 1 ;;
                            esac
                        done
@@ -193,12 +198,17 @@ while true; do
                            echo -e "${CYAN}==========================================${NC}"
                            read -p "Pilih Node [0-10]: " opt
                            case $opt in
-                               1) run_install "Node Dinz 1" "$din1" ;; 2) run_install "Node Dinz 2" "$din2" ;;
-                               3) run_install "Node Dinz 3" "$din3" ;; 4) run_install "Node Dinz 4" "$din4" ;;
-                               5) run_install "Node Dinz 5" "$din5" ;; 6) run_install "Node Dinz 6" "$din6" ;;
-                               7) run_install "Node Dinz 7" "$din7" ;; 8) run_install "Node Dinz 8" "$din8" ;;
-                               9) run_install "Node Dinz 9" "$din9" ;; 10) run_install "Node Dinz 10" "$din10" ;;
-                               0) break ;; # Balik ke Menu Pilih Pemilik Node
+                               1) run_install "Node Dinz 1" "$din1" && break 2 ;; 
+                               2) run_install "Node Dinz 2" "$din2" && break 2 ;;
+                               3) run_install "Node Dinz 3" "$din3" && break 2 ;; 
+                               4) run_install "Node Dinz 4" "$din4" && break 2 ;;
+                               5) run_install "Node Dinz 5" "$din5" && break 2 ;; 
+                               6) run_install "Node Dinz 6" "$din6" && break 2 ;;
+                               7) run_install "Node Dinz 7" "$din7" && break 2 ;; 
+                               8) run_install "Node Dinz 8" "$din8" && break 2 ;;
+                               9) run_install "Node Dinz 9" "$din9" && break 2 ;; 
+                               10) run_install "Node Dinz 10" "$din10" && break 2 ;;
+                               0) break ;; 
                                *) echo -e "${RED}Pilihan salah!${NC}"; sleep 1 ;;
                            esac
                        done
@@ -208,7 +218,8 @@ while true; do
                     *) echo -e "${RED}Pilihan tidak valid!${NC}"; sleep 1 ;;
                 esac
             done
-            ;;
+        
+    ;;
 
         0) 
             echo -e "${GREEN}Terima kasih. Bye!${NC}"
