@@ -42,7 +42,7 @@ echo "========================================="
 echo "         PANEL VIRTUAL SYSTEM"
 echo "========================================="
 echo "1. Jalankan Windows baru"
-echo "2. Jalankan Ubuntu Desktop (VNC) [Fixed 1200x580 + Firefox]"
+echo "2. Ubuntu Desktop (VNC)"
 echo "3. Lihat Windows aktif"
 echo "4. Masuk ke Windows"
 echo "5. Hapus Windows"
@@ -53,6 +53,31 @@ read -p "Masukkan pilihan (1-6): " SISTEM
 # ===== 2. Jalankan Ubuntu Desktop =====
 
 if [ "$SISTEM" == "2" ]; then
+    
+    # --- CEK OTOMATIS DOCKER.IO ---
+    echo
+    echo "========================================="
+    echo "⚙️  MEMERIKSA KELENGKAPAN PAKET..."
+    
+    if ! command -v docker &> /dev/null; then
+        echo "⚠️  Docker belum ditemukan."
+        echo "📦  Sedang mendownload & menginstall docker.io..."
+        
+        # Update & Install Docker
+        sudo apt-get update >/dev/null 2>&1
+        sudo apt-get install -y docker.io
+        
+        # Start service jika perlu (untuk memastikan jalan)
+        sudo service docker start >/dev/null 2>&1
+        
+        echo "✅  Docker berhasil diinstall!"
+    else
+        echo "✅  Docker sudah terinstall. Skip download."
+    fi
+    echo "========================================="
+    sleep 1
+    # ----------------------------------
+
     CONTAINER_NAME="ubuntu_vnc"
     DATA_DIR="$HOME/vnc_data"
     FIXED_RESOLUTION="1200x580"
