@@ -38,7 +38,7 @@ cek_curl() {
 }
 
 # Jalankan script dari URL
-jalankan_script() {
+jalankan() {
     local url=$1
     cek_curl
     bash <(curl -fsSL "$url")
@@ -69,15 +69,15 @@ while true; do
     tampilkan_menu
     read -r pilihan
     case $pilihan in
-        1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
-        2) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
-        3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
-        4) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit.sh" ;;
-        5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
-        6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
-        7) pasang_tema ;;
-        8) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
-        9) install_addon_panel ;;
+        1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
+        2) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
+        3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
+        4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit.sh" ;;
+        5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
+        6) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
+        7) jalankan ""
+        8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
+        9) jalankan ""
         10) exit 0 ;;
     esac
 done
