@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Playit Setup & Claim (Auto-Stop after Claim)
+# Playit Setup & Claim (Auto-Exit Fix)
 # Modified by ManzXD
 
 GREEN='\033[0;32m'
@@ -73,7 +73,6 @@ while [ $claimed -eq 0 ]; do
     fi
 
     # Cek Log kalau ada kata-kata sukses
-    # Biasanya Playit bilang "secret saved" atau "tunnel running" setelah claim
     if grep -qE "secret saved|tunnel running|authenticated" playit_log.txt; then
         claimed=1
         
@@ -92,8 +91,12 @@ while [ $claimed -eq 0 ]; do
         
         echo -e "${GREEN}Process Setup Selesai & Dimatikan.${NC}"
         echo -e "Sekarang kamu bisa jalankan Playit pakai script background-mu."
-        echo -e ""
-        read -p "Tekan Enter untuk kembali..."
+        
+        # --- PERBAIKAN DI SINI ---
+        # Tidak ada lagi 'read -p', tapi langsung BREAK (Keluar Loop)
+        # Jadi script ini selesai, dan otomatis balik ke menu utama kamu.
+        sleep 2
+        break
     fi
     sleep 2
 done
