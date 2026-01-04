@@ -59,7 +59,7 @@ while true; do
            draw_header
            clear
            status_msg "🚀 Menjalankan VPS GitHub Installer..."
-           bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/PilihOS-vps.sh)
+           bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-github.sh)
            read -n 1 -s -r -p "Press any key..."
            ;;
       
