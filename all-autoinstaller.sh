@@ -50,16 +50,16 @@ tampilkan_menu() {
     banner
     printf "%b\n" \
 "${TEBAL}========== MENU UTAMA ==========${RESET}" \
-"${TEBAL}1.${RESET} 🧩 Panel" \
-"${TEBAL}2.${RESET} 🪶 Wings" \
-"${TEBAL}3.${RESET} 🛠️ Install Playit" \
-"${TEBAL}4.${RESET} 🖥️ Playit Run 24/7" \
-"${TEBAL}5.${RESET} 🧱 Blueprint" \
+"${TEBAL}1.${RESET} 🧩  Panel" \
+"${TEBAL}2.${RESET} 🪶  Wings" \
+"${TEBAL}3.${RESET} 🛠️  Install Playit" \
+"${TEBAL}4.${RESET} 🖥️  Playit Run 24/7" \
+"${TEBAL}5.${RESET} 🧱  Blueprint" \
 "${TEBAL}6.${RESET} ☁️  Cloudflare (raw script)" \
-"${TEBAL}7.${RESET} 🎨 Pasang Tema" \
-"${TEBAL}8.${RESET} 🔒 Cloudflared Tunnel" \
-"${TEBAL}9.${RESET} 🧩 Install Addon" \
-"${TEBAL}10.${RESET} 🚪 Keluar" \
+"${TEBAL}7.${RESET} 🎨  Pasang Tema" \
+"${TEBAL}8.${RESET} 🔒  Cloudflared Tunnel" \
+"${TEBAL}9.${RESET} 🧩  Install Addon" \
+"${TEBAL}0.${RESET} 🚪  Keluar" \
 "${TEBAL}================================${RESET}"
     echo -ne "${TEBAL}Masukkan pilihan [1-10]: ${RESET}"
 }
@@ -78,6 +78,6 @@ while true; do
         7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
         8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
         9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/addon.sh" ;;
-        10) exit 0 ;;
+        0) exit 0 ;;
     esac
 done
