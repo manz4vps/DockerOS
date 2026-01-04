@@ -48,7 +48,7 @@ while true; do
     echo -e "${BLUE}  ║ ${GREEN}[2]${WHITE} 🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[3]${WHITE} ⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[4]${WHITE} 🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[5]${WHITE} ❌ Exit Console                               ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}[0]${WHITE} ❌ Exit Console                               ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -ne "${YELLOW}  Select Option [1-5]: ${NC}"
@@ -392,7 +392,7 @@ EOF
             read -n 1 -s -r -p "Press any key..."
             ;;
 
-        5)
+        0)
             clear
             echo -e "${RED}EXITING...${NC}"
             exit 0
