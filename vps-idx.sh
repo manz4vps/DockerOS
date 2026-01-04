@@ -17,18 +17,6 @@ NC='\033[0m' # No Color
 
 # --- SYSTEM FUNCTIONS ---
 
-draw_logo() {
-    echo -e "${BLUE}╔══════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${CYAN}       MANZ XD - ULTIMATE CONSOLE     ${BLUE}║${NC}"
-    echo -e "${BLUE}╚══════════════════════════════════════╝${NC}"
-}
-
-draw_header() {
-    clear
-    draw_logo
-    echo -e "\n${GREY}      SYSTEM TIME: $(date '+%H:%M:%S') | USER: $(whoami)${NC}"
-}
-
 status_msg() {
     echo -e "${2}>>> ${1}${NC}"
 }
