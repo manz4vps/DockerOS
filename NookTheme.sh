@@ -15,4 +15,4 @@ php artisan up
 
 # done
 clear
-echo 'made by jishnu'
+echo 'made by manz4vps'
