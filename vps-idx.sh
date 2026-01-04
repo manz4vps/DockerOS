@@ -118,7 +118,6 @@ while true; do
 }
 EOF
 
-            # Loading bar dihapus
             echo -e "\n${GREEN}  SUCCESS: IDX Config created at ${IDX_PATH}${NC}"
             read -n 1 -s -r -p "Press any key..."
             ;;
@@ -126,7 +125,6 @@ EOF
         3)
             draw_header
             status_msg "LAUNCHING IDX VPS SCRIPT..."
-            # Loading bar dihapus
             bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vm-idx.sh)
             read -n 1 -s -r -p "Press any key..."
             ;;
