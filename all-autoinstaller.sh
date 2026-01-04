@@ -72,7 +72,7 @@ while true; do
         1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
         2) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
         3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
-        4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit.sh" ;;
+        4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit24%5C7" ;;
         5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
         6) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
         7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
