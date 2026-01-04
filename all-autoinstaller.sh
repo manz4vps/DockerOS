@@ -75,9 +75,9 @@ while true; do
         4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit.sh" ;;
         5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
         6) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
-        7) jalankan ""
+        7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
         8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
-        9) jalankan ""
+        9) jalankan "" ;;
         10) exit 0 ;;
     esac
 done
