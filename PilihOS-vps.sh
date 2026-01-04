@@ -19,13 +19,13 @@ cat << "EOF"
 ██║  ██║  ██║   ███████║  ██║ ╚═╝ ██║  ██║  ██║  ██║ ╚████║
 ╚═╝  ╚═╝  ╚═╝   ╚══════╝  ╚═╝     ╚═╝  ╚═╝  ╚═╝  ╚═╝  ╚═══╝
 EOF
-sleep 1
+sleep 0.7
 clear
 
 echo -e "\033[1;32m✨ Make By Manz & Ndaa\033[0m"
 sleep 0.5
 echo -e "\033[1;34m🐳 Docker Credit by ManzXYZ\033[0m"
-sleep 2
+sleep 0.5
 clear
 
 # Menu utama
@@ -37,7 +37,7 @@ while true; do
   echo -e "${YELLOW}4)${RESET} ⏹️  Stop Container"
   echo -e "${YELLOW}5)${RESET} 🗑️  Hapus Container"
   echo -e "${YELLOW}6)${RESET} 💻 Jalankan VPS"
-  echo -e "${YELLOW}7)${RESET} ❌ Keluar"
+  echo -e "${YELLOW}0)${RESET} ❌ Keluar"
   echo
   read -rp "Pilih opsi (1-7): " MENU
 
@@ -49,7 +49,7 @@ while true; do
       echo -e "2) Debian 12"
       echo -e "3) Ubuntu 22"
       echo -e "4) Ubuntu 24"
-      echo -e "5) Kembali"
+      echo -e "0) Kembali"
       read -rp "Pilih: " OS
 
       case "$OS" in
@@ -117,7 +117,7 @@ EOF
       bash "$F"
       ;;
 
-    7)
+    0)
       echo -e "${GREEN}Keluar...${RESET}"
       exit 0
       ;;
