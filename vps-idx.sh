@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# MANZ XD - ULTIMATE CONSOLE (V2 - AutoStart Added)
+# MANZ XD - ULTIMATE CONSOLE (V2 - Modified Fast)
 # ==============================================================================
 
 # --- COLOR PALETTE (NEON THEME) ---
@@ -18,15 +18,10 @@ NC='\033[0m' # No Color
 # --- SYSTEM FUNCTIONS ---
 
 draw_logo() {
-    echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${CYAN}   __  __                    ${PURPLE}   __  ______             ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}  |  \/  | __ _ _ __  ____  ${PURPLE}   \ \/ /  _ \            ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}  | |\/| |/ _\` | '_ \|_  /  ${PURPLE}    \  /| | | |          ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}  | |  | | (_| | | | |/ /   ${PURPLE}    /  \| |_| |           ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}  |_|  |_|\__,_|_| |_/___|  ${PURPLE}   /_/\_\____/            ${BLUE}║${NC}"
-    echo -e "${BLUE}║${WHITE}                                                        ${BLUE}║${NC}"
-    echo -e "${BLUE}║${YELLOW}            P O W E R E D   B Y   M A N Z               ${BLUE}║${NC}"
-    echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
+    # Logo Diperkecil & Simple
+    echo -e "${BLUE}╔══════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║${CYAN}       MANZ XD - ULTIMATE CONSOLE     ${BLUE}║${NC}"
+    echo -e "${BLUE}╚══════════════════════════════════════╝${NC}"
 }
 
 draw_header() {
@@ -35,22 +30,11 @@ draw_header() {
     echo -e "\n${GREY}      SYSTEM TIME: $(date '+%H:%M:%S') | USER: $(whoami)${NC}"
 }
 
-loading_bar() {
-    local duration=${1:-2}
-    local bars=25
-    local sleep_time=$(awk "BEGIN {print $duration / $bars}")
-    echo -ne "${CYAN}Processing: ${WHITE}[${NC}"
-    for ((i=0; i<bars; i++)); do
-        echo -ne "${GREEN}#${NC}"
-        sleep $sleep_time
-    done
-    echo -e "${WHITE}] ${GREEN}Done!${NC}"
-}
-
+# Loading bar dihapus, diganti echo biasa biar cepat
 status_msg() {
     local title="$1"
     local color="$2"
-    echo -e "${color}==================== ${title} ====================${NC}"
+    echo -e "${color}>>> ${title}${NC}"
 }
 
 # --- MAIN LOGIC ---
@@ -61,7 +45,7 @@ while true; do
     echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
     echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[1]${WHITE} 🚀 GitHub VPS Maker (Docker)                 ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[2]${WHITE} 🔧 IDX Tool Setup (Config & Clean)           ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}[2]${WHITE} 🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[3]${WHITE} ⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[4]${WHITE} 🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[5]${WHITE} ❌ Exit Console                               ${BLUE}║${NC}"
@@ -81,7 +65,7 @@ while true; do
             DISK=100G
             IMG="hopingboyz/debain12"
 
-            loading_bar
+            # Loading bar dihapus
 
             mkdir -p "$PWD/vmdata"
             docker run -it --rm \
@@ -106,31 +90,18 @@ while true; do
             rm -rf myapp flutter
             sleep 0.5
 
-            echo -e "${YELLOW}  [2/3] Creating directory structure...${NC}"
-            echo -e "${GREEN}   [1]${WHITE} vm/.idx"
-            echo -e "${GREEN}   [2]${WHITE} vps123/.idx"
-            echo -e "${GREEN}   [3]${WHITE} Custom path"
-            echo -ne "${CYAN}   Choose [1-3]: ${NC}"
-            read IDX_CHOICE
-
-            case "$IDX_CHOICE" in
-                1) IDX_PATH="$HOME/vm/.idx" ;;
-                2) IDX_PATH="$HOME/vps123/.idx" ;;
-                3)
-                    echo -ne "${CYAN}   Enter custom path (example: mydir/.idx): ${NC}"
-                    read CUSTOM_PATH
-                    IDX_PATH="$HOME/$CUSTOM_PATH"
-                    ;;
-                *)
-                    IDX_PATH="$HOME/vm/.idx"
-                    ;;
-            esac
-
+            echo -e "${YELLOW}  [2/3] Setting up directory...${NC}"
+            
+            # --- MODIFIKASI: LANGSUNG KE vm/.idx TANPA TANYA ---
+            IDX_PATH="$HOME/vm/.idx"
+            echo -e "${GREEN}   Target: $IDX_PATH${NC}"
+            
             mkdir -p "$IDX_PATH"
             cd "$IDX_PATH"
             sleep 0.5
 
             echo -e "${YELLOW}  [3/3] Generating dev.nix config...${NC}"
+            # ISI DEV.NIX TETAP SAMA SEPERTI SCIRPT V2 KAMU
             cat <<EOF > dev.nix
 { pkgs, ... }: {
   channel = "stable-24.05";
@@ -164,7 +135,7 @@ while true; do
 }
 EOF
 
-            loading_bar
+            # Loading bar dihapus
             echo -e "\n${GREEN}  SUCCESS: IDX Config created at ${IDX_PATH}${NC}"
             read -n 1 -s -r -p "Press any key..."
             ;;
@@ -172,7 +143,7 @@ EOF
         3)
             draw_header
             status_msg "LAUNCHING IDX VPS SCRIPT..."
-            loading_bar
+            # Loading bar dihapus
             bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vm-idx.sh)
             read -n 1 -s -r -p "Press any key..."
             ;;
@@ -182,7 +153,7 @@ EOF
             status_msg "INSTALLING AUTO-START SCRIPT..." "${CYAN}"
             echo ""
 
-            # 1. Membuat file vm-autostart.sh
+            # 1. Membuat file vm-autostart.sh (ISI TETAP SAMA V2)
             echo -e "${YELLOW}  [1/2] Creating vm-autostart.sh...${NC}"
             cat <<'EOF' > "$HOME/vm-autostart.sh"
 #!/bin/bash
@@ -415,7 +386,7 @@ EOF
                 echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
             fi
 
-            loading_bar
+            # Loading bar dihapus
             echo -e "\n${GREEN}  SUCCESS: Auto-Start System Installed!${NC}"
             echo -e "${WHITE}  Script will run automatically next time you restart IDX/Terminal.${NC}"
             read -n 1 -s -r -p "Press any key..."
