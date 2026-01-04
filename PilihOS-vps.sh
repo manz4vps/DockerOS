@@ -33,10 +33,9 @@ while true; do
   echo -e "${BOLD}${CYAN}🚀 === MENU OS VPS ===${RESET}"
   echo -e "${YELLOW}1)${RESET} 🧱 Buat OS VPS Baru"
   echo -e "${YELLOW}2)${RESET} 🔍 Lihat Container Aktif"
-  echo -e "${YELLOW}3)${RESET} 🧠 VPS IDX Installer (AUTO RUN)"
-  echo -e "${YELLOW}4)${RESET} ⏹️  Stop Container"
-  echo -e "${YELLOW}5)${RESET} 🗑️  Hapus Container"
-  echo -e "${YELLOW}6)${RESET} 💻 Jalankan VPS"
+  echo -e "${YELLOW}3)${RESET} ⏹️ Stop Container"
+  echo -e "${YELLOW}4)${RESET} 🗑️ Hapus Container"
+  echo -e "${YELLOW}5)${RESET} 💻 Jalankan VPS"
   echo -e "${YELLOW}0)${RESET} ❌ Keluar"
   echo
   read -rp "Pilih opsi (0-6): " MENU
@@ -91,26 +90,19 @@ EOF
 
     3)
       clear
-      echo -e "${CYAN}🚀 Menjalankan VPS IDX Installer...${RESET}"
-      bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-idx.sh)
-      read -rp "Tekan [Enter] untuk kembali..."
-      ;;
-
-    4)
-      clear
       docker ps --format "table {{.Names}}\t{{.Status}}"
       read -rp "Nama container: " C
       docker stop "$C"
       ;;
 
-    5)
+    4)
       clear
       docker ps -a --format "table {{.Names}}\t{{.Status}}"
       read -rp "Nama container: " C
       docker rm -f "$C"
       ;;
 
-    6)
+    5)
       clear
       ls *.sh 2>/dev/null || echo "Tidak ada file"
       read -rp "Nama file: " F
