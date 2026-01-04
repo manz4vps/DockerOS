@@ -19,16 +19,10 @@ NC='\033[0m' # No Color (Reset)
 # Function to display header (Now COLORFUL)
 display_header() {
     clear
-    echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${CYAN}        ██╗   ██╗    ███╗   ███╗                        ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}        ██║   ██║    ████╗ ████║                        ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}        ██║   ██║    ██╔████╔██║                        ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}        ╚██╗ ██╔╝    ██║╚██╔╝██║                        ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}         ╚████╔╝     ██║ ╚═╝ ██║                        ${BLUE}║${NC}"
-    echo -e "${BLUE}║${CYAN}          ╚═══╝      ╚═╝     ╚═╝                        ${BLUE}║${NC}"
-    echo -e "${BLUE}║${WHITE}                                                        ${BLUE}║${NC}"
-    echo -e "${BLUE}║${YELLOW}            P O W E R E D   B Y   M A N Z               ${BLUE}║${NC}"
-    echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${BLUE}  ╔══════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}  ║${CYAN}      VIRTUAL MACHINE MANAGER         ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║${YELLOW}          POWERED BY MANZ             ${BLUE}║${NC}"
+    echo -e "${BLUE}  ╚══════════════════════════════════════╝${NC}"
     echo
 }
 
