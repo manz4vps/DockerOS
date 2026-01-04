@@ -45,59 +45,6 @@ jalankan_script() {
     read -p "Tekan Enter untuk kembali ke menu utama..."
 }
 
-# === PASANG TEMA ===
-pasang_tema() {
-    banner
-    echo "1. Nebula Theme"
-    echo "2. Euphoria Theme"
-    echo "3. NookTheme"
-    echo "4. Kembali"
-    read -p "Pilih: " t
-    case $t in
-        1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/change%20theme.sh" ;;
-        2)
-            cd /var/www/pterodactyl || return
-            curl -fsSLO https://github.com/manz4vps/DockerOS/raw/refs/heads/main/euphoriatheme.blueprint
-            blueprint -i euphoriatheme.blueprint
-            ;;
-        3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/NookTheme.sh" ;;
-        
-    esac
-    read -p "Enter..."
-}
-
-# === Playit Run 24/7 ===#
-install_playit() {
-    cek_curl
-    bash <(curl -fsSL "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit.sh")
-    read -p "Tekan Enter..."
-}
-
-# === INSTALL ADDON PANEL (8 BLUEPRINT) ===
-install_addon_panel() {
-    banner
-    echo -e "${TEBAL}=== INSTALL ADDON PANEL (8 ADDON) ===${RESET}"
-    cd /var/www/pterodactyl || return
-
-    addons=(
-        mcplugins.blueprint
-        minecraftplayermanager.blueprint
-        loader.blueprint
-        serverbackgrounds.blueprint
-        simplefavicons.blueprint
-        startupchanger.blueprint
-        subdomains.blueprint
-        versionchanger.blueprint
-    )
-
-    for addon in "${addons[@]}"; do
-        curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/$addon"
-        blueprint -i "$addon"
-    done
-
-    read -p "Tekan Enter..."
-}
-
 # === MENU UTAMA (FIX WARNA + CURL SAFE) ===
 tampilkan_menu() {
     banner
@@ -125,7 +72,7 @@ while true; do
         1) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
         2) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
         3) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
-        4) install_playit ;;
+        4) jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit.sh" ;;
         5) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
         6) jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
         7) pasang_tema ;;
