@@ -56,30 +56,13 @@ while true; do
 
     case $selection in
         1)
-            draw_header
-            status_msg "INITIALIZING GITHUB VPS..."
-            echo ""
-
-            RAM=15000
-            CPU=4
-            DISK=100G
-            IMG="hopingboyz/debain12"
-
-            # Loading bar dihapus
-
-            mkdir -p "$PWD/vmdata"
-            docker run -it --rm \
-                --name "manz_vps" \
-                --device /dev/kvm \
-                -v "$PWD/vmdata":/vmdata \
-                -e RAM="$RAM" \
-                -e CPU="$CPU" \
-                -e DISK_SIZE="$DISK" \
-                "$IMG"
-
-            read -n 1 -s -r -p "Press any key..."
-            ;;
-
+           draw_header
+           clear
+           status_msg "🚀 Menjalankan VPS GitHub Installer..."
+           bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/PilihOS-vps.sh)
+           read -n 1 -s -r -p "Press any key..."
+           ;;
+      
         2)
             draw_header
             status_msg "SETTING UP IDX ENVIRONMENT..."
