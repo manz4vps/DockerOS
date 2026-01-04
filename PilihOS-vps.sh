@@ -23,7 +23,7 @@ sleep 0.7
 clear
 
 echo -e "\033[1;32m✨ Make By Manz & Ndaa\033[0m"
-sleep 0.5
+sleep 0.6
 echo -e "\033[1;34m🐳 Docker Credit by ManzXYZ\033[0m"
 sleep 0.5
 clear
@@ -118,6 +118,7 @@ EOF
       ;;
 
     0)
+      clear
       echo -e "${GREEN}Keluar...${RESET}"
       exit 0
       ;;
