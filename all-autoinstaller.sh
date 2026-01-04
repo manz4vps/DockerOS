@@ -61,7 +61,7 @@ tampilkan_menu() {
 "${TEBAL}9.${RESET} 🧩  Install Addon" \
 "${TEBAL}0.${RESET} 🚪  Keluar" \
 "${TEBAL}================================${RESET}"
-    echo -ne "${TEBAL}Masukkan pilihan [1-10]: ${RESET}"
+    echo -ne "${TEBAL}Masukkan pilihan [0-9]: ${RESET}"
 }
 
 # === LOOP UTAMA ===
