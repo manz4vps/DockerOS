@@ -77,7 +77,7 @@ while true; do
         6) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
         7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
         8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
-        9) jalankan "" ;;
+        9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/addon.sh" ;;
         10) exit 0 ;;
     esac
 done
