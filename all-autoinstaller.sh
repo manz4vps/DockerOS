@@ -51,11 +51,11 @@ tampilkan_menu() {
     printf "%b\n" \
 "${TEBAL}========== MENU UTAMA ==========${RESET}" \
 "${TEBAL}1.${RESET} 🧩  Panel" \
-"${TEBAL}2.${RESET} 🪶  Wings" \
-"${TEBAL}3.${RESET} 🛠️  Install Playit" \
-"${TEBAL}4.${RESET} 🖥️  Playit Run 24/7" \
+"${TEBAL}2.${RESET} 🪶   Wings" \
+"${TEBAL}3.${RESET} 🛠️   Install Playit" \
+"${TEBAL}4.${RESET} 🖥️   Playit Run 24/7" \
 "${TEBAL}5.${RESET} 🧱  Blueprint" \
-"${TEBAL}6.${RESET} ☁️  Cloudflare (raw script)" \
+"${TEBAL}6.${RESET} ☁️   Cloudflare (raw script)" \
 "${TEBAL}7.${RESET} 🎨  Pasang Tema" \
 "${TEBAL}8.${RESET} 🔒  Cloudflared Tunnel" \
 "${TEBAL}9.${RESET} 🧩  Install Addon" \
