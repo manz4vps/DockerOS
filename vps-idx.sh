@@ -17,6 +17,18 @@ NC='\033[0m' # No Color
 
 # --- SYSTEM FUNCTIONS ---
 
+draw_logo() {
+    echo -e "${BLUE}  ╔══════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}  ║${CYAN}       MANZ XD - ULTIMATE CONSOLE     ${BLUE}║${NC}"
+    echo -e "${BLUE}  ╚══════════════════════════════════════╝${NC}"
+}
+
+draw_header() {
+    clear
+    draw_logo
+    echo -e "\n${GREY}      SYSTEM TIME: $(date '+%H:%M:%S') | USER: $(whoami)${NC}"
+}
+
 status_msg() {
     echo -e "${2}>>> ${1}${NC}"
 }
@@ -27,7 +39,7 @@ while true; do
     draw_header
 
     echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
-    echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}. ╔══════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[1]${WHITE} 🚀 GitHub VPS Maker (Docker)                 ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[2]${WHITE} 🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[3]${WHITE} ⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
