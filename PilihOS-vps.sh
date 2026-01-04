@@ -39,7 +39,7 @@ while true; do
   echo -e "${YELLOW}6)${RESET} 💻 Jalankan VPS"
   echo -e "${YELLOW}0)${RESET} ❌ Keluar"
   echo
-  read -rp "Pilih opsi (1-7): " MENU
+  read -rp "Pilih opsi (0-6): " MENU
 
   case "$MENU" in
     1)
