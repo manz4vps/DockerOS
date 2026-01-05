@@ -104,7 +104,7 @@ api:
   host: 0.0.0.0
   port: 8080
   ssl:
-    enabled: true
+    enabled: false
     cert: /etc/letsencrypt/live/${FQDN}/fullchain.pem
     key: /etc/letsencrypt/live/${FQDN}/privkey.pem
   upload_limit: 1000
