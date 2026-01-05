@@ -87,6 +87,7 @@ echo ""
 read -p "Do you want to auto-configure Wings now? (y/n): " AUTO_CONFIG
 
 if [[ "$AUTO_CONFIG" =~ ^[Yy]$ ]]; then
+    clear
     echo "🔧 Auto-configuring Wings..."
     read -p "Enter UUID: " UUID
     read -p "Enter Token ID: " TOKEN_ID
