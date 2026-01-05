@@ -106,7 +106,7 @@ api:
     enabled: true
     cert: /etc/certs/wing/fullchain.pem
     key: /etc/certs/wing/privkey.pem
-  upload_limit: 100
+  upload_limit: 1000
 system:
   data: /var/lib/pterodactyl/volumes
   sftp:
@@ -117,7 +117,7 @@ CFG
 
     echo "✅ Config saved to /etc/pterodactyl/config.yml"
     echo "🚀 Starting Wings service..."
-    systemctl start wings
+    systemctl enable --now wings 
     echo "✅ Wings started successfully!"
 else
     echo "[!] Skipping auto-configuration. To start Wings manually, run:"
