@@ -55,7 +55,7 @@ RestartSec=5s
 WantedBy=multi-user.target
 EOF
 sudo systemctl daemon-reload
-sudo systemctl enable wings
+sudo systemctl enable --now wings
 
 # ------------------------
 # 5. SSL Certificate
@@ -118,7 +118,7 @@ CFG
 
     echo "✅ Config saved to /etc/pterodactyl/config.yml"
     echo "🚀 Starting Wings service..."
-    systemctl enable --now wings 
+    sudo systemctl enable --now wings 
     echo "✅ Wings started successfully!"
 else
     echo "[!] Skipping auto-configuration. To start Wings manually, run:"
