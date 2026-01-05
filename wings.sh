@@ -91,6 +91,7 @@ if [[ "$AUTO_CONFIG" =~ ^[Yy]$ ]]; then
     read -p "Enter UUID: " UUID
     read -p "Enter Token ID: " TOKEN_ID
     read -p "Enter Token: " TOKEN
+    read -p "Enter FQDN: " FQDN
     read -p "Enter Panel URL (remote): " REMOTE
 
     mkdir -p /etc/pterodactyl
@@ -104,8 +105,8 @@ api:
   port: 8080
   ssl:
     enabled: true
-    cert: /etc/certs/wing/fullchain.pem
-    key: /etc/certs/wing/privkey.pem
+    cert: /etc/letsencrypt/live/${FQDN}/fullchain.pem
+    key: /etc/letsencrypt/live/${FQDN}/privkey.pem
   upload_limit: 1000
 system:
   data: /var/lib/pterodactyl/volumes
