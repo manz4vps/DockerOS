@@ -42,7 +42,7 @@ echo "========================================="
 echo "         PANEL VIRTUAL SYSTEM"
 echo "========================================="
 echo "1. Jalankan Windows baru"
-echo "2. Ubuntu Desktop (VNC)"
+echo "2. Ubuntu Desktop (VNC) [Auto-Start]"
 echo "3. Lihat Windows aktif"
 echo "4. Masuk ke Windows"
 echo "5. Hapus Windows"
@@ -85,33 +85,53 @@ if [ "$SISTEM" == "2" ]; then
     echo  
     # Cek apakah container sudah ada  
     if [ "$(docker ps -a -q -f name=^${CONTAINER_NAME}$)" ]; then  
-        if [ "$(docker ps -q -f name=^${CONTAINER_NAME}$)" ]; then  
-            echo "Ubuntu Desktop VNC saat ini sudah berjalan!"  
+        STATUS=$(docker inspect -f '{{.State.Status}}' $CONTAINER_NAME)
+        
+        if [ "$STATUS" == "running" ]; then  
+            echo "✅ Ubuntu Desktop VNC sedang BERJALAN!"  
         else  
-            echo "Container ditemukan tapi sedang berhenti."  
+            echo "⏸️  Container ditemukan tapi sedang BERHENTI (STOPPED)."  
         fi  
+        
         echo "========================================="  
-        echo "1. Jalankan / lanjutkan"  
-        echo "2. Reset Container (Hapus & Buat Baru dengan Firefox)"  
-        echo "3. Lihat log"  
-        echo "4. Hentikan container"  
-        echo "5. Kembali ke menu utama"  
+        echo "1. Jalankan / Lanjutkan (Start)"  
+        echo "2. Restart Service (Mulai Ulang)" 
+        echo "3. Hentikan (Stop)"  
+        echo "4. Lihat Log"  
+        echo "5. Reset Container (Hapus & Buat Baru)"  
+        echo "0. Kembali ke menu utama"  
         echo "========================================="  
-        read -p "Pilih opsi (1-5): " OPSI_VNC  
+        read -p "Pilih opsi (0-5): " OPSI_VNC  
 
         case $OPSI_VNC in  
             1)  
                 echo "Menjalankan kembali Ubuntu Desktop..."  
                 docker start $CONTAINER_NAME >/dev/null  
-                echo "Container berjalan!"  
+                echo "✅ Container berjalan!"  
                 echo "Akses di: http://localhost:6080"  
                 ;;  
-            2)  
+            2)
+                echo "Merestart service VNC..."
+                docker restart $CONTAINER_NAME >/dev/null
+                echo "✅ Berhasil direstart."
+                echo "Akses di: http://localhost:6080"
+                ;;
+            3)  
+                echo "Menghentikan container..."  
+                docker stop $CONTAINER_NAME >/dev/null 2>&1  
+                echo "✅ Berhenti. (Tidak akan auto-start sampai dinyalakan lagi)"  
+                ;;  
+            4)  
+                echo "Menampilkan log (Ctrl + P lalu Ctrl + Q untuk keluar)"  
+                docker attach $CONTAINER_NAME  
+                ;;  
+            5)  
                 echo "Menghapus container lama dan membuat baru..."  
                 docker rm -f $CONTAINER_NAME >/dev/null 2>&1  
                 
-                # Start Baru
+                # Start Baru dengan Auto-Start Policy
                 docker run -d --name $CONTAINER_NAME \
+                    --restart unless-stopped \
                     -p 6080:80 \
                     -e RESOLUTION=$FIXED_RESOLUTION \
                     -v /dev/shm:/dev/shm \
@@ -125,16 +145,7 @@ if [ "$SISTEM" == "2" ]; then
                 
                 echo "Akses di: http://localhost:6080"
                 ;;  
-            3)  
-                echo "Menampilkan log (Ctrl + P lalu Ctrl + Q untuk keluar)"  
-                docker attach $CONTAINER_NAME  
-                ;;  
-            4)  
-                echo "Menghentikan container..."  
-                docker stop $CONTAINER_NAME >/dev/null 2>&1  
-                echo "Berhenti."  
-                ;;  
-            5) continue ;;  
+            0) continue ;;  
             *) echo "Pilihan tidak valid."; sleep 1 ;;  
         esac  
 
@@ -146,9 +157,12 @@ if [ "$SISTEM" == "2" ]; then
     echo  
     echo "Menjalankan Ubuntu Desktop baru..."
     echo "Menggunakan Resolusi Tetap: $FIXED_RESOLUTION"
+    echo "Set Auto-Start: ON (Akan nyala otomatis jika VPS reboot)"
     mkdir -p "$DATA_DIR"  
 
+    # DITAMBAHKAN: --restart unless-stopped
     CONTAINER_ID=$(docker run -d --name $CONTAINER_NAME \
+        --restart unless-stopped \
         -p 6080:80 \
         -e RESOLUTION=$FIXED_RESOLUTION \
         -v /dev/shm:/dev/shm \
@@ -156,7 +170,7 @@ if [ "$SISTEM" == "2" ]; then
         dorowu/ubuntu-desktop-lxde-vnc)  
 
     if [ $? -ne 0 ]; then  
-        echo "Gagal menjalankan container VNC!"  
+        echo "❌ Gagal menjalankan container VNC!"  
         read -p "Tekan Enter untuk kembali ke menu..."  
         continue  
     fi  
@@ -165,10 +179,11 @@ if [ "$SISTEM" == "2" ]; then
     install_firefox_in_container $CONTAINER_NAME
 
     echo "========================================="  
-    echo "Ubuntu Desktop VNC berjalan di port 6080"  
-    echo "Akses melalui browser di: http://localhost:6080"  
-    echo "Resolusi: $FIXED_RESOLUTION"
-    echo "Firefox: Terinstall"
+    echo "✅ Ubuntu Desktop VNC berjalan di port 6080"  
+    echo "🌐 Akses melalui browser di: http://localhost:6080"  
+    echo "🖥️  Resolusi: $FIXED_RESOLUTION"
+    echo "🦊 Firefox: Terinstall"
+    echo "🔄 Auto-Start: AKTIF"
     echo "========================================="  
     echo  
     sleep 2  
@@ -249,6 +264,7 @@ services:
       - 3389:3389/tcp
       - 3389:3389/udp
     stop_grace_period: 2m
+    restart: unless-stopped
 EOL
 
     echo "========================================="  
