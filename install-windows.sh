@@ -2,78 +2,75 @@
 shopt -s nullglob
 
 # =========================================================
-# FUNGSI BARU: Install Firefox + WRAPPER AUTOSTART (Cara Manual Otomatis)
+# FUNGSI BARU: SAFE MODE AUTOSTART (Lebih Stabil)
 # =========================================================
 install_firefox_in_container() {
     local container_name="$1"
     echo "========================================="
-    echo "🚀 Menginstall Firefox & Script Pemicu..."
+    echo "🚀 Menginstall Firefox (Mode Stabil)..."
     echo "========================================="
     
-    # Menjalankan perintah instalasi di dalam container
     docker exec -t "$container_name" /bin/bash -c '
-    # 1. Update & Install Dependencies (wget, gnupg, dll)
+    # 1. Install Firefox Basic
     apt-get update >/dev/null 2>&1
     apt-get install -y wget gnupg >/dev/null 2>&1
-    
-    # 2. Hapus Firefox lama (jika ada)
     apt-get remove firefox firefox-esr -y >/dev/null 2>&1
     
-    # 3. Setup Repo Mozilla Official (Biar dapet Firefox terbaru, bukan ESR)
     install -d -m 0755 /etc/apt/keyrings
     wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | \
     tee /etc/apt/keyrings/mozilla.gpg > /dev/null
-    
     echo "deb [signed-by=/etc/apt/keyrings/mozilla.gpg] https://packages.mozilla.org/apt mozilla main" | \
     tee /etc/apt/sources.list.d/mozilla.list
     
-    # 4. Install Firefox Stable
     apt-get update >/dev/null 2>&1
     apt-get install firefox -y >/dev/null 2>&1
 
-    # --- BAGIAN PENTING: MEMBUAT SCRIPT PEMICU (WRAPPER) ---
-    # Ini meniru apa yang kamu ketik manual di terminal tadi (export DISPLAY=:1)
-    
-    echo "5. Membuat script pemicu (run-firefox.sh)..."
-    cat <<EOF > /usr/bin/run-firefox.sh
+    # 2. BERSIHKAN BEKAS EKSPERIMEN LAMA (PENTING!)
+    # Kita hapus suntikan script yang bikin error tadi
+    sed -i "/manz-start/d" /etc/xdg/lxsession/LXDE/autostart
+    sed -i "/@firefox/d" /etc/xdg/lxsession/LXDE/autostart
+    rm -f /usr/bin/manz-start.sh
+
+    # 3. BUAT SCRIPT PELUNCUR DENGAN LOGGING
+    # Kita tambah log biar ketahuan kalau error
+    cat <<EOF > /usr/bin/launch-firefox-safe.sh
 #!/bin/bash
-# Paksa sistem tahu layar mana yang dipakai
+# Tunggu 10 detik (Wajib agak lama biar VNC stabil dulu)
+sleep 10
+
+# Cek Display (Coba :1 dulu, kalau gagal coba :0)
 export DISPLAY=:1
-export HOME=/root
+xset q >/dev/null 2>&1 || export DISPLAY=:0
 
-# Tunggu 5 detik memastikan VNC Desktop sudah siap render
-sleep 5
-
-# Jalankan Firefox
-# (Profile akan tersimpan di /root karena volume mapping)
-firefox &
+# Jalankan Firefox & Simpan log errornya
+echo "Mencoba start Firefox di Display \$DISPLAY..." > /root/firefox-debug.log
+nohup firefox > /root/firefox-output.log 2>&1 &
 EOF
 
-    # Beri izin eksekusi
-    chmod +x /usr/bin/run-firefox.sh
+    chmod +x /usr/bin/launch-firefox-safe.sh
 
-    # --- SETTING AUTOSTART AGAR MENJALANKAN SCRIPT PEMICU ---
-    echo "6. Mendaftarkan ke Autostart..."
+    # 4. PASANG AUTOSTART VIA FOLDER USER (LEBIH AMAN)
+    # Tidak mengganggu sistem inti LXDE
     mkdir -p /root/.config/autostart
-    cat <<EOF > /root/.config/autostart/firefox.desktop
+    cat <<EOF > /root/.config/autostart/firefox-safe.desktop
 [Desktop Entry]
 Type=Application
-Name=Firefox Auto
-Exec=/usr/bin/run-firefox.sh
-StartupNotify=false
-Terminal=false
+Name=Firefox Safe
+Exec=/usr/bin/launch-firefox-safe.sh
 Hidden=false
+NoDisplay=false
 X-GNOME-Autostart-enabled=true
 EOF
     
-    chmod +x /root/.config/autostart/firefox.desktop
-    # -----------------------------------------
+    chmod +x /root/.config/autostart/firefox-safe.desktop
+    
+    echo "Done. Autostart terpasang di folder user (Aman)."
     '
     
     echo "========================================="
     echo "✅ Firefox Terinstall."
-    echo "✅ Script Pemicu (DISPLAY=:1) sudah aktif."
-    echo "👉 Firefox akan otomatis muncul 5 detik setelah masuk VNC."
+    echo "👉 JANGAN LUPA: Pilih menu 'Reset Container' sekarang!"
+    echo "👉 Nanti pas masuk VNC, tunggu 10-15 detik, jangan panik kalau belum muncul."
     echo "========================================="
 }
 
@@ -87,7 +84,7 @@ echo "========================================="
 echo "         PANEL VIRTUAL SYSTEM"
 echo "========================================="
 echo "1. Jalankan Windows baru"
-echo "2. Jalankan Ubuntu Desktop (VNC)"
+echo "2. Jalankan Ubuntu Desktop (VNC) [Safe Mode Firefox]"
 echo "3. Lihat Windows aktif"
 echo "4. Masuk ke Windows"
 echo "5. Hapus Windows"
@@ -183,7 +180,7 @@ if [ "$SISTEM" == "2" ]; then
                 
                 echo "Container baru berjalan dengan resolusi $FIXED_RESOLUTION"
                 
-                # Panggil fungsi install firefox wrapper
+                # Panggil fungsi install firefox safe mode
                 install_firefox_in_container $CONTAINER_NAME
                 
                 echo "Akses di: http://localhost:6080"
@@ -221,7 +218,7 @@ if [ "$SISTEM" == "2" ]; then
     echo "✅ Ubuntu Desktop VNC berjalan"  
     echo "🌐 Akses: http://localhost:6080"  
     echo "🔄 Auto-Start VNC: AKTIF"
-    echo "🦊 Auto-Open Firefox: AKTIF (Dengan Script Pemicu)"
+    echo "🦊 Auto-Open Firefox: AKTIF (Mode Aman)"
     echo "========================================="  
     echo  
     sleep 2  
