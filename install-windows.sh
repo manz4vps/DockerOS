@@ -7,74 +7,59 @@ shopt -s nullglob
 install_firefox_in_container() {
     local container_name="$1"
     echo "========================================="
-    echo "🚀 Menginstall Firefox & Setting Auto-Start (Mode Paksa)..."
+    echo "🚀 Menginstall Firefox (Versi Docker Safe)..."
     echo "========================================="
     
     docker exec -t "$container_name" /bin/bash -c '
-    # --- BAGIAN 1: INSTALL (SAMA KAYAK TADI KARENA UDAH WORK) ---
-    rm -f /etc/apt/sources.list.d/google-chrome.list
-    apt-get update
-    apt-get install -y software-properties-common
-    add-apt-repository -y ppa:mozillateam/ppa
+    # 1. Install Firefox Basic
+    apt-get update >/dev/null 2>&1
+    apt-get install -y wget gnupg >/dev/null 2>&1
+    apt-get remove firefox firefox-esr -y >/dev/null 2>&1
     
-    echo "
-Package: firefox*
-Pin: release o=LP-PPA-mozillateam
-Pin-Priority: 1001
-" > /etc/apt/preferences.d/mozilla-firefox
-
-    apt-get update
-    apt-get install -y firefox
-
-    # --- BAGIAN 2: BIKIN SHORTCUT DESKTOP (BIAR BISA KLIK MANUAL) ---
-    rm -f /root/Desktop/*.desktop
-    mkdir -p /root/Desktop
+    install -d -m 0755 /etc/apt/keyrings
+    wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | \
+    tee /etc/apt/keyrings/mozilla.gpg > /dev/null
+    echo "deb [signed-by=/etc/apt/keyrings/mozilla.gpg] https://packages.mozilla.org/apt mozilla main" | \
+    tee /etc/apt/sources.list.d/mozilla.list
     
-    cat <<EOF > /root/Desktop/firefox.desktop
-[Desktop Entry]
-Type=Application
-Name=Firefox Browser
-Exec=firefox --no-sandbox
-Icon=firefox
-Terminal=false
-StartupNotify=false
-EOF
-    chmod +x /root/Desktop/firefox.desktop
-    chown -R root:root /root/Desktop
+    apt-get update >/dev/null 2>&1
+    apt-get install firefox -y >/dev/null 2>&1
 
-    # --- BAGIAN 3: AUTOSTART "BRUTAL FORCE" (INI FIX NYA) ---
-    
-    # 1. Kita buat script peluncur khusus yang ada jeda waktunya
-    cat <<EOF > /usr/bin/force-start-firefox.sh
+    # 2. SCRIPT PELUNCUR (FIX: Tambah --no-sandbox)
+    # Ini kuncinya biar ga crash saat dijalankan root
+    cat <<EOF > /usr/bin/launch-firefox-safe.sh
 #!/bin/bash
-# Tunggu 15 detik biar Desktop LXDE loading 100% dulu
-sleep 15
-# Set Display ke :1 (Default VNC)
+# Tunggu desktop loading
+sleep 5
+
+# Set Display
 export DISPLAY=:1
-# Jalankan Firefox mode no-sandbox (background process)
-nohup firefox --no-sandbox > /dev/null 2>&1 &
+xset q >/dev/null 2>&1 || export DISPLAY=:0
+
+# Jalankan dengan NO SANDBOX (Wajib untuk Docker Root)
+echo "Starting Firefox..." > /root/firefox.log
+nohup firefox --no-sandbox --new-instance http://google.com > /root/firefox.log 2>&1 &
 EOF
 
-    chmod +x /usr/bin/force-start-firefox.sh
+    chmod +x /usr/bin/launch-firefox-safe.sh
 
-    # 2. Kita suntikkan langsung ke jantung pengaturan LXDE
-    # File ini dibaca saat LXDE loading. Kita suruh dia jalanin script kita.
-    LXDE_CONFIG="/etc/xdg/lxsession/LXDE/autostart"
+    # 3. AUTOSTART PAKSA (Metode LXDE Global)
+    # Kita suntik langsung ke autostart desktop environment
+    AUTOSTART_FILE="/etc/xdg/lxsession/LXDE/autostart"
     
-    # Hapus baris lama kalau ada biar gak dobel
-    sed -i "/force-start-firefox.sh/d" \$LXDE_CONFIG
+    # Hapus entry lama biar ga double
+    sed -i "/launch-firefox-safe.sh/d" $AUTOSTART_FILE
     
-    # Tambahkan perintah baru di baris paling bawah
-    echo "@bash /usr/bin/force-start-firefox.sh" >> \$LXDE_CONFIG
-
-    echo "✅ Inject Auto-Start ke LXDE Config Berhasil."
+    # Tambahkan entry baru
+    echo "@bash /usr/bin/launch-firefox-safe.sh" >> $AUTOSTART_FILE
+    
+    echo "Done. Autostart injected to LXDE system."
     '
     
     echo "========================================="
-    echo "✅ Firefox Siap."
-    echo "👉 Pilih menu '5. Reset Container' sekarang!"
-    echo "👉 PENTING: Pas buka VNC, JANGAN APA-APAIN DULU."
-    echo "👉 Tunggu sekitar 15-20 detik, Firefox bakal loncat keluar sendiri."
+    echo "✅ Firefox Terinstall & Dipatch."
+    echo "👉 Silakan pilih menu '2. Restart Service' atau '5. Reset Container'"
+    echo "👉 Saat masuk VNC, Firefox akan muncul otomatis dalam 5-10 detik."
     echo "========================================="
 }
 
