@@ -7,59 +7,67 @@ shopt -s nullglob
 install_firefox_in_container() {
     local container_name="$1"
     echo "========================================="
-    echo "🚀 Menginstall Firefox (Versi Docker Safe)..."
+    echo "🚀 Menginstall Firefox ESR (Versi Ringan & Stabil)..."
     echo "========================================="
     
+    # Kita buka log-nya biar kelihatan kalau ada error saat install
     docker exec -t "$container_name" /bin/bash -c '
-    # 1. Install Firefox Basic
-    apt-get update >/dev/null 2>&1
-    apt-get install -y wget gnupg >/dev/null 2>&1
-    apt-get remove firefox firefox-esr -y >/dev/null 2>&1
     
-    install -d -m 0755 /etc/apt/keyrings
-    wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | \
-    tee /etc/apt/keyrings/mozilla.gpg > /dev/null
-    echo "deb [signed-by=/etc/apt/keyrings/mozilla.gpg] https://packages.mozilla.org/apt mozilla main" | \
-    tee /etc/apt/sources.list.d/mozilla.list
+    # 1. Pastikan repository Universe aktif (Penting buat Ubuntu)
+    apt-get update
+    apt-get install -y software-properties-common
+    add-apt-repository universe -y
+    apt-get update
+
+    # 2. Hapus Firefox versi Snap yang bikin error
+    apt-get remove --purge -y firefox
+    rm -rf /snap/firefox
     
-    apt-get update >/dev/null 2>&1
-    apt-get install firefox -y >/dev/null 2>&1
+    # 3. Install Firefox ESR (Versi .deb asli, bukan Snap)
+    # Plus install library tambahan biar ga crash
+    apt-get install -y firefox-esr libulockmgr1 libcanberra-gtk3-module dbus-x11
 
-    # 2. SCRIPT PELUNCUR (FIX: Tambah --no-sandbox)
-    # Ini kuncinya biar ga crash saat dijalankan root
-    cat <<EOF > /usr/bin/launch-firefox-safe.sh
-#!/bin/bash
-# Tunggu desktop loading
-sleep 5
-
-# Set Display
-export DISPLAY=:1
-xset q >/dev/null 2>&1 || export DISPLAY=:0
-
-# Jalankan dengan NO SANDBOX (Wajib untuk Docker Root)
-echo "Starting Firefox..." > /root/firefox.log
-nohup firefox --no-sandbox --new-instance http://google.com > /root/firefox.log 2>&1 &
+    # 4. BUAT SHORTCUT DI DESKTOP (Biar bisa di-klik manual)
+    mkdir -p /root/Desktop
+    cat <<EOF > /root/Desktop/Firefox.desktop
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Firefox Web Browser
+Comment=Browse the World Wide Web
+Exec=firefox-esr --no-sandbox --display=:1
+Icon=firefox-esr
+Path=
+Terminal=false
+StartupNotify=false
 EOF
+    chmod +x /root/Desktop/Firefox.desktop
 
-    chmod +x /usr/bin/launch-firefox-safe.sh
-
-    # 3. AUTOSTART PAKSA (Metode LXDE Global)
-    # Kita suntik langsung ke autostart desktop environment
-    AUTOSTART_FILE="/etc/xdg/lxsession/LXDE/autostart"
+    # 5. BUAT AUTOSTART (Lewat folder .config user)
+    # Ini cara paling resmi di LXDE
+    mkdir -p /root/.config/autostart
+    cat <<EOF > /root/.config/autostart/firefox-autostart.desktop
+[Desktop Entry]
+Type=Application
+Name=Firefox Autostart
+Exec=sh -c "sleep 10; firefox-esr --no-sandbox --display=:1"
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOF
     
-    # Hapus entry lama biar ga double
-    sed -i "/launch-firefox-safe.sh/d" $AUTOSTART_FILE
+    chmod +x /root/.config/autostart/firefox-autostart.desktop
     
-    # Tambahkan entry baru
-    echo "@bash /usr/bin/launch-firefox-safe.sh" >> $AUTOSTART_FILE
-    
-    echo "Done. Autostart injected to LXDE system."
+    # Fix permission folder vnc
+    chown -R root:root /root/.config
+    chown -R root:root /root/Desktop
     '
     
     echo "========================================="
-    echo "✅ Firefox Terinstall & Dipatch."
-    echo "👉 Silakan pilih menu '2. Restart Service' atau '5. Reset Container'"
-    echo "👉 Saat masuk VNC, Firefox akan muncul otomatis dalam 5-10 detik."
+    echo "✅ Firefox ESR Terinstall."
+    echo "👉 Pilih menu '5. Reset Container' untuk menerapkan ulang."
+    echo "👉 Nanti di Desktop akan ada icon 'Firefox Web Browser'."
+    echo "👉 Kalau tidak muncul otomatis, coba klik dua kali icon di Desktop itu."
     echo "========================================="
 }
 
