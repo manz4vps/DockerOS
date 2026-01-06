@@ -7,67 +7,68 @@ shopt -s nullglob
 install_firefox_in_container() {
     local container_name="$1"
     echo "========================================="
-    echo "🚀 Menginstall Firefox ESR (Versi Ringan & Stabil)..."
+    echo "🚀 Menginstall Firefox (Metode PPA Mozilla Team)..."
     echo "========================================="
     
-    # Kita buka log-nya biar kelihatan kalau ada error saat install
     docker exec -t "$container_name" /bin/bash -c '
+    # 1. Bersihkan source list yang error (Google Chrome sering bikin error update)
+    rm -f /etc/apt/sources.list.d/google-chrome.list
     
-    # 1. Pastikan repository Universe aktif (Penting buat Ubuntu)
+    # 2. Install alat buat nambah Repository PPA
     apt-get update
     apt-get install -y software-properties-common
-    add-apt-repository universe -y
-    apt-get update
-
-    # 2. Hapus Firefox versi Snap yang bikin error
-    apt-get remove --purge -y firefox
-    rm -rf /snap/firefox
     
-    # 3. Install Firefox ESR (Versi .deb asli, bukan Snap)
-    # Plus install library tambahan biar ga crash
-    apt-get install -y firefox-esr libulockmgr1 libcanberra-gtk3-module dbus-x11
+    # 3. Masukkan Repository KHUSUS Mozilla Team (Solusi Anti-Snap)
+    add-apt-repository -y ppa:mozillateam/ppa
+    
+    # 4. Setting Prioritas (PENTING: Biar gak ketarik ke Snap lagi)
+    echo "
+Package: firefox*
+Pin: release o=LP-PPA-mozillateam
+Pin-Priority: 1001
+" > /etc/apt/preferences.d/mozilla-firefox
 
-    # 4. BUAT SHORTCUT DI DESKTOP (Biar bisa di-klik manual)
+    # 5. Update & Install Firefox (Sekarang pasti ketemu paketnya)
+    apt-get update
+    apt-get install -y firefox
+
+    # 6. PERBAIKAN SHORTCUT DESKTOP (Fix Error "Invalid Desktop Entry")
+    # Hapus shortcut lama yang rusak
+    rm -f /root/Desktop/*.desktop
+    
     mkdir -p /root/Desktop
-    cat <<EOF > /root/Desktop/Firefox.desktop
+    # Kita buat yang simpel dan valid 100%
+    cat <<EOF > /root/Desktop/firefox.desktop
 [Desktop Entry]
-Version=1.0
 Type=Application
-Name=Firefox Web Browser
-Comment=Browse the World Wide Web
-Exec=firefox-esr --no-sandbox --display=:1
-Icon=firefox-esr
-Path=
+Name=Firefox Browser
+Exec=firefox --no-sandbox
+Icon=firefox
 Terminal=false
 StartupNotify=false
 EOF
-    chmod +x /root/Desktop/Firefox.desktop
+    
+    chmod +x /root/Desktop/firefox.desktop
 
-    # 5. BUAT AUTOSTART (Lewat folder .config user)
-    # Ini cara paling resmi di LXDE
+    # 7. Autostart (Jaga-jaga biar tetep auto buka)
     mkdir -p /root/.config/autostart
-    cat <<EOF > /root/.config/autostart/firefox-autostart.desktop
+    cat <<EOF > /root/.config/autostart/firefox.desktop
 [Desktop Entry]
 Type=Application
-Name=Firefox Autostart
-Exec=sh -c "sleep 10; firefox-esr --no-sandbox --display=:1"
-Hidden=false
-NoDisplay=false
+Name=Firefox Auto
+Exec=sh -c "sleep 8; firefox --no-sandbox"
 X-GNOME-Autostart-enabled=true
 EOF
     
-    chmod +x /root/.config/autostart/firefox-autostart.desktop
-    
-    # Fix permission folder vnc
-    chown -R root:root /root/.config
+    # Fix permission folder biar icon muncul bener
     chown -R root:root /root/Desktop
+    chmod 755 /root/Desktop
     '
     
     echo "========================================="
-    echo "✅ Firefox ESR Terinstall."
-    echo "👉 Pilih menu '5. Reset Container' untuk menerapkan ulang."
-    echo "👉 Nanti di Desktop akan ada icon 'Firefox Web Browser'."
-    echo "👉 Kalau tidak muncul otomatis, coba klik dua kali icon di Desktop itu."
+    echo "✅ Firefox Terinstall (Versi PPA)."
+    echo "👉 JANGAN LUPA: Pilih menu '5. Reset Container' sekarang!"
+    echo "👉 Nanti di Desktop, icon 'Firefox Browser' sudah bisa diklik."
     echo "========================================="
 }
 
