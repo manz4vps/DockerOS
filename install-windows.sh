@@ -2,12 +2,12 @@
 shopt -s nullglob
 
 # =========================================================
-# FUNGSI BARU: FIXED FIREFOX INSTALLER (ANTI CRASH)
+# FUNGSI BARU: SAFE MODE AUTOSTART (Lebih Stabil)
 # =========================================================
 install_firefox_in_container() {
     local container_name="$1"
     echo "========================================="
-    echo "🚀 Menginstall Firefox (Versi Docker Safe)..."
+    echo "🚀 Menginstall Firefox (Mode Stabil)..."
     echo "========================================="
     
     docker exec -t "$container_name" /bin/bash -c '
@@ -25,41 +25,52 @@ install_firefox_in_container() {
     apt-get update >/dev/null 2>&1
     apt-get install firefox -y >/dev/null 2>&1
 
-    # 2. SCRIPT PELUNCUR (FIX: Tambah --no-sandbox)
-    # Ini kuncinya biar ga crash saat dijalankan root
+    # 2. BERSIHKAN BEKAS EKSPERIMEN LAMA (PENTING!)
+    # Kita hapus suntikan script yang bikin error tadi
+    sed -i "/manz-start/d" /etc/xdg/lxsession/LXDE/autostart
+    sed -i "/@firefox/d" /etc/xdg/lxsession/LXDE/autostart
+    rm -f /usr/bin/manz-start.sh
+
+    # 3. BUAT SCRIPT PELUNCUR DENGAN LOGGING
+    # Kita tambah log biar ketahuan kalau error
     cat <<EOF > /usr/bin/launch-firefox-safe.sh
 #!/bin/bash
-# Tunggu desktop loading
-sleep 5
+# Tunggu 10 detik (Wajib agak lama biar VNC stabil dulu)
+sleep 10
 
-# Set Display
+# Cek Display (Coba :1 dulu, kalau gagal coba :0)
 export DISPLAY=:1
 xset q >/dev/null 2>&1 || export DISPLAY=:0
 
-# Jalankan dengan NO SANDBOX (Wajib untuk Docker Root)
-echo "Starting Firefox..." > /root/firefox.log
-nohup firefox --no-sandbox --new-instance http://google.com > /root/firefox.log 2>&1 &
+# Jalankan Firefox & Simpan log errornya
+echo "Mencoba start Firefox di Display \$DISPLAY..." > /root/firefox-debug.log
+nohup firefox > /root/firefox-output.log 2>&1 &
 EOF
 
     chmod +x /usr/bin/launch-firefox-safe.sh
 
-    # 3. AUTOSTART PAKSA (Metode LXDE Global)
-    # Kita suntik langsung ke autostart desktop environment
-    AUTOSTART_FILE="/etc/xdg/lxsession/LXDE/autostart"
+    # 4. PASANG AUTOSTART VIA FOLDER USER (LEBIH AMAN)
+    # Tidak mengganggu sistem inti LXDE
+    mkdir -p /root/.config/autostart
+    cat <<EOF > /root/.config/autostart/firefox-safe.desktop
+[Desktop Entry]
+Type=Application
+Name=Firefox Safe
+Exec=/usr/bin/launch-firefox-safe.sh
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOF
     
-    # Hapus entry lama biar ga double
-    sed -i "/launch-firefox-safe.sh/d" $AUTOSTART_FILE
+    chmod +x /root/.config/autostart/firefox-safe.desktop
     
-    # Tambahkan entry baru
-    echo "@bash /usr/bin/launch-firefox-safe.sh" >> $AUTOSTART_FILE
-    
-    echo "Done. Autostart injected to LXDE system."
+    echo "Done. Autostart terpasang di folder user (Aman)."
     '
     
     echo "========================================="
-    echo "✅ Firefox Terinstall & Dipatch."
-    echo "👉 Silakan pilih menu '2. Restart Service' atau '5. Reset Container'"
-    echo "👉 Saat masuk VNC, Firefox akan muncul otomatis dalam 5-10 detik."
+    echo "✅ Firefox Terinstall."
+    echo "👉 JANGAN LUPA: Pilih menu 'Reset Container' sekarang!"
+    echo "👉 Nanti pas masuk VNC, tunggu 10-15 detik, jangan panik kalau belum muncul."
     echo "========================================="
 }
 
@@ -70,10 +81,10 @@ EOF
 while true; do
 clear
 echo "========================================="
-echo "          PANEL VIRTUAL SYSTEM (FIXED)"
+echo "         PANEL VIRTUAL SYSTEM"
 echo "========================================="
 echo "1. Jalankan Windows baru"
-echo "2. Jalankan Ubuntu Desktop (VNC) [FIX Firefox]"
+echo "2. Jalankan Ubuntu Desktop (VNC) [Safe Mode Firefox]"
 echo "3. Lihat Windows aktif"
 echo "4. Masuk ke Windows"
 echo "5. Hapus Windows"
@@ -207,7 +218,7 @@ if [ "$SISTEM" == "2" ]; then
     echo "✅ Ubuntu Desktop VNC berjalan"  
     echo "🌐 Akses: http://localhost:6080"  
     echo "🔄 Auto-Start VNC: AKTIF"
-    echo "🦊 Auto-Open Firefox: AKTIF (Patched --no-sandbox)"
+    echo "🦊 Auto-Open Firefox: AKTIF (Mode Aman)"
     echo "========================================="  
     echo  
     sleep 2  
@@ -220,14 +231,25 @@ fi
 if [ "$SISTEM" == "1" ]; then
     echo
     echo "Pilih versi Windows:"
-    echo " Value  | Version                     | Size"
+    echo " Value  | Version                   | Size"
     echo "--------------------------------------"
-    echo " 11     | Windows 11 Pro              | 5.4 GB"
-    echo " 11l    | Windows 11 LTSC             | 4.2 GB"
-    echo " 10     | Windows 10 Pro              | 5.7 GB"
-    echo " 10l    | Windows 10 LTSC             | 4.6 GB"
-    echo " 2022   | Windows Server 2022         | 4.7 GB"
-    echo " 2019   | Windows Server 2019         | 5.3 GB"
+    echo " 11     | Windows 11 Pro             | 5.4 GB"
+    echo " 11l    | Windows 11 LTSC            | 4.2 GB"
+    echo " 11e    | Windows 11 Enterprise      | 5.8 GB"
+    echo " 10     | Windows 10 Pro             | 5.7 GB"
+    echo " 10l    | Windows 10 LTSC            | 4.6 GB"
+    echo " 10e    | Windows 10 Enterprise      | 5.2 GB"
+    echo " 8e     | Windows 8.1 Enterprise     | 3.7 GB"
+    echo " 7e     | Windows 7 Enterprise       | 3.0 GB"
+    echo " ve     | Windows Vista Enterprise   | 3.0 GB"
+    echo " xp     | Windows XP Professional    | 0.6 GB"
+    echo " 2025   | Windows Server 2025        | 5.0 GB"
+    echo " 2022   | Windows Server 2022        | 4.7 GB"
+    echo " 2019   | Windows Server 2019        | 5.3 GB"
+    echo " 2016   | Windows Server 2016        | 6.5 GB"
+    echo " 2012   | Windows Server 2012        | 4.3 GB"
+    echo " 2008   | Windows Server 2008        | 3.0 GB"
+    echo " 2003   | Windows Server 2003        | 0.6 GB"
     echo
 
     read -p "Masukkan value versi (default: 10l): " VERSION  
