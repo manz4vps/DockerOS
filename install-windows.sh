@@ -2,62 +2,60 @@
 shopt -s nullglob
 
 # =========================================================
-# FUNGSI BARU: Install Firefox + AUTOSTART (Gabungan)
+# FUNGSI BARU: Install Firefox + HARDCORE AUTOSTART
 # =========================================================
 install_firefox_in_container() {
     local container_name="$1"
     echo "========================================="
-    echo "🚀 Memulai Auto Install Firefox + Auto Start..."
+    echo "🚀 Memulai Auto Install Firefox + Hardcore Autostart..."
     echo "========================================="
     
-    # Menjalankan perintah instalasi & konfigurasi di dalam container
+    # Jalankan perintah di dalam container
     docker exec -t "$container_name" /bin/bash -c '
-    echo "Update system..."
+    echo "1. Update & Install Dependencies..."
     apt-get update >/dev/null 2>&1
-    apt-get install -y wget gnupg >/dev/null 2>&1
+    apt-get install -y wget gnupg sed >/dev/null 2>&1
     
-    echo "Menghapus Firefox lama..."
+    echo "2. Bersih-bersih Firefox lama..."
     apt-get remove firefox firefox-esr -y >/dev/null 2>&1
     
-    echo "Menambahkan Keyring Mozilla..."
+    echo "3. Setup Repo Mozilla Official..."
     install -d -m 0755 /etc/apt/keyrings
     wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | \
     tee /etc/apt/keyrings/mozilla.gpg > /dev/null
     
-    echo "Menambahkan Repository Mozilla..."
     echo "deb [signed-by=/etc/apt/keyrings/mozilla.gpg] https://packages.mozilla.org/apt mozilla main" | \
     tee /etc/apt/sources.list.d/mozilla.list
     
-    echo "Install Firefox Stable..."
+    echo "4. Install Firefox Stable..."
     apt-get update >/dev/null 2>&1
     apt-get install firefox -y
 
-    # --- BAGIAN PENTING: SETTING AUTOSTART ---
-    echo "Mengatur Firefox agar jalan otomatis saat VNC nyala..."
-    mkdir -p /root/.config/autostart
-    cat <<EOF > /root/.config/autostart/firefox.desktop
-[Desktop Entry]
-Type=Application
-Exec=firefox
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-Name[en_US]=Firefox
-Name=Firefox
-Comment[en_US]=Start Firefox Automatically
-Comment=Start Firefox Automatically
-EOF
-    chmod +x /root/.config/autostart/firefox.desktop
+    # --- BAGIAN PENTING: AUTOSTART HARDCORE VIA LXDE ---
+    echo "5. Menyuntikkan perintah start ke sistem LXDE..."
+    
+    # File target autostart LXDE
+    LXDE_AUTOSTART="/etc/xdg/lxsession/LXDE/autostart"
+    
+    # Hapus baris firefox lama jika ada (biar gak double)
+    sed -i "/@firefox/d" $LXDE_AUTOSTART
+    
+    # Masukkan perintah "@firefox" ke baris paling bawah
+    # @ artinya command ini akan direstart otomatis jika crash
+    echo "@firefox" >> $LXDE_AUTOSTART
+    
+    # Hapus metode .desktop lama jika ada (biar bersih)
+    rm -f /root/.config/autostart/firefox.desktop
     # -----------------------------------------
     '
     
     echo "========================================="
-    echo "✅ Firefox terinstall & Auto-Start aktif!"
+    echo "✅ Firefox Siap! Auto-Start Direct Injection AKTIF."
     echo "========================================="
 }
 
 # =========================================================
-# PROGRAM UTAMA (LOOPING MENU)
+# PROGRAM UTAMA
 # =========================================================
 
 while true; do
@@ -66,7 +64,7 @@ echo "========================================="
 echo "         PANEL VIRTUAL SYSTEM"
 echo "========================================="
 echo "1. Jalankan Windows baru"
-echo "2. Jalankan Ubuntu Desktop (VNC) [Auto-Start Firefox]"
+echo "2. Jalankan Ubuntu Desktop (VNC) [Auto-Open Firefox]"
 echo "3. Lihat Windows aktif"
 echo "4. Masuk ke Windows"
 echo "5. Hapus Windows"
@@ -162,7 +160,7 @@ if [ "$SISTEM" == "2" ]; then
                 
                 echo "Container baru berjalan dengan resolusi $FIXED_RESOLUTION"
                 
-                # Panggil fungsi install firefox + autostart
+                # Panggil fungsi install firefox + autostart baru
                 install_firefox_in_container $CONTAINER_NAME
                 
                 echo "Akses di: http://localhost:6080"
@@ -200,7 +198,7 @@ if [ "$SISTEM" == "2" ]; then
     echo "✅ Ubuntu Desktop VNC berjalan"  
     echo "🌐 Akses: http://localhost:6080"  
     echo "🔄 Auto-Start VNC: AKTIF"
-    echo "🦊 Auto-Open Firefox: AKTIF"
+    echo "🦊 Auto-Open Firefox: AKTIF (Direct Injection)"
     echo "========================================="  
     echo  
     sleep 2  
@@ -390,5 +388,4 @@ if [ "$SISTEM" == "6" ]; then
     exit 0
 fi
 
-# Penutup Loop Utama (Ini yang tadi bikin error karena hilang)
 done
