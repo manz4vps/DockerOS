@@ -2,24 +2,24 @@
 shopt -s nullglob
 
 # =========================================================
-# FUNGSI BARU: Install Firefox + HARDCORE AUTOSTART
+# FUNGSI BARU: Install Firefox + WRAPPER AUTOSTART (Cara Manual Otomatis)
 # =========================================================
 install_firefox_in_container() {
     local container_name="$1"
     echo "========================================="
-    echo "🚀 Memulai Auto Install Firefox + Hardcore Autostart..."
+    echo "🚀 Menginstall Firefox & Script Pemicu..."
     echo "========================================="
     
-    # Jalankan perintah di dalam container
+    # Menjalankan perintah instalasi di dalam container
     docker exec -t "$container_name" /bin/bash -c '
-    echo "1. Update & Install Dependencies..."
+    # 1. Update & Install Dependencies (wget, gnupg, dll)
     apt-get update >/dev/null 2>&1
-    apt-get install -y wget gnupg sed >/dev/null 2>&1
+    apt-get install -y wget gnupg >/dev/null 2>&1
     
-    echo "2. Bersih-bersih Firefox lama..."
+    # 2. Hapus Firefox lama (jika ada)
     apt-get remove firefox firefox-esr -y >/dev/null 2>&1
     
-    echo "3. Setup Repo Mozilla Official..."
+    # 3. Setup Repo Mozilla Official (Biar dapet Firefox terbaru, bukan ESR)
     install -d -m 0755 /etc/apt/keyrings
     wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | \
     tee /etc/apt/keyrings/mozilla.gpg > /dev/null
@@ -27,30 +27,53 @@ install_firefox_in_container() {
     echo "deb [signed-by=/etc/apt/keyrings/mozilla.gpg] https://packages.mozilla.org/apt mozilla main" | \
     tee /etc/apt/sources.list.d/mozilla.list
     
-    echo "4. Install Firefox Stable..."
+    # 4. Install Firefox Stable
     apt-get update >/dev/null 2>&1
-    apt-get install firefox -y
+    apt-get install firefox -y >/dev/null 2>&1
 
-    # --- BAGIAN PENTING: AUTOSTART HARDCORE VIA LXDE ---
-    echo "5. Menyuntikkan perintah start ke sistem LXDE..."
+    # --- BAGIAN PENTING: MEMBUAT SCRIPT PEMICU (WRAPPER) ---
+    # Ini meniru apa yang kamu ketik manual di terminal tadi (export DISPLAY=:1)
     
-    # File target autostart LXDE
-    LXDE_AUTOSTART="/etc/xdg/lxsession/LXDE/autostart"
+    echo "5. Membuat script pemicu (run-firefox.sh)..."
+    cat <<EOF > /usr/bin/run-firefox.sh
+#!/bin/bash
+# Paksa sistem tahu layar mana yang dipakai
+export DISPLAY=:1
+export HOME=/root
+
+# Tunggu 5 detik memastikan VNC Desktop sudah siap render
+sleep 5
+
+# Jalankan Firefox
+# (Profile akan tersimpan di /root karena volume mapping)
+firefox &
+EOF
+
+    # Beri izin eksekusi
+    chmod +x /usr/bin/run-firefox.sh
+
+    # --- SETTING AUTOSTART AGAR MENJALANKAN SCRIPT PEMICU ---
+    echo "6. Mendaftarkan ke Autostart..."
+    mkdir -p /root/.config/autostart
+    cat <<EOF > /root/.config/autostart/firefox.desktop
+[Desktop Entry]
+Type=Application
+Name=Firefox Auto
+Exec=/usr/bin/run-firefox.sh
+StartupNotify=false
+Terminal=false
+Hidden=false
+X-GNOME-Autostart-enabled=true
+EOF
     
-    # Hapus baris firefox lama jika ada (biar gak double)
-    sed -i "/@firefox/d" $LXDE_AUTOSTART
-    
-    # Masukkan perintah "@firefox" ke baris paling bawah
-    # @ artinya command ini akan direstart otomatis jika crash
-    echo "@firefox" >> $LXDE_AUTOSTART
-    
-    # Hapus metode .desktop lama jika ada (biar bersih)
-    rm -f /root/.config/autostart/firefox.desktop
+    chmod +x /root/.config/autostart/firefox.desktop
     # -----------------------------------------
     '
     
     echo "========================================="
-    echo "✅ Firefox Siap! Auto-Start Direct Injection AKTIF."
+    echo "✅ Firefox Terinstall."
+    echo "✅ Script Pemicu (DISPLAY=:1) sudah aktif."
+    echo "👉 Firefox akan otomatis muncul 5 detik setelah masuk VNC."
     echo "========================================="
 }
 
@@ -160,7 +183,7 @@ if [ "$SISTEM" == "2" ]; then
                 
                 echo "Container baru berjalan dengan resolusi $FIXED_RESOLUTION"
                 
-                # Panggil fungsi install firefox + autostart baru
+                # Panggil fungsi install firefox wrapper
                 install_firefox_in_container $CONTAINER_NAME
                 
                 echo "Akses di: http://localhost:6080"
@@ -198,7 +221,7 @@ if [ "$SISTEM" == "2" ]; then
     echo "✅ Ubuntu Desktop VNC berjalan"  
     echo "🌐 Akses: http://localhost:6080"  
     echo "🔄 Auto-Start VNC: AKTIF"
-    echo "🦊 Auto-Open Firefox: AKTIF (Direct Injection)"
+    echo "🦊 Auto-Open Firefox: AKTIF (Dengan Script Pemicu)"
     echo "========================================="  
     echo  
     sleep 2  
