@@ -56,7 +56,7 @@ tampilkan_menu() {
 "${TEBAL}4.${RESET} 🛠️   Install Playit" \
 "${TEBAL}5.${RESET} 🖥️   Playit Run 24/7" \
 "${TEBAL}6.${RESET} 🧱  Blueprint" \
-"${TEBAL}7.${RESET} ☁️   Cloudflare (raw script)" \
+"${TEBAL}7.${RESET} ☁️   Cloudflare raw script" \
 "${TEBAL}8.${RESET} 🎨  Pasang Tema" \
 "${TEBAL}9.${RESET} 🔒  Cloudflared Tunnel" \
 "${TEBAL}10.${RESET} 🧩  Install Addon" \
