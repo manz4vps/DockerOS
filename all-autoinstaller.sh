@@ -52,7 +52,7 @@ tampilkan_menu() {
 "${TEBAL}========== MENU UTAMA ==========${RESET}" \
 "${TEBAL}1.${RESET} 🧩  Panel" \
 "${TEBAL}2.${RESET} 🪶   Wings" \
-"${TEBAL}3.${RESET} ⚒️   Install MineCube \
+"${TEBAL}3.${RESET} ⚒️   Install MineCube" \
 "${TEBAL}4.${RESET} 🛠️   Install Playit" \
 "${TEBAL}5.${RESET} 🖥️   Playit Run 24/7" \
 "${TEBAL}6.${RESET} 🧱  Blueprint" \
