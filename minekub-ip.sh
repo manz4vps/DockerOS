@@ -65,9 +65,9 @@ elif [ "$OPTION" == "1" ]; then
     ARCH=$(uname -m)
     echo -e "${GREEN}[+] Download Gate ($ARCH)...${NC}"
     if [[ "$ARCH" == "x86_64" ]]; then
-        wget -q -O gate https://github.com/minekube/gate/releases/download/v0.41.2/gate_linux_amd64
+        wget -q -O gate https://github.com/minekube/gate/releases/download/v0.62.1/gate_0.62.1_linux_amd64
     elif [[ "$ARCH" == "aarch64" ]]; then
-        wget -q -O gate https://github.com/minekube/gate/releases/download/v0.41.2/gate_linux_arm64
+        wget -q -O gate https://github.com/minekube/gate/releases/download/v0.62.1/gate_0.62.1_linux_arm64
     fi
     chmod +x gate
 
