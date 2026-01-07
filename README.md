@@ -52,8 +52,8 @@ Simpan link ini untuk referensi setup VM:
 https://github.com/manz4vps/vm
 ```
 
-### 2️⃣ Reinstall OS (Auto-Detect)
-Gunakan command ini untuk mengganti OS VPS kamu (Ubuntu/Debian):
+### 2️⃣ Install OS  (POPULAR 🔥)
+Gunakan command ini untuk meinstall OS VPS kamu (Ubuntu/Debian):
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/PilihOS-vps.sh)
 ```
@@ -64,7 +64,7 @@ Script otomatis untuk setup panel manajemen server:
 bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/all-autoinstaller.sh)
 ```
 
-### 4️⃣ Install Windows (POPULAR 🔥)
+### 4️⃣ Install Windows
 Ubah VPS Linux menjadi RDP Windows dengan satu perintah:
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/install-windows.sh)
