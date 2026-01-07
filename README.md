@@ -1,60 +1,102 @@
-# 🚀 VPS & Docker OS Toolkit
+<div align="center">
 
-## Overview
+# 🐳 DockerOS Toolkit
+### The Ultimate VPS Automation & OS Manager
+**By Manz4VPS**
 
-Toolkit ini berisi kumpulan command untuk build Docker image, install OS, pasang panel, tunnel Playit, dan Cloudflare token.  
-Semua sudah dirapikan supaya gampang copy-paste dan cepat dipakai di VPS.
+[![GitHub stars](https://img.shields.io/github/stars/manz4vps/DockerOS?style=for-the-badge&color=yellow)](https://github.com/manz4vps/DockerOS/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/manz4vps/DockerOS?style=for-the-badge&color=orange)](https://github.com/manz4vps/DockerOS/network)
+[![GitHub issues](https://img.shields.io/github/issues/manz4vps/DockerOS?style=for-the-badge&color=red)](https://github.com/manz4vps/DockerOS/issues)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-## Prerequisites
+<p align="center">
+  <a href="#-installation">🚀 Install Now</a> •
+  <a href="#-features">🔥 Features</a> •
+  <a href="#-credits">🤝 Credits</a>
+</p>
 
-- VPS atau server dengan Docker terinstal
-- Internet connectivity
-- Bash shell environment
-- CPU architecture: x86_64 (amd64) atau aarch64 (arm64)
-- Akses akun Docker Hub (untuk push image)
-
-## 🛠️ Installation
-1. **COPY:**
-   
-   ```sh
-   https://github.com/manz4vps/vm
-   ```
-
-5. **Install OS di VPS:**
-
-    ```sh
-    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/PilihOS-vps.sh)
-    ```
-
-    
-6. **Install Panel:**
-
-    ```sh
-    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/all-autoinstaller.sh)
-    ```
-    
-7. **Windows-install**
-   ```sh
-   bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/install-windows.sh)
-   ```
-
-# Supported Architectures
-
-- OS (ubuntu24)
-- OS (ubuntu22)
-- OS (debian12)
-- OS (debian11)
-- OS (windows)
-
-# License
-
-This VPS & Docker OS Toolkit is released under the [MIT License](LICENSE).
-
-# Credits
-
-Developed and maintained by **manz4vps**  
-Special thanks to the open-source community and contributors 🚀
+</div>
 
 ---
 
-**Note:** This script is intended for educationalnd experimental purposes. Use it responsibly and at your own risk.
+## 📖 About The Project
+
+**DockerOS** adalah toolkit automasi *all-in-one* untuk manajemen VPS. Dirancang khusus untuk **DevOps**, **Game Server Owners**, dan pengguna VPS yang butuh setup cepat.
+
+Stop buang waktu install manual! Script ini menangani:
+* ✅ **Reinstall OS** tanpa panel hosting.
+* ✅ **Setup Windows RDP** di VPS Linux.
+* ✅ **Auto Install Game Panel** (Pterodactyl/etc).
+* ✅ **Docker Management** yang simpel.
+
+---
+
+## 🔥 Features
+
+| Feature | Description | Status |
+| :--- | :--- | :---: |
+| **🐧 OS Reinstaller** | Auto install Ubuntu 22/24, Debian 11/12 | ✅ |
+| **🪟 Windows on VPS** | Install Windows Server (QEMU/KVM) | ✅ |
+| **🎮 Panel Installer** | Setup Game Panel & Web Panel otomatis | ✅ |
+| **🐳 Docker Tools** | Build, Push, & Manage Docker Images | ✅ |
+
+---
+
+## 🚀 Installation
+
+Pastikan kamu sudah login sebagai **root**.
+
+### 1️⃣ VM Repository Link
+Simpan link ini untuk referensi setup VM:
+```bash
+https://github.com/manz4vps/vm
+```
+
+### 2️⃣ Reinstall OS (Auto-Detect)
+Gunakan command ini untuk mengganti OS VPS kamu (Ubuntu/Debian):
+```bash
+bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/PilihOS-vps.sh)
+```
+
+### 3️⃣ Auto Install Panel
+Script otomatis untuk setup panel manajemen server:
+```bash
+bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/all-autoinstaller.sh)
+```
+
+### 4️⃣ Install Windows (POPULAR 🔥)
+Ubah VPS Linux menjadi RDP Windows dengan satu perintah:
+```bash
+bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/install-windows.sh)
+```
+
+---
+
+## 📋 Prerequisites
+
+* **System:** VPS / Dedicated Server
+* **Virtualization:** KVM (Recommended for Windows)
+* **Architecture:** `amd64` (x86_64) or `arm64`
+* **Connectivity:** Stable Internet Connection
+
+---
+
+## 🤝 Credits
+
+Project ini dikembangkan dan dimaintain oleh:
+
+<div align="center">
+
+### [Manz4VPS](https://github.com/manz4vps)
+
+[![Github](https://img.shields.io/badge/Github-Manz4VPS-black?style=flat&logo=github)](https://github.com/manz4vps)
+
+</div>
+
+Special thanks to the open-source community! 🚀
+
+---
+
+<div align="center">
+  <small><i>Note: This script is intended for educational and experimental purposes. Use it responsibly.</i></small>
+</div>
