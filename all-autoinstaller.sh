@@ -52,13 +52,14 @@ tampilkan_menu() {
 "${TEBAL}========== MENU UTAMA ==========${RESET}" \
 "${TEBAL}1.${RESET} 🧩  Panel" \
 "${TEBAL}2.${RESET} 🪶   Wings" \
-"${TEBAL}3.${RESET} 🛠️   Install Playit" \
-"${TEBAL}4.${RESET} 🖥️   Playit Run 24/7" \
-"${TEBAL}5.${RESET} 🧱  Blueprint" \
-"${TEBAL}6.${RESET} ☁️   Cloudflare (raw script)" \
-"${TEBAL}7.${RESET} 🎨  Pasang Tema" \
-"${TEBAL}8.${RESET} 🔒  Cloudflared Tunnel" \
-"${TEBAL}9.${RESET} 🧩  Install Addon" \
+"${TEBAL}3.${RESET} ⚒️   Install MineCube \
+"${TEBAL}4.${RESET} 🛠️   Install Playit" \
+"${TEBAL}5.${RESET} 🖥️   Playit Run 24/7" \
+"${TEBAL}6.${RESET} 🧱  Blueprint" \
+"${TEBAL}7.${RESET} ☁️   Cloudflare (raw script)" \
+"${TEBAL}8.${RESET} 🎨  Pasang Tema" \
+"${TEBAL}9.${RESET} 🔒  Cloudflared Tunnel" \
+"${TEBAL}10.${RESET} 🧩  Install Addon" \
 "${TEBAL}0.${RESET} 🚪  Keluar" \
 "${TEBAL}================================${RESET}"
     echo -ne "${TEBAL}Masukkan pilihan [0-9]: ${RESET}"
@@ -71,13 +72,14 @@ while true; do
     case $pilihan in
         1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
         2) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
-        3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
-        4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit24%5C7" ;;
-        5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
-        6) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
-        7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
-        8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
-        9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/addon.sh" ;;
+        3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/minekub-ip.sh" ;;
+        4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
+        5) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit24%5C7" ;;
+        6) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
+        7) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
+        8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
+        9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
+        10) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/addon.sh" ;;
         0) exit 0 ;;
     esac
 done
