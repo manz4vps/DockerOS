@@ -24,9 +24,9 @@
 **DockerOS** adalah toolkit automasi *all-in-one* untuk manajemen VPS. Dirancang khusus untuk **DevOps**, **Game Server Owners**, dan pengguna VPS yang butuh setup cepat.
 
 Stop buang waktu install manual! Script ini menangani:
-* ✅ **Reinstall OS** tanpa panel hosting.
+* ✅ **Install VPS** tanpa panel hosting.
 * ✅ **Setup Windows RDP** di VPS Linux.
-* ✅ **Auto Install Game Panel** (Pterodactyl/etc).
+* ✅ **Auto Install Game Panel** (Pterodactyl).
 * ✅ **Docker Management** yang simpel.
 
 ---
