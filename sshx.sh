@@ -23,7 +23,7 @@ apt-get install -y curl qrencode -qq > /dev/null 2>&1
 echo -e "${GREEN}      Selesai.${NC}"
 
 echo -e "${BLUE}[2/5] Menginstall SSHX Binary...${NC}"
-curl -sSf https://sshx.io/get | sh > /dev/null 2>&1
+curl sSf https://sshx.io/get | sh > /dev/null 2>&1
 # Pindahkan binary agar dikenali system
 if [ -f "./sshx" ]; then mv ./sshx /usr/local/bin/sshx; fi
 if [ -f "$HOME/.sshx/sshx" ]; then mv "$HOME/.sshx/sshx" /usr/local/bin/sshx; fi
