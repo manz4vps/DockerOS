@@ -60,6 +60,7 @@ tampilkan_menu() {
 "${TEBAL}8.${RESET} 🎨  Pasang Tema" \
 "${TEBAL}9.${RESET} 🔒  Cloudflared Tunnel" \
 "${TEBAL}10.${RESET} 🧩  Install Addon" \
+"${TEBAL}11.${RESET} 🎨  Install SSHX" \
 "${TEBAL}0.${RESET} 🚪  Keluar" \
 "${TEBAL}================================${RESET}"
     echo -ne "${TEBAL}Masukkan pilihan [0-10]: ${RESET}"
@@ -80,6 +81,7 @@ while true; do
         8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
         9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
         10) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/addon.sh" ;;
+        11) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/sshx.sh" ;;
         0) exit 0 ;;
     esac
 done
