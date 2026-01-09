@@ -1,88 +1,145 @@
 #!/bin/bash
 
-# SSHX Background Script - Style "Playit ManzXD"
-# Modified to match your screenshot
+# ==================================================
+#   AUTO INSTALLER SSHX + SYSTEMD + MENU by ManzXD
+# ==================================================
 
-# --- COLORS ---
+# Warna
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+BLUE='\033[0;34m'
+NC='\033[0m'
 
-clear
-echo -e "${YELLOW}🔄 Menyiapkan SSHX...${NC}"
-
-# 1. Cek & Install Qrencode
-if ! command -v qrencode &>/dev/null; then
-    echo -e "${YELLOW}📦 Menginstall qrencode...${NC}"
-    sudo apt-get update -qq && sudo apt-get install -y qrencode -qq
+# Cek Root
+if [ "$EUID" -ne 0 ]; then
+  echo -e "${RED}[!] Harap jalankan dengan root (sudo su)${NC}"
+  exit
 fi
 
-# 2. Cek & Install SSHX
-if ! command -v sshx &>/dev/null; then
-    echo -e "${YELLOW}⬇️  Mendownload SSHX...${NC}"
-    curl -sSf https://sshx.io/get | sh
-fi
+echo -e "${BLUE}[1/5] Menginstall Dependencies...${NC}"
+apt-get update -qq
+apt-get install -y curl qrencode -qq > /dev/null 2>&1
+echo -e "${GREEN}      Selesai.${NC}"
 
-# 3. Bersihkan log lama
-rm -f sshx_log.txt
+echo -e "${BLUE}[2/5] Menginstall SSHX Binary...${NC}"
+curl -sSf https://sshx.io/get | sh > /dev/null 2>&1
+# Pindahkan binary agar dikenali system
+if [ -f "./sshx" ]; then mv ./sshx /usr/local/bin/sshx; fi
+if [ -f "$HOME/.sshx/sshx" ]; then mv "$HOME/.sshx/sshx" /usr/local/bin/sshx; fi
+chmod +x /usr/local/bin/sshx
+echo -e "${GREEN}      Selesai.${NC}"
 
-# 4. Jalankan SSHX di Background (Nohup)
-# Output dibuang ke sshx_log.txt supaya bisa kita baca
-nohup sshx > sshx_log.txt 2>&1 &
-PID_SSHX=$!
+echo -e "${BLUE}[3/5] Membuat Script Wrapper (Backend)...${NC}"
+cat << 'EOF' > /usr/local/bin/sshx-wrapper
+#!/bin/bash
+# Script ini berjalan di background oleh Systemd
 
-# Tunggu sebentar biar log terisi
-sleep 2
+LINK_FILE="/root/sshx_link.txt"
+LOGFILE="/tmp/sshx_monitor.log"
 
-found=0
+# Bersihkan log lama
+rm -f "$LOGFILE"
+echo "Menunggu link generate..." > "$LINK_FILE"
 
-# --- LOOP PENCARIAN LINK ---
-while [ $found -eq 0 ]; do
-    # Cek kalau process mati
-    if ! kill -0 $PID_SSHX 2>/dev/null; then
-        echo -e "${RED}❌ SSHX Gagal dijalankan atau mati.${NC}"
-        cat sshx_log.txt
-        exit 1
-    fi
+# Jalankan SSHX
+/usr/local/bin/sshx > "$LOGFILE" 2>&1 &
+SSHX_PID=$!
 
-    # Ambil Link dari Log
-    LINK=$(grep -o 'https://sshx.io/s/[a-zA-Z0-9]*' sshx_log.txt | head -n 1)
-
-    if [ ! -z "$LINK" ]; then
-        found=1
-        clear
-        
-        # --- TAMPILAN SESUAI SCREENSHOT ---
-        echo -e "${GREEN}=========================================${NC}"
-        echo -e "${GREEN}      ✅  SSHX BERHASIL JALAN!  ✅      ${NC}"
-        echo -e "${GREEN}=========================================${NC}"
-        echo ""
-        
-        echo -e "${CYAN}--- SILAHKAN SCAN QR CODE INI ---${NC}"
-        # Generate QR Code
-        qrencode -t ANSIUTF8 "$LINK"
-        
-        echo ""
-        echo -e "${CYAN}--- ATAU SALIN LINK MANUAL ---${NC}"
-        echo -e "${YELLOW}$LINK${NC}"
-        echo ""
-        
-        echo -e "${GREEN}INFO PENTING:${NC}"
-        echo -e "1. SSHX berjalan di background dengan PID: ${YELLOW}$PID_SSHX${NC}"
-        echo -e "2. Kamu bisa menutup script ini/terminal ini, koneksi tetap AMAN."
-        echo -e "3. Untuk mematikan SSHX, ketik: ${RED}kill $PID_SSHX${NC}"
-        echo -e "========================================="
-        echo ""
-        echo -e "${CYAN}------------------------------------------${NC}"
-        
-        # --- FITUR PAUSE ---
-        # User harus tekan tombol dulu baru script keluar,
-        # tapi SSHX tetap jalan di background.
-        read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali..."
-        echo ""
+# Loop cari link di log
+MAX=30
+COUNT=0
+while [ $COUNT -lt $MAX ]; do
+    if grep -q "https://sshx.io/s/" "$LOGFILE"; then
+        LINK=$(grep -o 'https://sshx.io/s/[^ ]*' "$LOGFILE" | head -n 1)
+        echo "$LINK" > "$LINK_FILE"
+        chmod 644 "$LINK_FILE"
         break
     fi
-    sleep 1
+    sleep 2
+    ((COUNT++))
 done
+
+# Keep alive
+wait $SSHX_PID
+EOF
+chmod +x /usr/local/bin/sshx-wrapper
+echo -e "${GREEN}      Selesai.${NC}"
+
+echo -e "${BLUE}[4/5] Mengaktifkan Systemd Service...${NC}"
+cat <<EOF > /etc/systemd/system/sshx.service
+[Unit]
+Description=SSHX Service for ManzXD
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/sshx-wrapper
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable sshx > /dev/null 2>&1
+systemctl restart sshx
+echo -e "${GREEN}      Service SSHX Aktif & Auto-Start.${NC}"
+
+echo -e "${BLUE}[5/5] Membuat Menu Kontrol...${NC}"
+cat << 'EOF' > /usr/local/bin/menu-sshx
+#!/bin/bash
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+LINK_FILE="/root/sshx_link.txt"
+
+clear
+echo -e "${GREEN}========================================${NC}"
+echo -e "${YELLOW}       MANZXD SSHX CONTROLLER          ${NC}"
+echo -e "${GREEN}========================================${NC}"
+echo -e "1) 👁️  Lihat QR Code & Link"
+echo -e "2) 🔄 Restart SSHX (Link Baru)"
+echo -e "3) 🛑 Matikan SSHX"
+echo -e "4) 🚪 Keluar"
+echo -e ""
+read -p "Pilih: " opt
+case $opt in
+    1)
+        if [ -f "$LINK_FILE" ]; then
+            LINK=$(cat "$LINK_FILE")
+            echo -e "\nLink: ${YELLOW}$LINK${NC}\n"
+            qrencode -t ANSIUTF8 "$LINK"
+        else
+            echo "Belum ada link."
+        fi
+        ;;
+    2)
+        systemctl restart sshx
+        echo "Sedang restart... Coba cek menu 1 dalam 5 detik."
+        ;;
+    3)
+        systemctl stop sshx
+        echo "SSHX Dimatikan."
+        ;;
+    4)
+        exit
+        ;;
+    *)
+        echo "Salah pilih."
+        ;;
+esac
+echo ""
+EOF
+chmod +x /usr/local/bin/menu-sshx
+
+echo -e ""
+echo -e "${YELLOW}===========================================${NC}"
+echo -e "${GREEN}  INSTALASI SELESAI!  ${NC}"
+echo -e "${YELLOW}===========================================${NC}"
+echo -e "Ketik perintah ini kapan saja untuk membuka menu:"
+echo -e "👉  ${GREEN}menu-sshx${NC}"
+echo -e ""
