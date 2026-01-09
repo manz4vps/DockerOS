@@ -134,7 +134,7 @@ case $opt in
 esac
 echo ""
 EOF
-chmod +x /usr/local/bin/menu-sshx
+chmod +x /usr/local/bin/sshx
 
 echo -e ""
 echo -e "${YELLOW}===========================================${NC}"
