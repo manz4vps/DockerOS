@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==================================================
-#   AUTO INSTALLER SSHX + SYSTEMD + MENU by ManzXD
+#   SSHX AUTO INSTALLER & FIXER by ManzXD
 # ==================================================
 
 # Warna
@@ -18,8 +18,12 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 echo -e "${BLUE}[1/5] Menginstall Dependencies...${NC}"
-apt-get update -qq
-apt-get install -y curl qrencode -qq > /dev/null 2>&1
+# Cek OS dan install curl + qrencode
+if [ -f /etc/debian_version ]; then
+    apt-get update -qq && apt-get install -y curl qrencode -qq > /dev/null 2>&1
+elif [ -f /etc/redhat-release ]; then
+    yum install -y curl qrencode > /dev/null 2>&1
+fi
 echo -e "${GREEN}      Selesai.${NC}"
 
 echo -e "${BLUE}[2/5] Menginstall SSHX Binary...${NC}"
@@ -31,10 +35,9 @@ chmod +x /usr/local/bin/sshx
 echo -e "${GREEN}      Selesai.${NC}"
 
 echo -e "${BLUE}[3/5] Membuat Script Wrapper (Backend)...${NC}"
+# === BAGIAN INI SUDAH DIPERBAIKI (ANTI BUG WARNA) ===
 cat << 'EOF' > /usr/local/bin/sshx-wrapper
 #!/bin/bash
-# Script ini berjalan di background oleh Systemd
-
 LINK_FILE="/root/sshx_link.txt"
 LOGFILE="/tmp/sshx_monitor.log"
 
@@ -42,7 +45,7 @@ LOGFILE="/tmp/sshx_monitor.log"
 rm -f "$LOGFILE"
 echo "Menunggu link generate..." > "$LINK_FILE"
 
-# Jalankan SSHX
+# Jalankan SSHX di background
 /usr/local/bin/sshx > "$LOGFILE" 2>&1 &
 SSHX_PID=$!
 
@@ -51,7 +54,9 @@ MAX=30
 COUNT=0
 while [ $COUNT -lt $MAX ]; do
     if grep -q "https://sshx.io/s/" "$LOGFILE"; then
-        LINK=$(grep -o 'https://sshx.io/s/[^ ]*' "$LOGFILE" | head -n 1)
+        # Ambil link dan HAPUS kode warna (%1B[0m) menggunakan sed
+        LINK=$(grep -o 'https://sshx.io/s/[^ ]*' "$LOGFILE" | sed 's/\x1b\[[0-9;]*m//g' | head -n 1)
+        
         echo "$LINK" > "$LINK_FILE"
         chmod 644 "$LINK_FILE"
         break
@@ -64,7 +69,7 @@ done
 wait $SSHX_PID
 EOF
 chmod +x /usr/local/bin/sshx-wrapper
-echo -e "${GREEN}      Selesai.${NC}"
+echo -e "${GREEN}      Selesai (Fix Applied).${NC}"
 
 echo -e "${BLUE}[4/5] Mengaktifkan Systemd Service...${NC}"
 cat <<EOF > /etc/systemd/system/sshx.service
