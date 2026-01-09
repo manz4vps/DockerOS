@@ -2,6 +2,7 @@
 
 # ==================================================
 #   AUTO INSTALLER SSHX + SYSTEMD + MENU by ManzXD
+#   Fixed: QR Code Support & Command Collision
 # ==================================================
 
 # Warna
@@ -17,6 +18,11 @@ if [ "$EUID" -ne 0 ]; then
   exit
 fi
 
+# Matikan service lama jika ada biar tidak crash
+systemctl stop sshx > /dev/null 2>&1
+pkill sshx > /dev/null 2>&1
+rm -f /usr/local/bin/sshx /usr/local/bin/sshx-menu /usr/local/bin/sshx-wrapper
+
 echo -e "${BLUE}[1/5] Menginstall Dependencies...${NC}"
 apt-get update -qq
 apt-get install -y curl qrencode -qq > /dev/null 2>&1
@@ -24,11 +30,11 @@ echo -e "${GREEN}      Selesai.${NC}"
 
 echo -e "${BLUE}[2/5] Menginstall SSHX Binary...${NC}"
 curl sSf https://sshx.io/get | sh > /dev/null 2>&1
-# Pindahkan binary agar dikenali system
-if [ -f "./sshx" ]; then mv ./sshx /usr/local/bin/sshx; fi
-if [ -f "$HOME/.sshx/sshx" ]; then mv "$HOME/.sshx/sshx" /usr/local/bin/sshx; fi
-chmod +x /usr/local/bin/sshx
-echo -e "${GREEN}      Selesai.${NC}"
+# PENTING: Rename binary asli jadi sshx-core biar nama 'sshx' bisa dipakai menu
+if [ -f "./sshx" ]; then mv ./sshx /usr/local/bin/sshx-core; fi
+if [ -f "$HOME/.sshx/sshx" ]; then mv "$HOME/.sshx/sshx" /usr/local/bin/sshx-core; fi
+chmod +x /usr/local/bin/sshx-core
+echo -e "${GREEN}      Selesai (Binary disimpan sebagai sshx-core).${NC}"
 
 echo -e "${BLUE}[3/5] Membuat Script Wrapper (Backend)...${NC}"
 cat << 'EOF' > /usr/local/bin/sshx-wrapper
@@ -42,8 +48,8 @@ LOGFILE="/tmp/sshx_monitor.log"
 rm -f "$LOGFILE"
 echo "Menunggu link generate..." > "$LINK_FILE"
 
-# Jalankan SSHX
-/usr/local/bin/sshx > "$LOGFILE" 2>&1 &
+# Jalankan SSHX CORE (Binary Asli)
+/usr/local/bin/sshx-core > "$LOGFILE" 2>&1 &
 SSHX_PID=$!
 
 # Loop cari link di log
@@ -88,8 +94,9 @@ systemctl enable sshx > /dev/null 2>&1
 systemctl restart sshx
 echo -e "${GREEN}      Service SSHX Aktif & Auto-Start.${NC}"
 
-echo -e "${BLUE}[5/5] Membuat Menu Kontrol...${NC}"
-cat << 'EOF' > /usr/local/bin/menu-sshx
+echo -e "${BLUE}[5/5] Membuat Menu Kontrol (Command: sshx)...${NC}"
+# Disini kita namakan filenya 'sshx' agar saat diketik langsung muncul menu
+cat << 'EOF' > /usr/local/bin/sshx
 #!/bin/bash
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -112,9 +119,10 @@ case $opt in
         if [ -f "$LINK_FILE" ]; then
             LINK=$(cat "$LINK_FILE")
             echo -e "\nLink: ${YELLOW}$LINK${NC}\n"
+            # Ini perintah untuk memunculkan QR Code
             qrencode -t ANSIUTF8 "$LINK"
         else
-            echo "Belum ada link."
+            echo "Sedang generate link... Coba 5 detik lagi."
         fi
         ;;
     2)
@@ -134,12 +142,12 @@ case $opt in
 esac
 echo ""
 EOF
-chmod +x /usr/local/bin/sshx-menu
+chmod +x /usr/local/bin/sshx
 
 echo -e ""
 echo -e "${YELLOW}===========================================${NC}"
 echo -e "${GREEN}  INSTALASI SELESAI!  ${NC}"
 echo -e "${YELLOW}===========================================${NC}"
-echo -e "Ketik perintah ini kapan saja untuk membuka menu:"
+echo -e "Sekarang ketik perintah ini untuk melihat QR:"
 echo -e "👉  ${GREEN}sshx${NC}"
 echo -e ""
