@@ -91,7 +91,7 @@ fi
 echo -e "Status: $STATUS"
 
 echo -e ""
-echo -e "1) 👁️  Lihat QR Code & Link"
+echo -e "1) 👁️  Lihat QR"
 echo -e "2) 🔄 Restart SSHX"
 echo -e "3) 🛑 Matikan SSHX"
 echo -e "4) 🚪 Keluar"
