@@ -2,6 +2,7 @@
 
 # ==================================================
 #   SSHX AUTO INSTALLER & FIXER by ManzXD
+#   Modified: Auto-Launch Menu & Looping Interface
 # ==================================================
 
 # Warna
@@ -94,6 +95,7 @@ systemctl restart sshx
 echo -e "${GREEN}      Service SSHX Aktif & Auto-Start.${NC}"
 
 echo -e "${BLUE}[5/5] Membuat Menu Kontrol...${NC}"
+# Membuat menu dengan LOOP (While True) agar tidak langsung exit
 cat << 'EOF' > /usr/local/bin/menu-sshx
 #!/bin/bash
 GREEN='\033[0;32m'
@@ -102,49 +104,64 @@ RED='\033[0;31m'
 NC='\033[0m'
 LINK_FILE="/root/sshx_link.txt"
 
-clear
-echo -e "${GREEN}========================================${NC}"
-echo -e "${YELLOW}       MANZXD SSHX CONTROLLER          ${NC}"
-echo -e "${GREEN}========================================${NC}"
-echo -e "1) 👁️  Lihat QR Code & Link"
-echo -e "2) 🔄 Restart SSHX (Link Baru)"
-echo -e "3) 🛑 Matikan SSHX"
-echo -e "4) 🚪 Keluar"
-echo -e ""
-read -p "Pilih: " opt
-case $opt in
-    1)
-        if [ -f "$LINK_FILE" ]; then
-            LINK=$(cat "$LINK_FILE")
-            echo -e "\nLink: ${YELLOW}$LINK${NC}\n"
-            qrencode -t ANSIUTF8 "$LINK"
-        else
-            echo "Belum ada link."
-        fi
-        ;;
-    2)
-        systemctl restart sshx
-        echo "Sedang restart... Coba cek menu 1 dalam 5 detik."
-        ;;
-    3)
-        systemctl stop sshx
-        echo "SSHX Dimatikan."
-        ;;
-    4)
-        exit
-        ;;
-    *)
-        echo "Salah pilih."
-        ;;
-esac
-echo ""
+while true; do
+    clear
+    echo -e "${GREEN}========================================${NC}"
+    echo -e "${YELLOW}       MANZXD SSHX CONTROLLER          ${NC}"
+    echo -e "${GREEN}========================================${NC}"
+    echo -e "1) 👁️  Lihat QR Code & Link"
+    echo -e "2) 🔄 Restart SSHX (Link Baru)"
+    echo -e "3) 🛑 Matikan SSHX"
+    echo -e "4) 🚪 Keluar Menu"
+    echo -e ""
+    read -p "Pilih [1-4]: " opt
+    
+    case $opt in
+        1)
+            echo -e "\n${YELLOW}--- Menampilkan Link & QR ---${NC}"
+            if [ -f "$LINK_FILE" ]; then
+                LINK=$(cat "$LINK_FILE")
+                echo -e "Link: ${YELLOW}$LINK${NC}\n"
+                qrencode -t ANSIUTF8 "$LINK"
+            else
+                echo -e "${RED}Belum ada link. Tunggu sebentar atau Restart SSHX.${NC}"
+            fi
+            echo ""
+            read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu..."
+            ;;
+        2)
+            echo -e "\n${YELLOW}Merestart service...${NC}"
+            systemctl restart sshx
+            echo "Selesai. Tunggu 5 detik agar link tergenerate..."
+            sleep 5
+            read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu..."
+            ;;
+        3)
+            echo -e "\n${RED}Mematikan service SSHX...${NC}"
+            systemctl stop sshx
+            echo "SSHX Dimatikan."
+            read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu..."
+            ;;
+        4)
+            echo -e "${GREEN}Keluar. Ketik 'menu-sshx' untuk kembali.${NC}"
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}Pilihan tidak valid.${NC}"
+            sleep 1
+            ;;
+    esac
+done
 EOF
 chmod +x /usr/local/bin/menu-sshx
 
 echo -e ""
 echo -e "${YELLOW}===========================================${NC}"
-echo -e "${GREEN}  INSTALASI SELESAI!  ${NC}"
+echo -e "${GREEN}   INSTALASI SELESAI! MEMBUKA MENU...  ${NC}"
 echo -e "${YELLOW}===========================================${NC}"
-echo -e "Ketik perintah ini kapan saja untuk membuka menu:"
-echo -e "👉  ${GREEN}menu-sshx${NC}"
-echo -e ""
+
+# Tunggu sebentar biar service generate link dulu
+sleep 3
+
+# Langsung jalankan menu
+/usr/local/bin/menu-sshx
