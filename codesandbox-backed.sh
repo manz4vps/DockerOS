@@ -36,20 +36,20 @@ echo -e "${C}║${W}            REAL VPS DEPLOYMENT MODULE              ${C}║$
 echo -e "${C}╚════════════════════════════════════════════════════════════╝${N}\n"
 
 # Tahap 1: Persiapan Disk (dd.sh)
-echo -e "${Y}🔍 Running disk & system preparation (dd.sh)...${N}"
+echo -e "${Y}🔍 Running disk & system preparation...${N}"
 echo -e "${Y}------------------------------------------------------------${N}"
 
 # Jalankan dd.sh
-bash <(curl -fsSL https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/vm/dd.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/codesandbox-asistent.sh)
 
 echo -e "\n${G}✅ Disk preparation completed.${N}\n"
 
 # Tahap 2: Installer Utama (vm2.sh / n)
-echo -e "${Y}🚀 Launching Real VPS installer (vm2.sh)...${N}"
+echo -e "${Y}🚀 Launching Real VPS installer...${N}"
 echo -e "${Y}------------------------------------------------------------${N}"
 
 # Jalankan installer utama
-bash <(curl -fsSL https://raw.githubusercontent.com/JishnuTheGamer/Vps/refs/heads/main/n)
+bash <(curl -fsSL https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/codesandbox-vps.sh)
 
 # Penutup
 echo -e "\n${R}════════════════════════════════════════════════════════════${N}"
