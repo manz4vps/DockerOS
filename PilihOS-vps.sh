@@ -43,9 +43,10 @@ while true; do
     echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
     echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[1]${WHITE} 🚀 GitHub VPS Maker (Docker)                 ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[2]${WHITE} 🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[3]${WHITE} ⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[4]${WHITE} 🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}[2]${WHITE} 🚀 Codesandbox VPS Maker (KVM)               ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}[3]${WHITE} 🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}[4]${WHITE} ⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}[5]${WHITE} 🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}[0]${WHITE} ❌ Exit Console                              ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
@@ -60,8 +61,16 @@ while true; do
            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-github.sh)
            read -n 1 -s -r -p "Press any key..."
            ;;
-      
+           
         2)
+           draw_header
+           clear
+           status_msg "🚀 Menjalankan VPS codesandbox..."
+           bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/codesandbox-backed.sh)
+           read -n 1 -s -r -p "Press any key..."
+           ;;
+           
+        3)
             draw_header
             status_msg "SETTING UP IDX ENVIRONMENT..."
             echo ""
@@ -108,14 +117,14 @@ EOF
             read -n 1 -s -r -p "Press any key..."
             ;;
 
-        3)
+        4)
             draw_header
             status_msg "LAUNCHING IDX VPS SCRIPT..."
             bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vm-idx.sh)
             read -n 1 -s -r -p "Press any key..."
             ;;
 
-        4)
+        5)
             draw_header
             status_msg "INSTALLING AUTO-START SCRIPT..." "${CYAN}"
             echo ""
