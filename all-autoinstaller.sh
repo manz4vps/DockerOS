@@ -111,12 +111,13 @@ while true; do
     banner
     echo -e " ${TEBAL}1.${RESET} 🧩  Panel Pterodactyl"
     echo -e " ${TEBAL}2.${RESET} 🪶   Wings Pterodactyl"
-    echo -e " ${TEBAL}3.${RESET} 🌐  Connection Tools (Playit/MineCube) ▶"
-    echo -e " ${TEBAL}4.${RESET} 🧱  Blueprint Framework"
-    echo -e " ${TEBAL}5.${RESET} ☁️   Install Cloudflare ▶"
-    echo -e " ${TEBAL}6.${RESET} 🎨  Pasang Tema (Theme)"
-    echo -e " ${TEBAL}7.${RESET} 🔌  Install Addon"
-    echo -e " ${TEBAL}8.${RESET} 🚀  Install SSHX (Remote)"
+    echo -e " ${TEBAL}3.${RESET} 🚀   SSH (connect)"
+    echo -e " ${TEBAL}4.${RESET} 🌐  Connection Tools (Playit/MineCube) ▶"
+    echo -e " ${TEBAL}5.${RESET} 🧱  Blueprint Framework"
+    echo -e " ${TEBAL}6.${RESET} ☁️   Install Cloudflare ▶"
+    echo -e " ${TEBAL}7.${RESET} 🎨  Pasang Tema (Theme)"
+    echo -e " ${TEBAL}8.${RESET} 🔌  Install Addon"
+    echo -e " ${TEBAL}9.${RESET} 🚀  Install SSHX (Remote)"
     
     echo -e "${CYAN}---------------------------------------------${RESET}"
     echo -e " ${TEBAL}0.${RESET} 🚪  KELUAR"
@@ -128,12 +129,13 @@ while true; do
     case $pilihan in
         1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
         2) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
-        3) menu_connection ;;  # Masuk ke Sub-Menu Connection
-        4) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
-        5) menu_cloudflare ;;  # Masuk ke Sub-Menu Cloudflare
-        6) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
-        7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/addon.sh" ;;
-        8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/sshx.sh" ;;
+        3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/ssh.sh" ;;
+        4) menu_connection ;;  # Masuk ke Sub-Menu Connection
+        5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
+        6) menu_cloudflare ;;  # Masuk ke Sub-Menu Cloudflare
+        7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
+        8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/addon.sh" ;;
+        9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/sshx.sh" ;;
         0) 
             echo -e "\n${HIJAU}Terimakasih Telah Menggunakan Scrip Ini!${RESET}"
             exit 0 
