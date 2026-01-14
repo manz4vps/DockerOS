@@ -42,7 +42,8 @@ echo ""
 
 # Perintah ini akan langsung meminta inputmu
 clear
-======================================
+echo ""
+echo "======================================"
 passwd root
 
 echo ""
