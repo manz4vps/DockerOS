@@ -61,9 +61,10 @@ menu_connection() {
         echo -e "${CYAN}=============================================${RESET}"
         echo -e " ${TEBAL}1.${RESET} ⚒️   Install Localtonet"
         echo -e " ${TEBAL}2.${RESET} 🔨   Install Tailscale"
-        echo -e " ${TEBAL}3.${RESET} ⚒️   Install MineCube (IP Minecraft)"
-        echo -e " ${TEBAL}4.${RESET} 🛠️   Install Playit.gg"
-        echo -e " ${TEBAL}5.${RESET} 🖥️   Playit Run 24/7"
+        echo -e " ${TEBAL}3.${RESET} 🔨   Tailscale (IP Public)"
+        echo -e " ${TEBAL}4.${RESET} ⚒️   Install MineCube (IP Minecraft)"
+        echo -e " ${TEBAL}5.${RESET} 🛠️   Install Playit.gg"
+        echo -e " ${TEBAL}6.${RESET} 🖥️   Playit Run 24/7"
         echo -e "${CYAN}---------------------------------------------${RESET}"
         echo -e " ${TEBAL}0.${RESET} 🔙  Kembali ke Menu Utama"
         echo -e "${CYAN}=============================================${RESET}"
@@ -72,9 +73,10 @@ menu_connection() {
         case $sub_opt in
             1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/install-localtonet.sh" ;;
             2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/install-tailscale.sh" ;;
-            3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/minekub-ip.sh" ;;
-            4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
-            5) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit24%5C7" ;;
+            3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/tailscale-port.sh" ;;
+            4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/minekub-ip.sh" ;;
+            5) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
+            6) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit24%5C7" ;;
             0) return ;;
             *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
         esac
