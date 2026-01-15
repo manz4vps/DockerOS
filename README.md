@@ -55,19 +55,19 @@ https://github.com/manz4vps/vm
 ### 2️⃣ Install OS  (POPULAR 🔥)
 Gunakan command ini untuk meinstall OS VPS kamu (Ubuntu/Debian):
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/PilihOS-vps.sh)
+bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/PilihOS-vps.sh)
 ```
 
 ### 3️⃣ Auto Install Panel
 Script otomatis untuk setup panel manajemen server:
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/all-autoinstaller.sh)
+bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/all-autoinstaller.sh)
 ```
 
 ### 4️⃣ Install Windows
 Ubah VPS Linux menjadi RDP Windows dengan satu perintah:
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/install-windows.sh)
+bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-windows.sh)
 ```
 
 ---
