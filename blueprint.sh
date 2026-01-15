@@ -1,109 +1,105 @@
 #!/bin/bash
 
-# ==========================================
-#  Blueprint Auto Installer (Ultimate Fix)
-#  Special for ManzXD
-#  Fixes: Tailwind, Axios, & React Route Error
-# ==========================================
+# ================= COLORS =================
+R="\e[31m"; G="\e[32m"; Y="\e[33m"
+B="\e[34m"; M="\e[35m"; C="\e[36m"
+W="\e[97m"; N="\e[0m"
 
-# Warna Terminal
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
-
-# Directory
-PTERODACTYL_DIRECTORY="/var/www/pterodactyl"
-
-# Fungsi Error Handling
-check_error() {
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}[ERROR] Terjadi kesalahan pada langkah: $1${NC}"
-        exit 1
-    fi
+# ================= UI FUNCTIONS =================
+header() {
+  clear
+  echo -e "${M}"
+  echo "╔══════════════════════════════════════════════════════╗"
+  echo "║        🚀 PTERODACTYL BLUEPRINT INSTALLER            ║"
+  echo "╠══════════════════════════════════════════════════════╣"
+  echo "║      UI • Auto • Clean • No Bakchodi                 ║"
+  echo "╚══════════════════════════════════════════════════════╝"
+  echo -e "${N}"
 }
 
-echo -e "${YELLOW}[INFO] Memulai instalasi Blueprint Ultimate Fix...${NC}"
+step() {
+  echo -e "${C}➜ $1${N}"
+}
 
-# 1. Cek Folder
-if [ ! -d "$PTERODACTYL_DIRECTORY" ]; then
-    echo -e "${RED}[ERROR] Directory $PTERODACTYL_DIRECTORY tidak ditemukan!${NC}"
-    exit 1
+ok() {
+  echo -e "${G}✔ $1${N}"
+}
+
+fail() {
+  echo -e "${R}✘ $1${N}"
+  exit 1
+}
+
+# ================= CHECK ROOT =================
+if [ "$EUID" -ne 0 ]; then
+  fail "Please run as root"
 fi
 
-# 2. Install Dependencies Sistem
-echo -e "${YELLOW}[STEP 1/9] Menginstall dependencies sistem...${NC}"
-sudo apt update -y
-sudo apt install -y curl wget unzip ca-certificates git gnupg zip
-check_error "Install Dependencies"
+# ================= VARIABLES =================
+cd /var/www/pterodactyl
+php artisan down
+curl -L https://github.com/pterodactyl/panel/releases/download/v1.11.11/panel.tar.gz | tar -xzv
+chmod -R 755 storage/* bootstrap/cache
+COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+php artisan view:clear
+php artisan config:clear
+php artisan migrate --seed --force
+chown -R www-data:www-data /var/www/pterodactyl/*
+php artisan queue:restart
+php artisan up
 
-# 3. Setup Node.js 20.x
-echo -e "${YELLOW}[STEP 2/9] Setup Node.js repo...${NC}"
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-sudo apt update -y
-sudo apt install -y nodejs
-check_error "Install Node.js"
+echo -e "${GREEN}🎉 Panel Updated Successfully${NC}"
+export PTERODACTYL_DIRECTORY=/var/www/pterodactyl
 
-# 4. Setup Yarn & Download Blueprint
-echo -e "${YELLOW}[STEP 3/9] Setup Yarn & Download Blueprint...${NC}"
-npm i -g yarn
-cd $PTERODACTYL_DIRECTORY
+# ================= START =================
+header
+step "Installing base dependencies (curl, wget, unzip)"
+apt update -y && apt install -y curl wget unzip ca-certificates git gnupg zip || fail "Deps install failed"
+ok "Base dependencies installed"
 
-# Hapus file release lama jika ada
-rm -f release.zip
+step "Switching to Pterodactyl directory"
+cd "$PTERODACTYL_DIRECTORY" || fail "Pterodactyl directory not found"
+
+step "Downloading Blueprint Framework (latest)"
 wget "$(curl -s https://api.github.com/repos/BlueprintFramework/framework/releases/latest | grep 'browser_download_url' | grep 'release.zip' | cut -d '"' -f 4)" -O "$PTERODACTYL_DIRECTORY/release.zip"
-unzip -o release.zip
-rm release.zip
-check_error "Download Blueprint"
+unzip -o release.zip || fail "Unzip failed"
+ok "Blueprint downloaded & extracted"
 
-# 5. Fix Tailwind Config
-echo -e "${YELLOW}[STEP 4/9] Menerapkan Fix Warna Orange...${NC}"
-sed -i '/orange:/d' tailwind.config.js
-sed -i "/colors: {/a \                orange: { 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12' }," tailwind.config.js
+# ================= NODE.JS =================
+step "Installing Node.js 20.x"
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
+> /etc/apt/sources.list.d/nodesource.list
 
-# 6. BERSIH-BERSIH & INSTALL AWAL
-echo -e "${YELLOW}[STEP 5/9] Membersihkan cache dan install dependencies awal...${NC}"
-rm -rf node_modules yarn.lock
-yarn cache clean
-yarn install
-check_error "Yarn Install Awal"
+apt update -y && apt install -y nodejs || fail "Node.js install failed"
+ok "Node.js installed"
 
-# 7. PATCH KHUSUS (INI YANG PENTING!)
-echo -e "${YELLOW}[STEP 6/9] Melakukan Patching React Types & Axios...${NC}"
+# ================= YARN & DEPENDENCIES =================
+step "Installing Yarn & Node dependencies"
+npm i -g yarn || fail "Yarn install failed"
+yarn install || fail "Yarn dependencies failed"
+ok "Node dependencies ready"
 
-# Fix 1: Paksa Axios terbaru (Supaya file upload jalan)
-yarn add axios
-
-# Fix 2: Turunkan versi @types/react ke v17 (Supaya Error 'Route' hilang)
-# Kita hapus dulu yang v18, lalu pasang v17
-yarn remove @types/react @types/react-dom
-yarn add -D @types/react@17.0.39 @types/react-dom@17.0.17
-
-check_error "Patching Dependencies"
-
-# 8. Build Panel
-echo -e "${YELLOW}[STEP 7/9] Menjalankan Build Production...${NC}"
-export NODE_OPTIONS=--openssl-legacy-provider
-yarn build:production
-check_error "Yarn Build Production"
-
-# 9. Setup Config Blueprint
-echo -e "${YELLOW}[STEP 8/9] Membuat konfigurasi .blueprintrc...${NC}"
-touch $PTERODACTYL_DIRECTORY/.blueprintrc
-echo 'WEBUSER="www-data";
+# ================= BLUEPRINT CONFIG =================
+step "Creating .blueprintrc configuration"
+cat <<EOF > "$PTERODACTYL_DIRECTORY/.blueprintrc"
+WEBUSER="www-data";
 OWNERSHIP="www-data:www-data";
-USERSHELL="/bin/bash";' > $PTERODACTYL_DIRECTORY/.blueprintrc
-chmod +x $PTERODACTYL_DIRECTORY/blueprint.sh
+USERSHELL="/bin/bash";
+EOF
+ok ".blueprintrc created"
 
-# Fix Permission Akhir
-chown -R www-data:www-data $PTERODACTYL_DIRECTORY
-chmod -R 755 $PTERODACTYL_DIRECTORY/storage $PTERODACTYL_DIRECTORY/bootstrap/cache
+# ================= PERMISSIONS =================
+step "Setting permissions"
+chmod +x "$PTERODACTYL_DIRECTORY/blueprint.sh" || fail "Permission failed"
+chown -R www-data:www-data "$PTERODACTYL_DIRECTORY"
+ok "Permissions fixed"
 
-# Jalankan Installer Blueprint
-echo -e "${YELLOW}[FINAL] Menjalankan Installer Blueprint...${NC}"
-bash $PTERODACTYL_DIRECTORY/blueprint.sh
-check_error "Blueprint Installer"
+# ================= RUN BLUEPRINT =================
+step "Launching Blueprint installer"
+bash "$PTERODACTYL_DIRECTORY/blueprint.sh"
 
-echo -e "${GREEN}[SUCCESS] MANTAP! Instalasi Selesai & Build Sukses.${NC}"
+# ================= DONE =================
+echo -e "\n${G}🎉 Blueprint UI Installation Complete!${N}"
+echo -e "${Y}Panel breathe kar raha hai… theme lagao, flex maro 😏${N}"
