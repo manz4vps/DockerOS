@@ -42,12 +42,12 @@ while true; do
 
     echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
     echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[1]${WHITE} 🚀 GitHub VPS Maker (Docker)                 ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[2]${WHITE} 🚀 Codesandbox VPS Maker (KVM)               ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[3]${WHITE} 🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[4]${WHITE} ⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[5]${WHITE} 🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}[0]${WHITE} ❌ Exit Console                              ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}1)${WHITE}🚀 GitHub VPS Maker (Docker)                 ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}2)${WHITE}🚀 Codesandbox VPS Maker (KVM)               ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}3)${WHITE}🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                              ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -ne "${YELLOW}  Select Option [0-4]: ${NC}"
@@ -58,7 +58,7 @@ while true; do
            draw_header
            clear
            status_msg "🚀 Menjalankan VPS GitHub Installer..."
-           bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-github.sh)
+           bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/vps-github.sh)
            read -n 1 -s -r -p "Press any key..."
            ;;
            
@@ -66,7 +66,7 @@ while true; do
            draw_header
            clear
            status_msg "🚀 Menjalankan VPS codesandbox..."
-           bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/codesandbox-backed.sh)
+           bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/codesandbox-backed.sh)
            read -n 1 -s -r -p "Press any key..."
            ;;
            
@@ -120,7 +120,7 @@ EOF
         4)
             draw_header
             status_msg "LAUNCHING IDX VPS SCRIPT..."
-            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vm-idx.sh)
+            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/vm-idx.sh)
             read -n 1 -s -r -p "Press any key..."
             ;;
 
