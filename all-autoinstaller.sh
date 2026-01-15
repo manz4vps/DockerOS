@@ -110,7 +110,7 @@ menu_cloudflare() {
 while true; do
     banner
     echo -e " ${TEBAL}1.${RESET} 🧩  Panel Pterodactyl"
-    echo -e " ${TEBAL}2.${RESET} 🪶  Wings Pterodactyl"
+    echo -e " ${TEBAL}2.${RESET} 🪶   Wings Pterodactyl"
     echo -e " ${TEBAL}3.${RESET} 🚀  SSH (connect)"
     echo -e " ${TEBAL}4.${RESET} 🌐  Connection Tools (Playit/MineCube) ▶"
     echo -e " ${TEBAL}5.${RESET} 🧱  Blueprint Framework"
