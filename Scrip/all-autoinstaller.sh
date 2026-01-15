@@ -127,13 +127,13 @@ while true; do
     read -r pilihan
 
     case $pilihan in
-        1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/panel.sh" ;;
-        2) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/wings.sh" ;;
-        3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/ssh.sh" ;;
+        1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/panel.sh" ;;
+        2) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/wings.sh" ;;
+        3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/ssh.sh" ;;
         4) menu_connection ;;  # Masuk ke Sub-Menu Connection
-        5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/blueprint.sh" ;;
+        5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/blueprint.sh" ;;
         6) menu_cloudflare ;;  # Masuk ke Sub-Menu Cloudflare
-        7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/theme.sh" ;;
+        7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme.sh" ;;
         8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/addon.sh" ;;
         9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/sshx.sh" ;;
         0) 
