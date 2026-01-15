@@ -14,7 +14,7 @@ echo -e "${YELLOW}🔄 Menyiapkan Playit untuk Setup...${NC}"
 
 # 1. Download Playit
 if [ ! -f "./playit-linux-amd64" ]; then
-    wget -q https://github.com/playit-cloud/playit-agent/releases/download/v0.15.26/playit-linux-amd64
+    wget -q https://github.com/playit-cloud/playit-agent/releases/download/v0.17.1/playit-linux-amd64
     chmod +x playit-linux-amd64
 fi
 
