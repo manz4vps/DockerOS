@@ -51,7 +51,7 @@ pasang_tema() {
 
         case $t in
             1)
-                jalankan_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/change%20theme.sh"
+                jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/change%20theme.sh"
                 read -p "Tekan Enter untuk kembali..."
                 ;;
             2)
