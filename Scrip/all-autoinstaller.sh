@@ -71,12 +71,12 @@ menu_connection() {
         echo -ne "${TEBAL}Pilih [0-4]: ${RESET}"
         read -r sub_opt
         case $sub_opt in
-            1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/install-localtonet.sh" ;;
-            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/install-tailscale.sh" ;;
-            3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/tailscale-port.sh" ;;
-            4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/minekub-ip.sh" ;;
-            5) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playitInstaller.sh" ;;
-            6) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/playit24%5C7" ;;
+            1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-localtonet.sh" ;;
+            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-tailscale.sh" ;;
+            3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/tailscale-port.sh" ;;
+            4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/minekub-ip.sh" ;;
+            5) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playitInstaller.sh" ;;
+            6) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playit24-7" ;;
             0) return ;;
             *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
         esac
@@ -98,8 +98,8 @@ menu_cloudflare() {
         echo -ne "${TEBAL}Pilih [0-2]: ${RESET}"
         read -r sub_opt
         case $sub_opt in
-            1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/cloudflare.sh" ;;
-            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/token-cloudflare.sh" ;;
+            1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/cloudflare.sh" ;;
+            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/token-cloudflare.sh" ;;
             0) return ;;
             *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
         esac
@@ -134,8 +134,8 @@ while true; do
         5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/blueprint.sh" ;;
         6) menu_cloudflare ;;  # Masuk ke Sub-Menu Cloudflare
         7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme.sh" ;;
-        8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/addon.sh" ;;
-        9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/sshx.sh" ;;
+        8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/addon.sh" ;;
+        9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/sshx.sh" ;;
         0) 
             echo -e "\n${HIJAU}Terimakasih Telah Menggunakan Scrip Ini!${RESET}"
             exit 0 
