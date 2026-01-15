@@ -66,7 +66,7 @@ menu_connection() {
         echo -e " ${TEBAL}5)${RESET}🛠️  Install Playit.gg"
         echo -e " ${TEBAL}6)${RESET}🖥️  Playit Run 24/7"
         echo -e "${CYAN}---------------------------------------------${RESET}"
-        echo -e " ${TEBAL}0)${RESET} 🔙  Kembali ke Menu Utama"
+        echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
         echo -e "${CYAN}=============================================${RESET}"
         echo -ne "${TEBAL}Pilih [0-4]: ${RESET}"
         read -r sub_opt
@@ -90,10 +90,10 @@ menu_cloudflare() {
         echo -e "${CYAN}=============================================${RESET}"
         echo -e "${KUNING}           ☁️  MENU CLOUDFLARE              ${RESET}"
         echo -e "${CYAN}=============================================${RESET}"
-        echo -e " ${TEBAL}1.${RESET} ☁️   Cloudflare Raw Script (Manual)"
-        echo -e " ${TEBAL}2.${RESET} 🔒  Cloudflared Tunnel (Token)"
+        echo -e " ${TEBAL}1)${RESET}☁️  Cloudflare Raw Script (Manual)"
+        echo -e " ${TEBAL}2)${RESET}🔒 Cloudflared Tunnel (Token)"
         echo -e "${CYAN}---------------------------------------------${RESET}"
-        echo -e " ${TEBAL}0.${RESET} 🔙  Kembali ke Menu Utama"
+        echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
         echo -e "${CYAN}=============================================${RESET}"
         echo -ne "${TEBAL}Pilih [0-2]: ${RESET}"
         read -r sub_opt
