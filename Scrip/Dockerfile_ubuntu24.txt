@@ -1,0 +1,39 @@
+# Ubuntu 24.04 LTS (Noble Numbat) Cloud Image
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    qemu-system-x86 \
+    qemu-utils \
+    cloud-image-utils \
+    genisoimage \
+    curl \
+    net-tools \
+ && rm -rf /var/lib/apt/lists/*
+
+# Prepare directories
+RUN mkdir -p /opt/qemu /cloud-init /vmdata
+
+# Download Ubuntu 24.04 Cloud Image
+RUN curl -L https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img \
+    -o /opt/qemu/ubuntu.qcow2
+
+# Cloud-init meta-data & user-data
+RUN echo "instance-id: manzvps\nlocal-hostname: manzvps" > /cloud-init/meta-data
+
+RUN printf "#cloud-config\nhostname: manzvps\nusers:\n  - name: root\n    shell: /bin/bash\n    lock_passwd: false\n    passwd: \$6\$abcd1234\$W6wzBuvyE.D1mBGAgQw2uvUO/honRrnAGjFhMXSk0LUbZosYtoHy1tUtYhKlALqIldOGPrYnhSrOfAknpm91i0\n    sudo: ALL=(ALL) NOPASSWD:ALL\nchpasswd:\n  list: |\n    root:root\n  expire: false\nruncmd:\n  - mkdir -p /etc/systemd/system/getty@ttyS0.service.d\n  - echo '[Service]' > /etc/systemd/system/getty@ttyS0.service.d/override.conf\n  - echo 'ExecStart=' >> /etc/systemd/system/getty@ttyS0.service.d/override.conf\n  - echo 'ExecStart=-/sbin/agetty --autologin root --noclear ttyS0 115200 linux' >> /etc/systemd/system/getty@ttyS0.service.d/override.conf\n" > /cloud-init/user-data
+
+# Generate seed ISO
+RUN genisoimage -output /opt/qemu/seed.iso -volid cidata -joliet -rock \
+    /cloud-init/user-data /cloud-init/meta-data
+
+# Start script
+RUN printf '#!/bin/bash\nset -e\nDISK="/vmdata/vm.raw"\nIMG="/opt/qemu/ubuntu.qcow2"\nSEED="/opt/qemu/seed.iso"\n\n: "${RAM:=4096}"\n: "${CPU:=2}"\n: "${DISK_SIZE:=50G}"\n\nif [ ! -f "$DISK" ]; then\n    echo "Creating persistent VM disk ($DISK_SIZE)..."\n    qemu-img convert -f qcow2 -O raw "$IMG" "$DISK"\n    qemu-img resize "$DISK" $DISK_SIZE\nfi\n\nif [ -e /dev/kvm ]; then\n    echo "✅ KVM detected: enabling hardware acceleration"\n    ACCEL="-enable-kvm -cpu host -machine accel=kvm"\nelse\n    echo "⚠️  KVM not available: using optimized TCG mode"\n    ACCEL="-cpu max -machine accel=tcg,vmport=off"\nfi\n\necho "🚀 Starting VM with ${CPU} CPU(s), ${RAM} MB RAM, disk: $DISK_SIZE"\nexec qemu-system-x86_64 \\\n    $ACCEL \\\n    -smp ${CPU} \\\n    -m ${RAM} \\\n    -drive file="$DISK",format=raw,if=virtio,aio=threads,cache=writeback \\\n    -drive file="$SEED",format=raw,if=virtio,media=cdrom,readonly=on \\\n    -nographic \\\n    -serial mon:stdio \\\n    -netdev user,id=net0 \\\n    -device virtio-net,netdev=net0 \\\n    -rtc base=utc \\\n    -no-reboot\n' > /start.sh
+
+RUN chmod +x /start.sh
+
+VOLUME ["/vmdata"]
+
+CMD ["bash", "/start.sh"]
