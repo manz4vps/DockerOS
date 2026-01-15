@@ -120,7 +120,7 @@ while true; do
     echo -e " ${TEBAL}9)${RESET}🚀 Install SSHX (Remote)"
     
     echo -e "${CYAN}---------------------------------------------${RESET}"
-    echo -e " ${TEBAL}0)${RESET} 🚪  KELUAR"
+    echo -e " ${TEBAL}0)${RESET}🚪 KELUAR"
     echo -e "${CYAN}=============================================${RESET}"
     
     echo -ne "${TEBAL}Masukkan pilihan [0-8]: ${RESET}"
