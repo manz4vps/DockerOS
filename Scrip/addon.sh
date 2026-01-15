@@ -103,7 +103,7 @@ install_addon_panel() {
                 for item in "${addons[@]}"; do
                     # Kita copas logika install di sini biar jalan otomatis tanpa pause per file
                     echo -e "${CYAN}>> Menginstall $item...${RESET}"
-                    curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/$item"
+                    curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/$item"
                     blueprint -i "$item"
                     rm -f "$item"
                 done
