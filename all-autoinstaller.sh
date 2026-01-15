@@ -109,18 +109,18 @@ menu_cloudflare() {
 # === MAIN MENU ===
 while true; do
     banner
-    echo -e " ${TEBAL}1.${RESET} 🧩  Panel Pterodactyl"
-    echo -e " ${TEBAL}2.${RESET} 🪶   Wings Pterodactyl"
-    echo -e " ${TEBAL}3.${RESET} 🚀  SSH (connect)"
-    echo -e " ${TEBAL}4.${RESET} 🌐  Connection Tools (Playit/MineCube) ▶"
-    echo -e " ${TEBAL}5.${RESET} 🧱  Blueprint Framework"
-    echo -e " ${TEBAL}6.${RESET} ☁️   Install Cloudflare ▶"
-    echo -e " ${TEBAL}7.${RESET} 🎨  Pasang Tema (Theme)"
-    echo -e " ${TEBAL}8.${RESET} 🔌  Install Addon"
-    echo -e " ${TEBAL}9.${RESET} 🚀  Install SSHX (Remote)"
+    echo -e " ${TEBAL}1)${RESET}🧩 Panel Pterodactyl"
+    echo -e " ${TEBAL}2)${RESET}🪶  Wings Pterodactyl"
+    echo -e " ${TEBAL}3)${RESET}🚀 SSH (connect)"
+    echo -e " ${TEBAL}4)${RESET}🌐 Connection Tools (Playit/MineCube) ▶"
+    echo -e " ${TEBAL}5)${RESET}🧱 Blueprint Framework"
+    echo -e " ${TEBAL}6)${RESET}☁️  Install Cloudflare ▶"
+    echo -e " ${TEBAL}7)${RESET}🎨 Pasang Tema (Theme)"
+    echo -e " ${TEBAL}8)${RESET}🔌 Install Addon"
+    echo -e " ${TEBAL}9)${RESET}🚀 Install SSHX (Remote)"
     
     echo -e "${CYAN}---------------------------------------------${RESET}"
-    echo -e " ${TEBAL}0.${RESET} 🚪  KELUAR"
+    echo -e " ${TEBAL}0)${RESET} 🚪  KELUAR"
     echo -e "${CYAN}=============================================${RESET}"
     
     echo -ne "${TEBAL}Masukkan pilihan [0-8]: ${RESET}"
