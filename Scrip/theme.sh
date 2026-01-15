@@ -67,7 +67,7 @@ pasang_tema() {
                 cd /var/www/pterodactyl || return
                 
                 # Download & Install
-                if curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/euphoriatheme.blueprint"; then
+                if curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/euphoriatheme.blueprint"; then
                     blueprint -i euphoriatheme.blueprint
                     rm -f euphoriatheme.blueprint # Hapus file mentahan setelah install
                     echo -e "${GREEN}✅ Euphoria Theme berhasil diinstall.${RESET}"
@@ -77,7 +77,7 @@ pasang_tema() {
                 read -p "Tekan Enter untuk kembali..."
                 ;;
             3)
-                jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/NookTheme.sh"
+                jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/NookTheme.sh"
                 read -p "Tekan Enter untuk kembali..."
                 ;;
             4)
