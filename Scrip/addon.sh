@@ -31,7 +31,7 @@ install_single_addon() {
     echo -e "\n${YELLOW}🔄 Processing: ${CYAN}$addon_file${RESET}..."
     
     # Download File
-    if curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/$addon_file"; then
+    if curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/$addon_file"; then
         # Install via Blueprint
         if blueprint -i "$addon_file"; then
             echo -e "${GREEN}✅ Sukses install: $addon_file${RESET}"
