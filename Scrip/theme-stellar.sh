@@ -72,13 +72,13 @@ REPO_URL="https://github.com/manz4vps/DockerOS/edit/main/Scrip/theme-stellar.zip
 TEMP_DIR="temp_stellar_install"
 
 cd /var/www || exit
-git clone "$REPO_URL" "$TEMP_DIR"
+wget "$REPO_URL" "$TEMP_DIR"
 
-if [ -f "/var/www/$TEMP_DIR/stellarrimake.zip" ]; then
+if [ -f "/var/www/$TEMP_DIR/theme-stellar.zip" ]; then
     echo "File ditemukan, mengekstrak..."
-    mv "/var/www/$TEMP_DIR/stellarrimake.zip" /var/www/
-    unzip -o /var/www/stellarrimake.zip -d /var/www/
-    rm /var/www/stellarrimake.zip
+    mv "/var/www/$TEMP_DIR/theme-stellar.zip" /var/www/
+    unzip -o /var/www/theme-stellar.zip -d /var/www/
+    rm /var/www/theme-stellar.zip
     rm -rf "/var/www/$TEMP_DIR"
 else
     echo -e "${RED}Gagal mendownload file tema. Cek koneksi atau repo.${RESET}"
