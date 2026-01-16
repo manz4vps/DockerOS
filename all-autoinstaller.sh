@@ -130,7 +130,7 @@ menu_cloudflare() {
 # === MAIN MENU ===
 while true; do
     banner
-    echo -e " ${TEBAL}1)${RESET}🧩  Panel Pterodactylf"
+    echo -e " ${TEBAL}1)${RESET}🧩  Panel Pterodactyl"
     echo -e " ${TEBAL}2)${RESET}🪶  Wings Pterodactyl"
     echo -e " ${TEBAL}3)${RESET}🚀  SSH (connect)"
     echo -e " ${TEBAL}4)${RESET}🌐  Connection Tools (Playit/MineCube) ▶"
@@ -147,9 +147,6 @@ while true; do
     echo -ne "${TEBAL}Masukkan pilihan [0-9]: ${RESET}"
     read -r pilihan
     
-    # === JURUS ANTI ERROR ===
-    # Baris ini yang nge-fix masalah kamu!
-    # Dia bakal nge-delete spasi kosong/enter siluman
     pilihan=$(echo "$pilihan" | tr -d '[:space:]')
 
     case $pilihan in
