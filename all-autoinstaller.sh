@@ -123,7 +123,7 @@ while true; do
     echo -e " ${TEBAL}0)${RESET}🚪 KELUAR"
     echo -e "${CYAN}=============================================${RESET}"
     
-    echo -ne "${TEBAL}Masukkan pilihan [0-8]: ${RESET}"
+    echo -ne "${TEBAL}Masukkan pilihan [0-9]: ${RESET}"
     read -r pilihan
 
     case $pilihan in
