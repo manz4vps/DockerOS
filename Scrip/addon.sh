@@ -141,14 +141,14 @@ install_addon_panel() {
                 install_direct "$LINK" "$FILE"
                 read -p "Tekan Enter untuk lanjut..."
                 ;;
-            8)
+            9)
                 # ISI LINK VERSION CHANGER DISINI
                 LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/huxregister.blueprint"
                 FILE="versionchanger.blueprint"
                 install_direct "$LINK" "$FILE"
                 read -p "Tekan Enter untuk lanjut..."
                 ;;
-            9)
+            10)
                 echo -e "\n${YELLOW}🚀 GASKEUN INSTALL SEMUA...${RESET}"
                 
                 # Masukkan semua link lagi disini untuk fitur Install All
