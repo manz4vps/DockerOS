@@ -45,6 +45,7 @@ cek_curl() {
 jalankan() {
     local url=$1
     cek_curl
+    clear
     echo -e "\n${HIJAU}🚀 Menjalankan script...${RESET}"
     sleep 1
     bash <(curl -fsSL "$url")
