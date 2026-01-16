@@ -174,7 +174,7 @@ install_addon_panel() {
                 ;;
             *)
                 echo -e "${RED}Pilihan tidak valid!${RESET}"
-                sleep 1
+                sleep 0.5
                 ;;
         esac
     done
