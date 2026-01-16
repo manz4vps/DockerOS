@@ -141,8 +141,6 @@ while true; do
             exit 0 
             ;;
         *) 
-            echo -e "\n${MERAH}[!] Pilihan tidak valid, pilih 0-9.${RESET}"
-            sleep 0.5
-            ;;
+            echo -e "${MERAH}[!] Pilihan tidak valid, pilih 0-9.${RESET}"; sleep 1 ;;
     esac
 done
