@@ -63,29 +63,44 @@ fi
 sudo apt install -y unzip git curl
 
 # -------------------------------------------------------
-# 2. DOWNLOAD & EXTRACT FILES
+# 2. DOWNLOAD & EXTRACT FILES (FIXED)
 # -------------------------------------------------------
 echo -e "${YELLOW}[2/4] Mendownload file tema...${RESET}"
 
-# URL Repo (Sesuai script asli)
-REPO_URL="https://github.com/manz4vps/DockerOS/edit/main/Scrip/theme-stellar.zip"
-TEMP_DIR="temp_stellar_install"
+# GANTI LINK DISINI (Pastikan link RAW)
+# Saya ubah linknya jadi format RAW yang benar
+REPO_URL="https://github.com/manz4vps/DockerOS/raw/main/Scrip/theme-stellar.zip"
+FILE_PATH="/var/www/theme-stellar.zip"
 
 cd /var/www || exit
-wget "$REPO_URL" "$TEMP_DIR"
 
-if [ -f "/var/www/$TEMP_DIR/theme-stellar.zip" ]; then
-    echo "File ditemukan, mengekstrak..."
-    mv "/var/www/$TEMP_DIR/theme-stellar.zip" /var/www/
-    unzip -o /var/www/theme-stellar.zip -d /var/www/
-    rm /var/www/theme-stellar.zip
-    rm -rf "/var/www/$TEMP_DIR"
+# Download menggunakan curl (lebih aman untuk redirect GitHub)
+# -L: Follow Redirect, -o: Output filename
+echo "Mendownload dari: $REPO_URL"
+curl -L -o "$FILE_PATH" "$REPO_URL"
+
+# Cek apakah file terdownload dengan benar
+if [ -f "$FILE_PATH" ]; then
+    # Cek apakah file tersebut benar-benar ZIP (Bukan HTML error 404)
+    if file "$FILE_PATH" | grep -q "Zip archive"; then
+        echo "File valid ditemukan, mengekstrak..."
+        
+        # Ekstrak (Overwrite tanpa tanya)
+        unzip -o "$FILE_PATH" -d /var/www/
+        
+        # Hapus file mentahan
+        rm "$FILE_PATH"
+        echo -e "${GREEN}Ekstrak selesai.${RESET}"
+    else
+        echo -e "${RED}[ERROR] File terdownload tapi BUKAN ZIP (Mungkin link rusak/404).${RESET}"
+        echo -e "${RED}Isi file: $(head -n 1 "$FILE_PATH")${RESET}"
+        rm "$FILE_PATH"
+        exit 1
+    fi
 else
-    echo -e "${RED}Gagal mendownload file tema. Cek koneksi atau repo.${RESET}"
-    rm -rf "/var/www/$TEMP_DIR"
+    echo -e "${RED}[ERROR] Gagal download. Cek koneksi atau Link Repo.${RESET}"
     exit 1
 fi
-
 # -------------------------------------------------------
 # 3. BUILD PANEL (YARN BUILD)
 # -------------------------------------------------------
