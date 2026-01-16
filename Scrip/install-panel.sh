@@ -236,6 +236,7 @@ systemctl enable --now pteroq.service
 ok "Queue running"
 
 # --- Admin User ---
+clear
 step "Create admin user"
 cd /var/www/pterodactyl
 sed -i '/^APP_ENVIRONMENT_ONLY=/d' .env
