@@ -126,7 +126,7 @@ while true; do
     echo "2. 📜 Lihat Status Port Aktif"
     echo "3. 🛑 Stop Port Tertentu"
     echo "4. ♻️  RESET SEMUA PORT (Hapus Total)"
-    echo "5. 🚪 Keluar"
+    echo "0. 🚪 Keluar"
     echo "========================================"
     echo -n "Pilih menu (1-5): "
     read choice
@@ -136,7 +136,7 @@ while true; do
         2) clear; tailscale funnel status; read -p "Enter untuk kembali..." ;;
         3) stop_specific_port ;;
         4) reset_all ;;
-        5) echo "Bye bye bro!"; exit 0 ;;
+        0) echo "Bye bye bro!"; exit 0 ;;
         *) echo "Pilihan salah bro."; sleep 1 ;;
     esac
 done
