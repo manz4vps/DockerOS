@@ -53,7 +53,7 @@ while true; do
             echo -e "${CYAN}Please wait while we download and configure...${NC}\n"
             
             echo -e "${BLUE}[1/4]${NC} ${CYAN}Downloading installer...${NC}"
-            bash <(curl -s https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/dashboard.sh)
+            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/dashboard.sh)
             
             echo -e "\n${GREEN}✅ Installation process initiated!${NC}"
             echo -e "${CYAN}Follow the on-screen instructions to complete setup.${NC}"
