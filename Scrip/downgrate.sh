@@ -55,5 +55,5 @@ php artisan up
 
 echo ""
 echo "==============================================="
-echo " 🎉 Pterodactyl Panel update completed! 🎉 "
+echo " 🎉 Pterodactyl Panel downgrate completed! 🎉 "
 echo "==============================================="
