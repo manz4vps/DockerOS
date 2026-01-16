@@ -155,13 +155,14 @@ install_addon_panel() {
                 # Contoh format: install_direct "LINKNYA" "NAMANYA"
                 
                 install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/mcplugins.blueprint" "mcplugins.blueprint"
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/minecraftplayermanager.blueprint" "minecraftplayermanager.blueprint"
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/minecraftplayermanager.blueprint" "sagaminecraftplayermanager.blueprint"
                 install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/loader.blueprint" "loader.blueprint"
                 install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/serverbackgrounds.blueprint" "serverbackgrounds.blueprint"
                 install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/simplefavicons.blueprint" "simplefavicons.blueprint"
                 install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/startupchanger.blueprint" "startupchanger.blueprint"
                 install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/subdomains.blueprint" "subdomains.blueprint"
                 install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint" "versionchanger.blueprint"
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/huxregister.blueprint"
                 
                 echo -e "\n${GREEN}✅ SEMUA PROSES SELESAI!${RESET}"
                 read -p "Tekan Enter untuk kembali..."
