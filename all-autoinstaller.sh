@@ -41,28 +41,29 @@ cek_curl() {
     fi
 }
 
-# Fungsi Jalankan (Dengan Error Handling)
+# Fungsi Jalankan
 jalankan() {
     local url=$1
     cek_curl
     echo -e "\n${HIJAU}🚀 Menjalankan script...${RESET}"
     sleep 1
     
-    # Cek dulu apakah linknya hidup
+    # Cek link hidup/mati
     if curl --output /dev/null --silent --head --fail "$url"; then
         bash <(curl -fsSL "$url")
     else
-        echo -e "${MERAH}❌ Gagal: Link script tidak ditemukan atau mati!${RESET}"
+        echo -e "${MERAH}❌ Gagal: Link script mati/tidak ditemukan!${RESET}"
         echo -e "${KUNING}URL: $url${RESET}"
     fi
 
     echo -e "\n${CYAN}---------------------------------------------${RESET}"
+    # Pake -r biar enter gak jadi masalah
     read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali..."
 }
 
 # === SUB-MENU CONNECTION ===
 menu_connection() {
-    local sub_opt # Pake local biar variable gak bocor
+    local sub_opt
     while true; do
         clear
         echo -e "${CYAN}=============================================${RESET}"
@@ -78,10 +79,10 @@ menu_connection() {
         echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
         echo -e "${CYAN}=============================================${RESET}"
         
-        # Reset variable sebelum read
-        sub_opt=""
         echo -ne "${TEBAL}Pilih [0-6]: ${RESET}"
         read -r sub_opt
+        # Bersihin input dari spasi/enter nyangkut
+        sub_opt=$(echo "$sub_opt" | tr -d '[:space:]')
 
         case $sub_opt in
             1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-localtonet.sh" ;;
@@ -91,14 +92,15 @@ menu_connection() {
             5) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playitInstaller.sh" ;;
             6) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playit24-7" ;;
             0) return ;;
-            *) echo -e "${MERAH}Pilihan tidak valid!${RESET}"; sleep 1 ;;
+            "") ;; # Kalo kosong doang (enter), abaikan biar gak muncul error merah
+            *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
         esac
     done
 }
 
 # === SUB-MENU CLOUDFLARE ===
 menu_cloudflare() {
-    local sub_opt # Pake local biar variable gak bocor
+    local sub_opt
     while true; do
         clear
         echo -e "${CYAN}=============================================${RESET}"
@@ -110,16 +112,17 @@ menu_cloudflare() {
         echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
         echo -e "${CYAN}=============================================${RESET}"
         
-        # Reset variable sebelum read
-        sub_opt=""
         echo -ne "${TEBAL}Pilih [0-2]: ${RESET}"
         read -r sub_opt
-        
+        # Bersihin input dari spasi/enter nyangkut
+        sub_opt=$(echo "$sub_opt" | tr -d '[:space:]')
+
         case $sub_opt in
             1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/cloudflare.sh" ;;
             2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/token-cloudflare.sh" ;;
             0) return ;;
-            *) echo -e "${MERAH}Pilihan tidak valid!${RESET}"; sleep 1 ;;
+            "") ;; # Kalo kosong abaikan
+            *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
         esac
     done
 }
@@ -127,7 +130,7 @@ menu_cloudflare() {
 # === MAIN MENU ===
 while true; do
     banner
-    echo -e " ${TEBAL}1)${RESET}🧩  Panel Pterodactyl"
+    echo -e " ${TEBAL}1)${RESET}🧩  Panel Pterodactylf"
     echo -e " ${TEBAL}2)${RESET}🪶  Wings Pterodactyl"
     echo -e " ${TEBAL}3)${RESET}🚀  SSH (connect)"
     echo -e " ${TEBAL}4)${RESET}🌐  Connection Tools (Playit/MineCube) ▶"
@@ -141,24 +144,30 @@ while true; do
     echo -e " ${TEBAL}0)${RESET}🚪 KELUAR"
     echo -e "${CYAN}=============================================${RESET}"
     
-    # Reset pilihan biar gak nge-bug
-    pilihan=""
     echo -ne "${TEBAL}Masukkan pilihan [0-9]: ${RESET}"
     read -r pilihan
+    
+    # === JURUS ANTI ERROR ===
+    # Baris ini yang nge-fix masalah kamu!
+    # Dia bakal nge-delete spasi kosong/enter siluman
+    pilihan=$(echo "$pilihan" | tr -d '[:space:]')
 
     case $pilihan in
         1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/panel.sh" ;;
         2) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/wings.sh" ;;
         3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/ssh.sh" ;;
-        4) menu_connection ;;
+        4) menu_connection ;;  # Masuk ke Sub-Menu Connection
         5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/blueprint.sh" ;;
-        6) menu_cloudflare ;;
+        6) menu_cloudflare ;;  # Masuk ke Sub-Menu Cloudflare
         7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme.sh" ;;
         8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/addon.sh" ;;
         9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/sshx.sh" ;;
         0) 
-            echo -e "\n${HIJAU}Terimakasih Telah Menggunakan Scrip Ini!${RESET}"
+            echo -e "\n${HIJAU}Terimakasih Telah Menggunakan Script Ini!${RESET}"
             exit 0 
+            ;;
+        "") 
+            # Kalo kosong (cuma kepencet enter), jangan ngapa2in, jangan error
             ;;
         *) 
             echo -e "${MERAH}[!] Pilihan tidak valid.${RESET}"; sleep 1 ;;
