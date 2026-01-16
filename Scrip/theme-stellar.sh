@@ -1,149 +1,101 @@
 #!/bin/bash
+# ==================================================
+# STELLAR THEME AUTO INSTALLER (MANZ-FIXED)
+# Based on User Experience (Node 24 + Bug Fixes)
+# ==================================================
 
-# =======================================================
-#  INSTALLER KHUSUS THEME STELLAR (PTERODACTYL)
-#  Extracted for: User Request
-# =======================================================
-
-# Definisi Warna
-RESET='\033[0m'
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-
-# Cek apakah dijalankan di root
-if [[ $EUID -ne 0 ]]; then
-   echo -e "${RED}Script ini harus dijalankan sebagai root (sudo).${RESET}" 
-   exit 1
+# ---------------- CEK ROOT ----------------
+if [ "$EUID" -ne 0 ]; then
+  echo -e "\e[1;31mSTOP! Harus Run as Root (sudo -i)\e[0m"
+  exit 1
 fi
 
-# Cek direktori Pterodactyl
-if [ ! -d "/var/www/pterodactyl" ]; then
-    echo -e "${RED}Direktori /var/www/pterodactyl tidak ditemukan.${RESET}"
-    exit 1
-fi
+# ---------------- WARNA & UI ----------------
+MERAH="\033[31m"
+HIJAU="\033[32m"
+KUNING="\033[33m"
+BIRU="\033[34m"
+RESET="\033[0m"
 
+banner(){
 clear
-echo -e "${BLUE}=========================================${RESET}"
-echo -e "${YELLOW}    MEMULAI INSTALASI THEME STELLAR      ${RESET}"
-echo -e "${BLUE}=========================================${RESET}"
-echo ""
+echo -e "${BIRU}=============================================${RESET}"
+echo -e "${HIJAU}      STELLAR THEME INSTALLER | BY MANZXD    ${RESET}"
+echo -e "${BIRU}=============================================${RESET}"
+echo -e "${KUNING}⚡ Fitur: Auto Build, Bug Fix, Anti Error 500${RESET}"
+sleep 2
+}
 
-# -------------------------------------------------------
-# 1. SETUP DEPENDENCIES (NODEJS & YARN)
-# -------------------------------------------------------
-echo -e "${YELLOW}[1/4] Memeriksa dan menginstall Dependencies...${RESET}"
+step(){ echo -e "\n${BIRU}➜ $1${RESET}"; }
 
-# Setup Keyrings
-if [ ! -d "/etc/apt/keyrings" ]; then
-  mkdir -p /etc/apt/keyrings
-fi
+# ---------------- MULAI ----------------
+banner
 
-# Cek & Install Node.js (Target Node 16.x sesuai script asli)
-if ! command -v node &> /dev/null; then
-    echo "Menginstall Node.js..."
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-    sudo apt update
-    sudo apt install -y nodejs
-else
-    echo "Node.js sudah terinstall."
-fi
+# 1. DOWNLOAD & EKSTRAK TEMA
+step "Mendownload & Mengekstrak Tema..."
+cd /var/www/
+# Hapus file lama kalo ada biar bersih
+rm -f theme-stellar.zip
+# Download file dari link kamu
+wget -O theme-stellar.zip "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/theme-stellar.zip"
 
-# Cek & Install Yarn
-if ! command -v yarn &> /dev/null; then
-    echo "Menginstall Yarn..."
-    npm i -g yarn
-else
-    echo "Yarn sudah terinstall."
-fi
+# Unzip (Otomatis Timpa/Overwrite tanpa tanya 'All')
+echo -e "${KUNING}Mengekstrak file...${RESET}"
+unzip -o theme-stellar.zip
 
-# Install paket tambahan yang sering dibutuhkan
-sudo apt install -y unzip git curl
+# 2. INSTALL NODEJS & YARN
+step "Menginstall NodeJS v24 & Yarn..."
+cd /var/www/pterodactyl
 
-# -------------------------------------------------------
-# 2. DOWNLOAD & EXTRACT FILES (FIXED)
-# -------------------------------------------------------
-echo -e "${YELLOW}[2/4] Mendownload file tema...${RESET}"
+# Cek curl
+apt-get install -y curl
 
-# GANTI LINK DISINI (Pastikan link RAW)
-# Saya ubah linknya jadi format RAW yang benar
-REPO_URL="https://github.com/manz4vps/DockerOS/raw/main/Scrip/theme-stellar.zip"
-FILE_PATH="/var/www/theme-stellar.zip"
+# Ambil NodeJS versi 24 (Sesuai request kamu)
+curl -sL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+apt-get install -y nodejs
 
-cd /var/www || exit
+# Install Yarn
+npm install -g yarn
 
-# Download menggunakan curl (lebih aman untuk redirect GitHub)
-# -L: Follow Redirect, -o: Output filename
-echo "Mendownload dari: $REPO_URL"
-curl -L -o "$FILE_PATH" "$REPO_URL"
+# 3. PERSIAPAN BUILD (FIX BUG & DEPENDENCIES)
+step "Memperbaiki Bug Codingan & Install Library..."
 
-# Cek apakah file terdownload dengan benar
-if [ -f "$FILE_PATH" ]; then
-    # Cek apakah file tersebut benar-benar ZIP (Bukan HTML error 404)
-    if file "$FILE_PATH" | grep -q "Zip archive"; then
-        echo "File valid ditemukan, mengekstrak..."
-        
-        # Ekstrak (Overwrite tanpa tanya)
-        unzip -o "$FILE_PATH" -d /var/www/
-        
-        # Hapus file mentahan
-        rm "$FILE_PATH"
-        echo -e "${GREEN}Ekstrak selesai.${RESET}"
-    else
-        echo -e "${RED}[ERROR] File terdownload tapi BUKAN ZIP (Mungkin link rusak/404).${RESET}"
-        echo -e "${RED}Isi file: $(head -n 1 "$FILE_PATH")${RESET}"
-        rm "$FILE_PATH"
-        exit 1
-    fi
-else
-    echo -e "${RED}[ERROR] Gagal download. Cek koneksi atau Link Repo.${RESET}"
-    exit 1
-fi
-# -------------------------------------------------------
-# 3. BUILD PANEL (YARN BUILD)
-# -------------------------------------------------------
-echo -e "${YELLOW}[3/4] Membuild Panel (Ini mungkin memakan waktu)...${RESET}"
+# Install React Feather
+yarn add react-feather
 
-cd /var/www/pterodactyl || exit
+# JURUS SAKTI: Fix bug 'null' pada VariableBox.tsx SEBELUM Build
+# Biar pas build nanti gak merah-merah errornya
+echo -e "${KUNING}Memperbaiki bug VariableBox.tsx...${RESET}"
+sed -i 's/defaultValue={variable.serverValue}/defaultValue={variable.serverValue || ""}/g' resources/scripts/components/server/startup/VariableBox.tsx
 
-# Install dependencies project
-yarn
+# 4. PROSES BUILD
+step "Membangun Aset (Build Production)..."
+echo -e "${KUNING}Proses ini agak lama, tunggu saja...${RESET}"
 
-# Set flag OpenSSL legacy provider untuk kompatibilitas Node terbaru dengan Webpack lama
+# Aktifkan Legacy Provider biar NodeJS baru mau jalan
 export NODE_OPTIONS=--openssl-legacy-provider
 
-# Coba Build Production
-if ! yarn build:production; then
-  echo -e "${RED}Build pertama gagal, mencoba perbaikan otomatis...${RESET}"
-  
-  # Langkah perbaikan sesuai script asli (fix react-feather error)
-  yarn add react-feather
-  npx update-browserslist-db@latest
-  
-  # Coba build lagi
-  export NODE_OPTIONS=--openssl-legacy-provider
-  if yarn build:production; then
-      echo -e "${GREEN}Build berhasil setelah perbaikan.${RESET}"
-  else
-      echo -e "${RED}Build gagal total. Silakan cek log error.${RESET}"
-      exit 1
-  fi
-else
-  echo -e "${GREEN}Build berhasil.${RESET}"
-fi
+# Jalankan Build
+yarn build:production
 
-# -------------------------------------------------------
-# 4. FINISHING (MIGRATE & CLEAR CACHE)
-# -------------------------------------------------------
-echo -e "${YELLOW}[4/4] Membersihkan Cache...${RESET}"
+# 5. FINALISASI (DATABASE & PERMISSION)
+step "Membersihkan Error 500 & Fix Database..."
 
+# Update Database (PENTING)
 php artisan migrate --force
+
+# Bersihkan Cache Tampilan
 php artisan view:clear
 php artisan config:clear
 
-echo ""
-echo -e "${BLUE}=========================================${RESET}"
-echo -e "${GREEN}   THEME STELLAR BERHASIL DIINSTALL!     ${RESET}"
-echo -e "${BLUE}=========================================${RESET}"
+# Fix Izin File (Permission) biar Nginx gak ngamuk
+chown -R www-data:www-data /var/www/pterodactyl/*
+chmod -R 755 storage/* bootstrap/cache/
+
+# ---------------- SELESAI ----------------
+echo -e "\n${HIJAU}=============================================${RESET}"
+echo -e "${HIJAU}✅ TEMA BERHASIL TERPASANG!${RESET}"
+echo -e "${HIJAU}=============================================${RESET}"
+echo -e "Silakan cek Panel Pterodactyl kamu."
+echo -e "🎉Terimakash Sudah menggunakan scrip ini!!."
+echo -e "${BIRU}=============================================${RESET}"
