@@ -21,25 +21,25 @@ echo ""
 function install_panel() {
     echo -e "${CYAN}[+] Mempersiapkan Instalasi Panel...${NC}"
     sleep 1
-    # Menjalankan script dari URL panel.sh
-    wget -qO- https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-panel.sh | bash
+    # Menjalankan script menggunakan curl
+    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-panel.sh)
 }
 
 # Fungsi Downgrade
 function downgrade_ver() {
     echo -e "${CYAN}[+] Memulai Proses Downgrade...${NC}"
     sleep 1
-    # Menjalankan script dari URL downgrate.sh
-    wget -qO- https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/downgrate.sh | bash
+    # Menjalankan script menggunakan curl
+    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/downgrate.sh)
 }
 
 # Menu Utama
 echo -e "Silakan pilih menu:"
 echo -e "${GREEN}[1]${NC} Install Panel"
 echo -e "${GREEN}[2]${NC} Downgrade Version"
-echo -e "${RED}[x]${NC} Keluar"
+echo -e "${RED}[0]${NC} Keluar"
 echo ""
-read -p "Masukkan pilihan (1/2/x): " choice
+read -p "Masukkan pilihan (0-2): " choice
 
 case $choice in
     1)
@@ -48,7 +48,7 @@ case $choice in
     2)
         downgrade_ver
         ;;
-    x|X)
+    0)
         echo -e "${RED}Keluar dari script...${NC}"
         exit 0
         ;;
