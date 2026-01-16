@@ -78,9 +78,9 @@ install_addon_panel() {
         echo -e "${CYAN}[6]${RESET} Startup Changer"
         echo -e "${CYAN}[7]${RESET} Subdomains"
         echo -e "${CYAN}[8]${RESET} Version Changer"
-        echo -e "${CYAN}[8]${RESET} HuxRegister"
+        echo -e "${CYAN}[9]${RESET} HuxRegister"
         echo -e "${CYAN}----------------------------------${RESET}"
-        echo -e "${GREEN}[9] 🔥 INSTALL SEMUA (ALL 8 ADDONS)${RESET}"
+        echo -e "${GREEN}[10] 🔥 INSTALL SEMUA (ALL 8 ADDONS)${RESET}"
         echo -e "${RED}[0] 🔙 KEMBALI${RESET}"
         echo ""
         read -p "Masukkan Pilihan [0-9]: " opt
