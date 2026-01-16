@@ -91,7 +91,7 @@ menu_cloudflare() {
         echo -e "${KUNING}           ☁️  MENU CLOUDFLARE              ${RESET}"
         echo -e "${CYAN}=============================================${RESET}"
         echo -e " ${TEBAL}1)${RESET}☁️  Cloudflare Raw Script (Manual)"
-        echo -e " ${TEBAL}2)${RESET}🔒 Cloudflared Tunnel (Token)"
+        echo -e " ${TEBAL}2)${RESET}🔒  Cloudflared Tunnel (Token)"
         echo -e "${CYAN}---------------------------------------------${RESET}"
         echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
         echo -e "${CYAN}=============================================${RESET}"
