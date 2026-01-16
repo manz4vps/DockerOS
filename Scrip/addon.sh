@@ -94,7 +94,7 @@ install_addon_panel() {
                 ;;
             2)
                 # SUDAH DIISI SESUAI REQUEST
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/minecraftplayermanager.blueprint"
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/sagaminecraftplayermanager.blueprint"
                 FILE="minecraftplayermanager.blueprint"
                 install_direct "$LINK" "$FILE"
                 read -p "Tekan Enter untuk lanjut..."
@@ -137,6 +137,13 @@ install_addon_panel() {
             8)
                 # ISI LINK VERSION CHANGER DISINI
                 LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint"
+                FILE="versionchanger.blueprint"
+                install_direct "$LINK" "$FILE"
+                read -p "Tekan Enter untuk lanjut..."
+                ;;
+            8)
+                # ISI LINK VERSION CHANGER DISINI
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/huxregister.blueprint"
                 FILE="versionchanger.blueprint"
                 install_direct "$LINK" "$FILE"
                 read -p "Tekan Enter untuk lanjut..."
