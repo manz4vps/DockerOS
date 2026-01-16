@@ -44,10 +44,11 @@ pasang_tema() {
         echo -e "${TEBAL}PILIH TEMA:${RESET}"
         echo -e " [1] Nebula Theme"
         echo -e " [2] Euphoria Theme (via Blueprint)"
-        echo -e " [3] NookTheme"
-        echo -e " [4] Keluar"
+        echo -e " [3] Stellar Theme"
+        echo -e " [4] NookTheme"
+        echo -e " [0] Keluar"
         echo -e "${CYAN}------------------------------------------${RESET}"
-        read -p "Masukkan Pilihan [1-4]: " t
+        read -p "Masukkan Pilihan [0-4]: " t
 
         case $t in
             1)
@@ -76,11 +77,14 @@ pasang_tema() {
                 fi
                 read -p "Tekan Enter untuk kembali..."
                 ;;
-            3)
-                jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/NookTheme.sh"
+            3)  jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme-stellar.sh"
                 read -p "Tekan Enter untuk kembali..."
                 ;;
             4)
+                jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/NookTheme.sh"
+                read -p "Tekan Enter untuk kembali..."
+                ;;
+            0)
                 echo -e "${GREEN}Terima kasih.${RESET}"
                 exit 0
                 ;;
