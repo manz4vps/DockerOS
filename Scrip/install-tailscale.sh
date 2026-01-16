@@ -570,7 +570,7 @@ main() {
 			exit 1
 			;;
 	esac
-
+    clear
 	echo ""
 	echo "#######################################################"
 	echo "#      INSTALASI SELESAI - AUTO QR STARTING...        #"
