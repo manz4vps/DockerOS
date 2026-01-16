@@ -1,6 +1,6 @@
 #!/bin/bash
 clear
-read -p "Enter domain (e.g., panel.example.com): " DOMAIN
+read -p "🌐 Enter domain (panel.example.com): " DOMAIN
 
 # --- Dependencies ---
 apt update && apt install -y curl apt-transport-https ca-certificates gnupg unzip git tar sudo lsb-release
