@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==========================================
-# PTERODACTYL ADDON INSTALLER (SELECTABLE)
+# PTERODACTYL ADDON INSTALLER (DIRECT LINK)
 # Created by ManzXD
 # ==========================================
 
@@ -19,32 +19,36 @@ banner() {
     echo -e "${CYAN}==========================================${RESET}"
     echo -e "${YELLOW}       AUTO INSTALLER ADDON PANEL       ${RESET}"
     echo -e "${CYAN}==========================================${RESET}"
-    echo -e "        ${TEBAL}Created by ManzXD${RESET}"
+    echo -e "         ${TEBAL}Created by ManzXD${RESET}"
     echo -e "${CYAN}==========================================${RESET}"
     echo ""
 }
 
-# 3. Fungsi Helper Install Satu Addon
-install_single_addon() {
-    local addon_file="$1"
+# 3. Fungsi Install Langsung (Pake Link & Nama File)
+install_direct() {
+    local url="$1"
+    local filename="$2"
     
-    echo -e "\n${YELLOW}🔄 Processing: ${CYAN}$addon_file${RESET}..."
+    echo -e "\n${YELLOW}🔄 Sedang mendownload: ${CYAN}$filename${RESET}..."
     
-    # Download File
-    if curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/$addon_file"; then
+    # Download File menggunakan Link Langsung
+    # -L untuk follow redirect, -o untuk simpan dengan nama tertentu
+    if curl -L -o "$filename" "$url"; then
+        echo -e "${GREEN}⬇️ Download selesai. Menginstall blueprint...${RESET}"
+        
         # Install via Blueprint
-        if blueprint -i "$addon_file"; then
-            echo -e "${GREEN}✅ Sukses install: $addon_file${RESET}"
-            rm -f "$addon_file" # Hapus file mentahan
+        if blueprint -i "$filename"; then
+            echo -e "${GREEN}✅ Sukses install: $filename${RESET}"
+            rm -f "$filename" # Hapus file mentahan
         else
-            echo -e "${RED}❌ Gagal install (Blueprint Error): $addon_file${RESET}"
+            echo -e "${RED}❌ Gagal install (Blueprint Error): $filename${RESET}"
+            # Jangan hapus file kalau error, biar bisa dicek manual
         fi
     else
-        echo -e "${RED}❌ Gagal download: $addon_file${RESET}"
+        echo -e "${RED}❌ Gagal download dari link tersebut!${RESET}"
     fi
     
     echo ""
-    read -p "Tekan Enter untuk lanjut..."
 }
 
 # 4. Fungsi Utama Menu Addon
@@ -62,18 +66,6 @@ install_addon_panel() {
         echo -e "${RED}[ERROR] Folder Pterodactyl tidak ditemukan.${RESET}"
         exit 1
     fi
-
-    # Daftar Addon (Array)
-    addons=(
-        "mcplugins.blueprint"               # 1
-        "minecraftplayermanager.blueprint"  # 2
-        "loader.blueprint"                  # 3
-        "serverbackgrounds.blueprint"       # 4
-        "simplefavicons.blueprint"          # 5
-        "startupchanger.blueprint"          # 6
-        "subdomains.blueprint"              # 7
-        "versionchanger.blueprint"          # 8
-    )
 
     while true; do
         banner
@@ -93,21 +85,78 @@ install_addon_panel() {
         read -p "Masukkan Pilihan [0-9]: " opt
 
         case $opt in
-            1|2|3|4|5|6|7|8)
-                # Ambil nama file dari array (index dimulai dari 0, jadi dikurang 1)
-                target_addon="${addons[$((opt-1))]}"
-                install_single_addon "$target_addon"
+            1)
+                # ISI LINK MC PLUGINS DISINI
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/mcplugins.blueprint"
+                FILE="mcplugins.blueprint"
+                install_direct "$LINK" "$FILE"
+                read -p "Tekan Enter untuk lanjut..."
+                ;;
+            2)
+                # SUDAH DIISI SESUAI REQUEST
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/minecraftplayermanager.blueprint"
+                FILE="minecraftplayermanager.blueprint"
+                install_direct "$LINK" "$FILE"
+                read -p "Tekan Enter untuk lanjut..."
+                ;;
+            3)
+                # ISI LINK LOADER DISINI
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/loader.blueprint"
+                FILE="loader.blueprint"
+                install_direct "$LINK" "$FILE"
+                read -p "Tekan Enter untuk lanjut..."
+                ;;
+            4)
+                # ISI LINK SERVER BACKGROUNDS DISINI
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/serverbackgrounds.blueprint"
+                FILE="serverbackgrounds.blueprint"
+                install_direct "$LINK" "$FILE"
+                read -p "Tekan Enter untuk lanjut..."
+                ;;
+            5)
+                # ISI LINK SIMPLE FAVICONS DISINI
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/simplefavicons.blueprint"
+                FILE="simplefavicons.blueprint"
+                install_direct "$LINK" "$FILE"
+                read -p "Tekan Enter untuk lanjut..."
+                ;;
+            6)
+                # ISI LINK STARTUP CHANGER DISINI
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/startupchanger.blueprint"
+                FILE="startupchanger.blueprint"
+                install_direct "$LINK" "$FILE"
+                read -p "Tekan Enter untuk lanjut..."
+                ;;
+            7)
+                # ISI LINK SUBDOMAINS DISINI
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/subdomains.blueprint"
+                FILE="subdomains.blueprint"
+                install_direct "$LINK" "$FILE"
+                read -p "Tekan Enter untuk lanjut..."
+                ;;
+            8)
+                # ISI LINK VERSION CHANGER DISINI
+                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint"
+                FILE="versionchanger.blueprint"
+                install_direct "$LINK" "$FILE"
+                read -p "Tekan Enter untuk lanjut..."
                 ;;
             9)
                 echo -e "\n${YELLOW}🚀 GASKEUN INSTALL SEMUA...${RESET}"
-                for item in "${addons[@]}"; do
-                    # Kita copas logika install di sini biar jalan otomatis tanpa pause per file
-                    echo -e "${CYAN}>> Menginstall $item...${RESET}"
-                    curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/$item"
-                    blueprint -i "$item"
-                    rm -f "$item"
-                done
-                echo -e "\n${GREEN}✅ SEMUA ADDON TELAH DIINSTALL!${RESET}"
+                
+                # Masukkan semua link lagi disini untuk fitur Install All
+                # Contoh format: install_direct "LINKNYA" "NAMANYA"
+                
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/mcplugins.blueprint" "mcplugins.blueprint"
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/minecraftplayermanager.blueprint" "minecraftplayermanager.blueprint"
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/loader.blueprint" "loader.blueprint"
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/serverbackgrounds.blueprint" "serverbackgrounds.blueprint"
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/simplefavicons.blueprint" "simplefavicons.blueprint"
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/startupchanger.blueprint" "startupchanger.blueprint"
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/subdomains.blueprint" "subdomains.blueprint"
+                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint" "versionchanger.blueprint"
+                
+                echo -e "\n${GREEN}✅ SEMUA PROSES SELESAI!${RESET}"
                 read -p "Tekan Enter untuk kembali..."
                 ;;
             0)
