@@ -6,9 +6,9 @@
 
 # ---------------- CEK ROOT DULU ----------------
 if [ "$EUID" -ne 0 ]; then
-  echo -e "\e[1;31mSTOP! Kamu harus menjalankan script ini sebagai ROOT.\e[0m"
-  echo -e "Silakan ketik perintah ini dulu: \e[1;33msudo -i\e[0m"
-  exit 1
+  echo -e "\e[1;31mSTOP! Kamu harus menjalankan script ini sebagai ROOT.\e[0m"
+  echo -e "Silakan ketik perintah ini dulu: \e[1;33msudo -i\e[0m"
+  exit 1
 fi
 
 # ---------------- UI THEME ----------------
@@ -33,16 +33,17 @@ banner(){
 clear
 echo -e "${C_CYAN}"
 cat << "EOF"
-██████╗ ███████╗████████╗███████╗██████╗  ██████╗ 
+██████╗ ███████╗████████╗███████╗██████╗  ██████╗ 
 ██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔══██╗██╔═══██╗
-██████╔╝█████╗     ██║   █████╗  ██████╔╝██║   ██║
-██╔═══╝ ██╔══╝     ██║   ██╔══╝  ██╔══██╗██║   ██║
-██║     ███████╗   ██║   ███████╗██║  ██║╚██████╔╝
-╚═╝     ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝ 
-        PTERODACTYL PANEL INSTALLER
+██████╔╝█████╗     ██║   █████╗  ██████╔╝██║   ██║
+██╔═══╝ ██╔══╝     ██║   ██╔══╝  ██╔══██╗██║   ██║
+██║     ███████╗   ██║   ███████╗██║  ██║╚██████╔╝
+╚═╝     ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝ 
+        PTERODACTYL PANEL INSTALLER
 EOF
 echo -e "${C_RESET}"
 line
+echo -e "${C_GREEN}⚡ Auto-Detect: Ubuntu Jammy / Noble${C_RESET}"
 echo -e "${C_PURPLE}🧠 Fixed by ManzXD Helper${C_RESET}"
 line
 }
@@ -65,33 +66,33 @@ step "Configuring PHP Repositories..."
 
 # --- LOGIKA BARU (SUPPORT UBUNTU 24 & 22) ---
 if [[ "$OS" == "ubuntu" ]]; then
-    if [[ "$CODENAME" == "noble" ]]; then
-        # === KHUSUS UBUNTU 24 (NOBLE) ===
-        echo -e "${C_GREEN}✅ Ubuntu 24.04 (Noble) Terdeteksi.${C_RESET}"
-        echo -e "${C_YELLOW}⚡ Menggunakan PHP bawaan sistem (Tanpa Repo Tambahan).${C_RESET}"
-        # Hapus repo ondrej kalo gak sengaja ada, biar gak bikin konflik
-        rm -f /etc/apt/sources.list.d/ondrej-php.list
-        rm -f /etc/apt/sources.list.d/sury-php.list
-        
-    else
-        # === KHUSUS UBUNTU 22 (JAMMY) ===
-        echo -e "${C_YELLOW}🔥 Ubuntu $CODENAME Terdeteksi. Menggunakan Fix Manual SSL...${C_RESET}"
-        
-        # 1. Hapus list lama biar bersih
-        rm -f /etc/apt/sources.list.d/ondrej-php.list
-        rm -f /etc/apt/sources.list.d/sury-php.list
+    if [[ "$CODENAME" == "noble" ]]; then
+        # === KHUSUS UBUNTU 24 (NOBLE) ===
+        echo -e "${C_GREEN}✅ Ubuntu 24.04 (Noble) Terdeteksi.${C_RESET}"
+        echo -e "${C_YELLOW}⚡ Menggunakan PHP bawaan sistem (Tanpa Repo Tambahan).${C_RESET}"
+        # Hapus repo ondrej kalo gak sengaja ada, biar gak bikin konflik
+        rm -f /etc/apt/sources.list.d/ondrej-php.list
+        rm -f /etc/apt/sources.list.d/sury-php.list
+        
+    else
+        # === KHUSUS UBUNTU 22 (JAMMY) ===
+        echo -e "${C_YELLOW}🔥 Ubuntu $CODENAME Terdeteksi. Menggunakan Fix Manual SSL...${C_RESET}"
+        
+        # 1. Hapus list lama biar bersih
+        rm -f /etc/apt/sources.list.d/ondrej-php.list
+        rm -f /etc/apt/sources.list.d/sury-php.list
 
-        # 2. Matikan Cek SSL (Solusi Error Certificate 2026)
-        echo 'Acquire::https::ppa.launchpadcontent.net::Verify-Peer "false";' > /etc/apt/apt.conf.d/99-trust-launchpad
+        # 2. Matikan Cek SSL (Solusi Error Certificate 2026)
+        echo 'Acquire::https::ppa.launchpadcontent.net::Verify-Peer "false";' > /etc/apt/apt.conf.d/99-trust-launchpad
 
-        # 3. Masukin Repo Launchpad secara Manual
-        echo "deb [trusted=yes] https://ppa.launchpadcontent.net/ondrej/php/ubuntu $CODENAME main" > /etc/apt/sources.list.d/ondrej-php.list
-    fi
-    
+        # 3. Masukin Repo Launchpad secara Manual
+        echo "deb [trusted=yes] https://ppa.launchpadcontent.net/ondrej/php/ubuntu $CODENAME main" > /etc/apt/sources.list.d/ondrej-php.list
+    fi
+    
 elif [[ "$OS" == "debian" ]]; then
-    # Kalo debian pake cara standar sury
-    curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
-    echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/sury-php.list
+    # Kalo debian pake cara standar sury
+    curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
+    echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/sury-php.list
 fi
 
 # Add Redis GPG key and repo
@@ -121,7 +122,7 @@ chmod -R 755 storage/* bootstrap/cache/
 step "Configuring Database..."
 DB_NAME=panel
 DB_USER=pterodactyl
-DB_PASS=$(openssl rand -base64 12) 
+DB_PASS=$(openssl rand -base64 12) 
 
 mariadb -u root -e "CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';"
 mariadb -u root -e "CREATE DATABASE ${DB_NAME};"
@@ -130,7 +131,7 @@ mariadb -u root -e "FLUSH PRIVILEGES;"
 
 # --- .env Setup ---
 if [ ! -f ".env.example" ]; then
-    curl -Lo .env.example https://raw.githubusercontent.com/pterodactyl/panel/develop/.env.example
+    curl -Lo .env.example https://raw.githubusercontent.com/pterodactyl/panel/develop/.env.example
 fi
 cp .env.example .env
 sed -i "s|APP_URL=.*|APP_URL=https://${DOMAIN}|g" .env
@@ -138,7 +139,7 @@ sed -i "s|DB_DATABASE=.*|DB_DATABASE=${DB_NAME}|g" .env
 sed -i "s|DB_USERNAME=.*|DB_USERNAME=${DB_USER}|g" .env
 sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=${DB_PASS}|g" .env
 if ! grep -q "^APP_ENVIRONMENT_ONLY=" .env; then
-    echo "APP_ENVIRONMENT_ONLY=false" >> .env
+    echo "APP_ENVIRONMENT_ONLY=false" >> .env
 fi
 
 # --- Install PHP dependencies ---
@@ -170,41 +171,41 @@ rm /etc/nginx/sites-enabled/default 2>/dev/null
 
 tee /etc/nginx/sites-available/pterodactyl.conf > /dev/null << EOF
 server {
-    listen 80;
-    server_name ${DOMAIN};
-    return 301 https://\$server_name\$request_uri;
+    listen 80;
+    server_name ${DOMAIN};
+    return 301 https://\$server_name\$request_uri;
 }
 
 server {
-    listen 443 ssl http2;
-    server_name ${DOMAIN};
+    listen 443 ssl http2;
+    server_name ${DOMAIN};
 
-    root /var/www/pterodactyl/public;
-    index index.php;
+    root /var/www/pterodactyl/public;
+    index index.php;
 
-    ssl_certificate /etc/certs/panel/fullchain.pem;
-    ssl_certificate_key /etc/certs/panel/privkey.pem;
+    ssl_certificate /etc/certs/panel/fullchain.pem;
+    ssl_certificate_key /etc/certs/panel/privkey.pem;
 
-    client_max_body_size 100m;
-    client_body_timeout 120s;
-    sendfile off;
+    client_max_body_size 100m;
+    client_body_timeout 120s;
+    sendfile off;
 
-    location / {
-        try_files \$uri \$uri/ /index.php?\$query_string;
-    }
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
 
-    location ~ \.php\$ {
-        fastcgi_split_path_info ^(.+\.php)(/.+)\$;
-        fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm.sock;
-        fastcgi_index index.php;
-        include /etc/nginx/fastcgi_params;
-        fastcgi_param PHP_VALUE "upload_max_filesize=100M \n post_max_size=100M";
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-    }
+    location ~ \.php\$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)\$;
+        fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm.sock;
+        fastcgi_index index.php;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_param PHP_VALUE "upload_max_filesize=100M \n post_max_size=100M";
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    }
 
-    location ~ /\.ht {
-        deny all;
-    }
+    location ~ /\.ht {
+        deny all;
+    }
 }
 EOF
 
@@ -245,7 +246,7 @@ php artisan p:user:make
 line
 echo -e "${C_GREEN}🎉 INSTALLATION COMPLETED SUCCESSFULLY${C_RESET}"
 line
-echo -e "${C_CYAN}🌐 Panel URL    : ${C_WHITE}https://${DOMAIN}${C_RESET}"
-echo -e "${C_CYAN}🗄 DB User      : ${C_WHITE}${DB_USER}${C_RESET}"
-echo -e "${C_CYAN}🔑 DB Password  : ${C_WHITE}${DB_PASS}${C_RESET}"
+echo -e "${C_CYAN}🌐 Panel URL    : ${C_WHITE}https://${DOMAIN}${C_RESET}"
+echo -e "${C_CYAN}🗄 DB User      : ${C_WHITE}${DB_USER}${C_RESET}"
+echo -e "${C_CYAN}🔑 DB Password  : ${C_WHITE}${DB_PASS}${C_RESET}"
 line
