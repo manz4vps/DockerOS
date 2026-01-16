@@ -53,6 +53,7 @@ banner
 read -p "🌐 Enter domain (panel.example.com): " DOMAIN
 
 # --- Dependencies ---
+clear
 step "Update & Install Dependencies..."
 # Kita matikan error sementara biar apt update tetep jalan meski ada error dikit
 apt-get update || true
@@ -103,14 +104,17 @@ step "Updating Package Lists..."
 apt-get update
 
 # --- Install PHP + extensions ---
+clear
 step "Installing PHP $PHP_VERSION..."
 apt-get install -y php$PHP_VERSION php$PHP_VERSION-{cli,fpm,common,mysql,mbstring,bcmath,xml,zip,curl,gd,tokenizer,ctype,simplexml,dom} mariadb-server nginx redis-server
 
 # --- Install Composer ---
+clear
 step "Installing Composer..."
 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # --- Download Pterodactyl Panel ---
+clear
 step "Downloading Panel..."
 mkdir -p /var/www/pterodactyl
 cd /var/www/pterodactyl
@@ -143,6 +147,7 @@ if ! grep -q "^APP_ENVIRONMENT_ONLY=" .env; then
 fi
 
 # --- Install PHP dependencies ---
+clear
 step "Installing PHP dependencies (Composer)..."
 COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
 
@@ -160,6 +165,7 @@ systemctl enable --now cron
 (crontab -l 2>/dev/null; echo "* * * * * php /var/www/pterodactyl/artisan schedule:run >> /dev/null 2>&1") | crontab -
 
 # --- Nginx Setup ---
+clear
 step "Configuring Nginx..."
 mkdir -p /etc/certs/panel
 cd /etc/certs/panel
