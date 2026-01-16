@@ -41,19 +41,28 @@ cek_curl() {
     fi
 }
 
-# Fungsi Jalankan
+# Fungsi Jalankan (Dengan Error Handling)
 jalankan() {
     local url=$1
     cek_curl
     echo -e "\n${HIJAU}🚀 Menjalankan script...${RESET}"
     sleep 1
-    bash <(curl -fsSL "$url")
+    
+    # Cek dulu apakah linknya hidup
+    if curl --output /dev/null --silent --head --fail "$url"; then
+        bash <(curl -fsSL "$url")
+    else
+        echo -e "${MERAH}❌ Gagal: Link script tidak ditemukan atau mati!${RESET}"
+        echo -e "${KUNING}URL: $url${RESET}"
+    fi
+
     echo -e "\n${CYAN}---------------------------------------------${RESET}"
     read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali..."
 }
 
 # === SUB-MENU CONNECTION ===
 menu_connection() {
+    local sub_opt # Pake local biar variable gak bocor
     while true; do
         clear
         echo -e "${CYAN}=============================================${RESET}"
@@ -68,8 +77,12 @@ menu_connection() {
         echo -e "${CYAN}---------------------------------------------${RESET}"
         echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
         echo -e "${CYAN}=============================================${RESET}"
-        echo -ne "${TEBAL}Pilih [0-4]: ${RESET}"
+        
+        # Reset variable sebelum read
+        sub_opt=""
+        echo -ne "${TEBAL}Pilih [0-6]: ${RESET}"
         read -r sub_opt
+
         case $sub_opt in
             1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-localtonet.sh" ;;
             2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-tailscale.sh" ;;
@@ -78,13 +91,14 @@ menu_connection() {
             5) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playitInstaller.sh" ;;
             6) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playit24-7" ;;
             0) return ;;
-            *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
+            *) echo -e "${MERAH}Pilihan tidak valid!${RESET}"; sleep 1 ;;
         esac
     done
 }
 
 # === SUB-MENU CLOUDFLARE ===
 menu_cloudflare() {
+    local sub_opt # Pake local biar variable gak bocor
     while true; do
         clear
         echo -e "${CYAN}=============================================${RESET}"
@@ -95,13 +109,17 @@ menu_cloudflare() {
         echo -e "${CYAN}---------------------------------------------${RESET}"
         echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
         echo -e "${CYAN}=============================================${RESET}"
+        
+        # Reset variable sebelum read
+        sub_opt=""
         echo -ne "${TEBAL}Pilih [0-2]: ${RESET}"
         read -r sub_opt
+        
         case $sub_opt in
             1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/cloudflare.sh" ;;
             2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/token-cloudflare.sh" ;;
             0) return ;;
-            *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
+            *) echo -e "${MERAH}Pilihan tidak valid!${RESET}"; sleep 1 ;;
         esac
     done
 }
@@ -123,6 +141,8 @@ while true; do
     echo -e " ${TEBAL}0)${RESET}🚪 KELUAR"
     echo -e "${CYAN}=============================================${RESET}"
     
+    # Reset pilihan biar gak nge-bug
+    pilihan=""
     echo -ne "${TEBAL}Masukkan pilihan [0-9]: ${RESET}"
     read -r pilihan
 
@@ -130,9 +150,9 @@ while true; do
         1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/panel.sh" ;;
         2) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/wings.sh" ;;
         3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/ssh.sh" ;;
-        4) menu_connection ;;  # Masuk ke Sub-Menu Connection
+        4) menu_connection ;;
         5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/blueprint.sh" ;;
-        6) menu_cloudflare ;;  # Masuk ke Sub-Menu Cloudflare
+        6) menu_cloudflare ;;
         7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme.sh" ;;
         8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/addon.sh" ;;
         9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/sshx.sh" ;;
@@ -141,6 +161,6 @@ while true; do
             exit 0 
             ;;
         *) 
-            echo -e "${MERAH}[!] Pilihan tidak valid, pilih 0-9.${RESET}"; sleep 1 ;;
+            echo -e "${MERAH}[!] Pilihan tidak valid.${RESET}"; sleep 1 ;;
     esac
 done
