@@ -60,8 +60,8 @@ menu_connection() {
         echo -e "${KUNING}          🌐 MENU KONEKSI & TUNNEL          ${RESET}"
         echo -e "${CYAN}=============================================${RESET}"
         echo -e " ${TEBAL}1)${RESET}⚒️  Install Localtonet"
-        echo -e " ${TEBAL}2)${RESET}🔨 Install Tailscale"
-        echo -e " ${TEBAL}3)${RESET}🔨 Tailscale (IP Public)"
+        echo -e " ${TEBAL}2)${RESET}🔨  Install Tailscale"
+        echo -e " ${TEBAL}3)${RESET}🔨  Tailscale (IP Public)"
         echo -e " ${TEBAL}4)${RESET}⚒️  Install MineCube (IP Minecraft)"
         echo -e " ${TEBAL}5)${RESET}🛠️  Install Playit.gg"
         echo -e " ${TEBAL}6)${RESET}🖥️  Playit Run 24/7"
@@ -109,15 +109,15 @@ menu_cloudflare() {
 # === MAIN MENU ===
 while true; do
     banner
-    echo -e " ${TEBAL}1)${RESET}🧩 Panel Pterodactyl"
+    echo -e " ${TEBAL}1)${RESET}🧩  Panel Pterodactyl"
     echo -e " ${TEBAL}2)${RESET}🪶  Wings Pterodactyl"
-    echo -e " ${TEBAL}3)${RESET}🚀 SSH (connect)"
-    echo -e " ${TEBAL}4)${RESET}🌐 Connection Tools (Playit/MineCube) ▶"
-    echo -e " ${TEBAL}5)${RESET}🧱 Blueprint Framework"
+    echo -e " ${TEBAL}3)${RESET}🚀  SSH (connect)"
+    echo -e " ${TEBAL}4)${RESET}🌐  Connection Tools (Playit/MineCube) ▶"
+    echo -e " ${TEBAL}5)${RESET}🧱  Blueprint Framework"
     echo -e " ${TEBAL}6)${RESET}☁️  Install Cloudflare ▶"
-    echo -e " ${TEBAL}7)${RESET}🎨 Pasang Tema (Theme)"
-    echo -e " ${TEBAL}8)${RESET}🔌 Install Addon"
-    echo -e " ${TEBAL}9)${RESET}🚀 Install SSHX (Remote)"
+    echo -e " ${TEBAL}7)${RESET}🎨  Pasang Tema (Theme)"
+    echo -e " ${TEBAL}8)${RESET}🔌  Install Addon"
+    echo -e " ${TEBAL}9)${RESET}🚀  Install SSHX (Remote)"
     
     echo -e "${CYAN}---------------------------------------------${RESET}"
     echo -e " ${TEBAL}0)${RESET}🚪 KELUAR"
