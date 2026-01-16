@@ -62,7 +62,7 @@ apt-get install -y curl apt-transport-https ca-certificates gnupg unzip git tar 
 # Detect OS
 OS=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
 CODENAME=$(lsb_release -sc)
-
+clear
 step "Configuring PHP Repositories..."
 
 # --- LOGIKA BARU (SUPPORT UBUNTU 24 & 22) ---
@@ -99,7 +99,7 @@ fi
 # Add Redis GPG key and repo
 curl -fsSL https://packages.redis.io/gpg | gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
-
+clear
 step "Updating Package Lists..."
 apt-get update
 
@@ -123,6 +123,7 @@ tar -xzvf panel.tar.gz
 chmod -R 755 storage/* bootstrap/cache/
 
 # --- MariaDB Setup ---
+clear
 step "Configuring Database..."
 DB_NAME=panel
 DB_USER=pterodactyl
@@ -155,6 +156,7 @@ COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
 php artisan key:generate --force
 
 # --- Run Migrations ---
+clear
 step "Migrating Database..."
 php artisan migrate --seed --force
 
