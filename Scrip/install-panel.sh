@@ -1,37 +1,94 @@
 #!/bin/bash
+# ==================================================
+# PTERODACTYL PANEL AUTO INSTALLER (CUSTOM EDITION)
+# Base Script: Punya Kamu
+# Fixed by: ManzXD (Ubuntu 22/24 Support)
+# ==================================================
+
+# ---------------- CEK ROOT DULU ----------------
+if [ "$EUID" -ne 0 ]; then
+  echo -e "\e[1;31mSTOP! Kamu harus menjalankan script ini sebagai ROOT.\e[0m"
+  echo -e "Silakan ketik perintah ini dulu: \e[1;33msudo -i\e[0m"
+  exit 1
+fi
+
+# ---------------- CONFIG ----------------
+PHP_VERSION="8.3"
+DOMAIN=""
+
+# ---------------- UI THEME ----------------
 clear
+echo -e "\e[1;36m"
+cat << "EOF"
+██████╗ ███████╗████████╗███████╗██████╗  ██████╗ 
+██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔══██╗██╔═══██╗
+██████╔╝█████╗     ██║   █████╗  ██████╔╝██║   ██║
+██╔═══╝ ██╔══╝     ██║   ██╔══╝  ██╔══██╗██║   ██║
+██║     ███████╗   ██║   ███████╗██║  ██║╚██████╔╝
+╚═╝     ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝ 
+        PTERODACTYL INSTALLER (MANZ-FIX)
+EOF
+echo -e "\e[0m"
 read -p "🌐 Enter domain (panel.example.com): " DOMAIN
 
 # --- Dependencies ---
-apt update && apt install -y curl apt-transport-https ca-certificates gnupg unzip git tar sudo lsb-release
+echo -e "\e[1;34m➜ Update & Install Dependencies...\e[0m"
+
+# FIX ERROR LOCK (PENTING)
+rm -f /var/lib/apt/lists/lock
+rm -f /var/cache/apt/archives/lock
+rm -f /var/lib/dpkg/lock*
+
+apt-get update -y
+apt-get install -y curl apt-transport-https ca-certificates gnupg unzip git tar sudo lsb-release software-properties-common
 
 # Detect OS
 OS=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
+CODENAME=$(lsb_release -sc)
+
+# --- REPO FIX LOGIC (BAGIAN PENTING) ---
+echo -e "\e[1;34m➜ Configuring Repositories...\e[0m"
 
 if [[ "$OS" == "ubuntu" ]]; then
-    echo "✅ Detected Ubuntu. Adding PPA for PHP..."
-    apt install -y software-properties-common
-    LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
+    # Bersihkan repo lama
+    rm -f /etc/apt/sources.list.d/ondrej-php.list
+    rm -f /etc/apt/sources.list.d/sury-php.list
+    
+    if [[ "$CODENAME" == "noble" ]]; then
+        # Ubuntu 24.04 (Noble)
+        echo -e "\e[1;32m✅ Ubuntu 24.04 Detected. Menggunakan PHP Native (No Repo).\e[0m"
+    else
+        # Ubuntu 22.04 (Jammy)
+        echo -e "\e[1;33m🔥 Ubuntu 22.04 Detected. Menambahkan PPA Ondrej...\e[0m"
+        LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
+    fi
 elif [[ "$OS" == "debian" ]]; then
-    echo "✅ Detected Debian. Skipping PPA and adding PHP repo manually..."
-    # Add SURY PHP repo for Debian
+    echo -e "\e[1;33m🔥 Debian Detected. Adding SURY Repo...\e[0m"
     curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
     echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/sury-php.list
 fi
 
 # Add Redis GPG key and repo
-curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+curl -fsSL https://packages.redis.io/gpg | gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
 
-apt update
+apt-get update -y
 
 # --- Install PHP + extensions ---
-apt install -y php8.3 php8.3-{cli,fpm,common,mysql,mbstring,bcmath,xml,zip,curl,gd,tokenizer,ctype,simplexml,dom} mariadb-server nginx redis-server
+echo -e "\e[1;34m➜ Installing PHP ${PHP_VERSION}...\e[0m"
+apt-get install -y php${PHP_VERSION} php${PHP_VERSION}-{cli,fpm,common,mysql,mbstring,bcmath,xml,zip,curl,gd,tokenizer,ctype,simplexml,dom} mariadb-server nginx redis-server
+
+if [ $? -ne 0 ]; then
+    echo -e "\e[1;31m❌ GAGAL INSTALL PHP! Script berhenti.\e[0m"
+    exit 1
+fi
 
 # --- Install Composer ---
-curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+echo -e "\e[1;34m➜ Installing Composer...\e[0m"
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # --- Download Pterodactyl Panel ---
+echo -e "\e[1;34m➜ Downloading Panel...\e[0m"
 mkdir -p /var/www/pterodactyl
 cd /var/www/pterodactyl
 curl -Lo panel.tar.gz https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz
@@ -39,13 +96,15 @@ tar -xzvf panel.tar.gz
 chmod -R 755 storage/* bootstrap/cache/
 
 # --- MariaDB Setup ---
+echo -e "\e[1;34m➜ Configuring Database...\e[0m"
 DB_NAME=panel
 DB_USER=pterodactyl
-DB_PASS=yourPassword
-mariadb -e "CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';"
-mariadb -e "CREATE DATABASE ${DB_NAME};"
-mariadb -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1' WITH GRANT OPTION;"
-mariadb -e "FLUSH PRIVILEGES;"
+DB_PASS=$(openssl rand -base64 12) # Password Random biar aman
+
+mariadb -u root -e "CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';"
+mariadb -u root -e "CREATE DATABASE ${DB_NAME};"
+mariadb -u root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1' WITH GRANT OPTION;"
+mariadb -u root -e "FLUSH PRIVILEGES;"
 
 # --- .env Setup ---
 if [ ! -f ".env.example" ]; then
@@ -61,14 +120,12 @@ if ! grep -q "^APP_ENVIRONMENT_ONLY=" .env; then
 fi
 
 # --- Install PHP dependencies ---
-echo "✅ Installing PHP dependencies..."
+echo -e "\e[1;34m➜ Installing Dependencies (Composer)...\e[0m"
 COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
 
 # --- Generate Application Key ---
-echo "✅ Generating application key..."
+echo -e "\e[1;34m➜ Generating Key & Migrating...\e[0m"
 php artisan key:generate --force
-
-# --- Run Migrations ---
 php artisan migrate --seed --force
 
 # --- Permissions ---
@@ -76,12 +133,16 @@ chown -R www-data:www-data /var/www/pterodactyl/*
 apt install -y cron
 systemctl enable --now cron
 (crontab -l 2>/dev/null; echo "* * * * * php /var/www/pterodactyl/artisan schedule:run >> /dev/null 2>&1") | crontab -
+
 # --- Nginx Setup ---
+echo -e "\e[1;34m➜ Configuring Nginx...\e[0m"
 mkdir -p /etc/certs/panel
 cd /etc/certs/panel
 openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
--subj "/C=NA/ST=NA/L=NA/O=NA/CN=Generic SSL Certificate" \
+-subj "/C=ID/ST=ManzXD/L=Indo/O=Manz/CN=${DOMAIN}" \
 -keyout privkey.pem -out fullchain.pem
+
+rm /etc/nginx/sites-enabled/default 2>/dev/null
 
 tee /etc/nginx/sites-available/pterodactyl.conf > /dev/null << EOF
 server {
@@ -127,7 +188,7 @@ ln -s /etc/nginx/sites-available/pterodactyl.conf /etc/nginx/sites-enabled/ptero
 nginx -t && systemctl restart nginx
 
 # --- Queue Worker ---
-tee /etc/systemd/system/pteroq.service > /dev/null << 'EOF'
+tee /etc/systemd/system/pteroq.service > /dev/null << EOF
 [Unit]
 Description=Pterodactyl Queue Worker
 After=redis-server.service
@@ -147,8 +208,12 @@ systemctl daemon-reload
 systemctl enable --now redis-server
 systemctl enable --now pteroq.service
 clear
+
 # --- Admin User ---
+echo -e "\e[1;36m➜ Creating Admin User...\e[0m"
 cd /var/www/pterodactyl
+sed -i '/^APP_ENVIRONMENT_ONLY=/d' .env
+echo "APP_ENVIRONMENT_ONLY=false" >> .env
 php artisan p:user:make
 
 # --- Animated Info ---
@@ -165,7 +230,6 @@ echo -e "\e[1;36m  ✅ Installation Completed Successfully! \e[0m"
 echo -e "\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo -e "\e[1;32m  🌐 Your Panel URL: \e[1;37mhttps://${DOMAIN}\e[0m"
 echo -e "\e[1;32m  📂 Panel Directory: \e[1;37m/var/www/pterodactyl\e[0m"
-echo -e "\e[1;32m  🛠 Create Admin: \e[1;37mphp artisan p:user:make\e[0m"
 echo -e "\e[1;32m  🔑 DB User: \e[1;37m${DB_USER}\e[0m"
 echo -e "\e[1;32m  🔑 DB Password: \e[1;37m${DB_PASS}\e[0m"
 echo -e "\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
