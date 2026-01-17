@@ -2,93 +2,16 @@
 shopt -s nullglob
 
 # =========================================================
-# FUNGSI BARU: FIXED FIREFOX INSTALLER (ANTI CRASH)
-# =========================================================
-install_firefox_in_container() {
-    local container_name="$1"
-    echo "========================================="
-    echo "🚀 Menginstall Firefox & Setting Auto-Start (Mode Paksa)..."
-    echo "========================================="
-    
-    docker exec -t "$container_name" /bin/bash -c '
-    # --- BAGIAN 1: INSTALL (SAMA KAYAK TADI KARENA UDAH WORK) ---
-    rm -f /etc/apt/sources.list.d/google-chrome.list
-    apt-get update
-    apt-get install -y software-properties-common
-    add-apt-repository -y ppa:mozillateam/ppa
-    
-    echo "
-Package: firefox*
-Pin: release o=LP-PPA-mozillateam
-Pin-Priority: 1001
-" > /etc/apt/preferences.d/mozilla-firefox
-
-    apt-get update
-    apt-get install -y firefox
-
-    # --- BAGIAN 2: BIKIN SHORTCUT DESKTOP (BIAR BISA KLIK MANUAL) ---
-    rm -f /root/Desktop/*.desktop
-    mkdir -p /root/Desktop
-    
-    cat <<EOF > /root/Desktop/firefox.desktop
-[Desktop Entry]
-Type=Application
-Name=Firefox Browser
-Exec=firefox --no-sandbox
-Icon=firefox
-Terminal=false
-StartupNotify=false
-EOF
-    chmod +x /root/Desktop/firefox.desktop
-    chown -R root:root /root/Desktop
-
-    # --- BAGIAN 3: AUTOSTART "BRUTAL FORCE" (INI FIX NYA) ---
-    
-    # 1. Kita buat script peluncur khusus yang ada jeda waktunya
-    cat <<EOF > /usr/bin/force-start-firefox.sh
-#!/bin/bash
-# Tunggu 15 detik biar Desktop LXDE loading 100% dulu
-sleep 15
-# Set Display ke :1 (Default VNC)
-export DISPLAY=:1
-# Jalankan Firefox mode no-sandbox (background process)
-nohup firefox --no-sandbox > /dev/null 2>&1 &
-EOF
-
-    chmod +x /usr/bin/force-start-firefox.sh
-
-    # 2. Kita suntikkan langsung ke jantung pengaturan LXDE
-    # File ini dibaca saat LXDE loading. Kita suruh dia jalanin script kita.
-    LXDE_CONFIG="/etc/xdg/lxsession/LXDE/autostart"
-    
-    # Hapus baris lama kalau ada biar gak dobel
-    sed -i "/force-start-firefox.sh/d" \$LXDE_CONFIG
-    
-    # Tambahkan perintah baru di baris paling bawah
-    echo "@bash /usr/bin/force-start-firefox.sh" >> \$LXDE_CONFIG
-
-    echo "✅ Inject Auto-Start ke LXDE Config Berhasil."
-    '
-    
-    echo "========================================="
-    echo "✅ Firefox Siap."
-    echo "👉 Pilih menu '5. Reset Container' sekarang!"
-    echo "👉 PENTING: Pas buka VNC, JANGAN APA-APAIN DULU."
-    echo "👉 Tunggu sekitar 15-20 detik, Firefox bakal loncat keluar sendiri."
-    echo "========================================="
-}
-
-# =========================================================
 # PROGRAM UTAMA
 # =========================================================
 
 while true; do
 clear
 echo "========================================="
-echo "          PANEL VIRTUAL SYSTEM (FIXED)"
+echo "          PANEL VIRTUAL SYSTEM (MANZ4VPS)"
 echo "========================================="
 echo "1. Jalankan Windows baru"
-echo "2. Jalankan Ubuntu Desktop (VNC) [FIX Firefox]"
+echo "2. Jalankan Ubuntu Desktop (VNC) [Auto Curl]"
 echo "3. Lihat Windows aktif"
 echo "4. Masuk ke Windows"
 echo "5. Hapus Windows"
@@ -96,164 +19,58 @@ echo "6. Keluar"
 echo "========================================="
 read -p "Masukkan pilihan (1-6): " SISTEM
 
-# ===== 2. Jalankan Ubuntu Desktop =====
+# =========================================================
+# MENU 2: UBUNTU DESKTOP VNC (CURL ONE-LINER)
+# =========================================================
 
 if [ "$SISTEM" == "2" ]; then
-    
-    # --- CEK OTOMATIS DOCKER.IO ---
     echo
     echo "========================================="
-    echo "⚙️  MEMERIKSA KELENGKAPAN PAKET..."
-    
-    if ! command -v docker &> /dev/null; then
-        echo "⚠️  Docker belum ditemukan."
-        echo "📦  Sedang mendownload & menginstall docker.io..."
-        
-        # Update & Install Docker
-        sudo apt-get update >/dev/null 2>&1
-        sudo apt-get install -y docker.io
-        
-        # Start service jika perlu
-        sudo service docker start >/dev/null 2>&1
-        
-        echo "✅  Docker berhasil diinstall!"
-    else
-        echo "✅  Docker sudah terinstall. Skip download."
-    fi
+    echo "🚀 MENJALANKAN SCRIPT NO-VNC (MANZ4VPS)..."
     echo "========================================="
-    sleep 1
-    # ----------------------------------
+    
+    # 1. Pastikan Curl ada
+    if ! command -v curl &> /dev/null; then
+        echo "⚠️  Curl tidak ditemukan. Menginstall..."
+        sudo apt-get update >/dev/null
+        sudo apt-get install -y curl >/dev/null
+    fi
 
-    CONTAINER_NAME="ubuntu_vnc"
-    DATA_DIR="$HOME/vnc_data"
-    FIXED_RESOLUTION="1200x580"
+    # 2. Eksekusi Langsung (One-Liner)
+    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-noVNC.sh)
 
-    echo  
-    if [ "$(docker ps -a -q -f name=^${CONTAINER_NAME}$)" ]; then  
-        STATUS=$(docker inspect -f '{{.State.Status}}' $CONTAINER_NAME)
-        
-        if [ "$STATUS" == "running" ]; then  
-            echo "✅ Ubuntu Desktop VNC sedang BERJALAN!"  
-        else  
-            echo "⏸️  Container ditemukan tapi sedang BERHENTI (STOPPED)."  
-        fi  
-        
-        echo "========================================="  
-        echo "1. Jalankan / Lanjutkan (Start)"  
-        echo "2. Restart Service (Mulai Ulang)" 
-        echo "3. Hentikan (Stop)"  
-        echo "4. Lihat Log"  
-        echo "5. Reset Container (Hapus & Buat Baru)"  
-        echo "0. Kembali ke menu utama"  
-        echo "========================================="  
-        read -p "Pilih opsi (0-5): " OPSI_VNC  
-
-        case $OPSI_VNC in  
-            1)  
-                echo "Menjalankan kembali Ubuntu Desktop..."  
-                docker start $CONTAINER_NAME >/dev/null  
-                echo "✅ Container berjalan!"  
-                echo "Akses di: http://localhost:6080"  
-                ;;  
-            2)
-                echo "Merestart service VNC..."
-                docker restart $CONTAINER_NAME >/dev/null
-                echo "✅ Berhasil direstart."
-                echo "Firefox akan otomatis terbuka sebentar lagi..."
-                ;;
-            3)  
-                echo "Menghentikan container..."  
-                docker stop $CONTAINER_NAME >/dev/null 2>&1  
-                echo "✅ Berhenti."  
-                ;;  
-            4)  
-                docker attach $CONTAINER_NAME  
-                ;;  
-            5)  
-                echo "Menghapus container lama dan membuat baru..."  
-                docker rm -f $CONTAINER_NAME >/dev/null 2>&1  
-                
-                # Start Baru
-                docker run -d --name $CONTAINER_NAME \
-                    --restart unless-stopped \
-                    -p 6080:80 \
-                    -e RESOLUTION=$FIXED_RESOLUTION \
-                    -v /dev/shm:/dev/shm \
-                    -v "$DATA_DIR":/root \
-                    dorowu/ubuntu-desktop-lxde-vnc >/dev/null
-                
-                echo "Container baru berjalan dengan resolusi $FIXED_RESOLUTION"
-                
-                # Panggil fungsi install firefox safe mode
-                install_firefox_in_container $CONTAINER_NAME
-                
-                echo "Akses di: http://localhost:6080"
-                ;;  
-            0) continue ;;  
-            *) echo "Pilihan tidak valid."; sleep 1 ;;  
-        esac  
-
-        read -p "Tekan Enter untuk kembali ke menu..."  
-        continue  
-    fi  
-
-    # Jika container belum ada
-    echo  
-    echo "Menjalankan Ubuntu Desktop baru..."
-    mkdir -p "$DATA_DIR"  
-
-    CONTAINER_ID=$(docker run -d --name $CONTAINER_NAME \
-        --restart unless-stopped \
-        -p 6080:80 \
-        -e RESOLUTION=$FIXED_RESOLUTION \
-        -v /dev/shm:/dev/shm \
-        -v "$DATA_DIR":/root \
-        dorowu/ubuntu-desktop-lxde-vnc)  
-
-    if [ $? -ne 0 ]; then  
-        echo "❌ Gagal menjalankan container VNC!"  
-        read -p "Tekan Enter untuk kembali ke menu..."  
-        continue  
-    fi  
-
-    install_firefox_in_container $CONTAINER_NAME
-
-    echo "========================================="  
-    echo "✅ Ubuntu Desktop VNC berjalan"  
-    echo "🌐 Akses: http://localhost:6080"  
-    echo "🔄 Auto-Start VNC: AKTIF"
-    echo "🦊 Auto-Open Firefox: AKTIF (Patched --no-sandbox)"
-    echo "========================================="  
-    echo  
-    sleep 2  
-    read -p "Tekan Enter untuk kembali ke menu..."
-
+    # 3. Selesai
+    echo
+    read -p "Tekan Enter untuk kembali ke menu utama..."
+    continue
 fi
 
-# ===== 1. Jalankan Windows baru =====
+# =========================================================
+# MENU 1: WINDOWS (DOCKER OS) - TETAP SAMA
+# =========================================================
 
 if [ "$SISTEM" == "1" ]; then
     echo
     echo "Pilih versi Windows:"
-    echo " Value  | Version                     | Size"
+    echo " Value  | Version                       | Size"
     echo "--------------------------------------"
-    echo " 11     | Windows 11 Pro             | 5.4 GB"
-    echo " 11l    | Windows 11 LTSC            | 4.2 GB"
-    echo " 11e    | Windows 11 Enterprise      | 5.8 GB"
-    echo " 10     | Windows 10 Pro             | 5.7 GB"
-    echo " 10l    | Windows 10 LTSC            | 4.6 GB"
-    echo " 10e    | Windows 10 Enterprise      | 5.2 GB"
-    echo " 8e     | Windows 8.1 Enterprise     | 3.7 GB"
-    echo " 7e     | Windows 7 Enterprise       | 3.0 GB"
-    echo " ve     | Windows Vista Enterprise   | 3.0 GB"
-    echo " xp     | Windows XP Professional    | 0.6 GB"
-    echo " 2025   | Windows Server 2025        | 5.0 GB"
-    echo " 2022   | Windows Server 2022        | 4.7 GB"
-    echo " 2019   | Windows Server 2019        | 5.3 GB"
-    echo " 2016   | Windows Server 2016        | 6.5 GB"
-    echo " 2012   | Windows Server 2012        | 4.3 GB"
-    echo " 2008   | Windows Server 2008        | 3.0 GB"
-    echo " 2003   | Windows Server 2003        | 0.6 GB"
+    echo " 11     | Windows 11 Pro               | 5.4 GB"
+    echo " 11l    | Windows 11 LTSC              | 4.2 GB"
+    echo " 11e    | Windows 11 Enterprise        | 5.8 GB"
+    echo " 10     | Windows 10 Pro               | 5.7 GB"
+    echo " 10l    | Windows 10 LTSC              | 4.6 GB"
+    echo " 10e    | Windows 10 Enterprise        | 5.2 GB"
+    echo " 8e     | Windows 8.1 Enterprise       | 3.7 GB"
+    echo " 7e     | Windows 7 Enterprise         | 3.0 GB"
+    echo " ve     | Windows Vista Enterprise     | 3.0 GB"
+    echo " xp     | Windows XP Professional      | 0.6 GB"
+    echo " 2025   | Windows Server 2025          | 5.0 GB"
+    echo " 2022   | Windows Server 2022          | 4.7 GB"
+    echo " 2019   | Windows Server 2019          | 5.3 GB"
+    echo " 2016   | Windows Server 2016          | 6.5 GB"
+    echo " 2012   | Windows Server 2012          | 4.3 GB"
+    echo " 2008   | Windows Server 2008          | 3.0 GB"
+    echo " 2003   | Windows Server 2003          | 0.6 GB"
     echo
 
     read -p "Masukkan value versi (default: 10l): " VERSION  
@@ -312,10 +129,11 @@ EOL
     sudo docker-compose -f $YAML_FILE up -d  
     echo "Windows berjalan. Gunakan menu '4' untuk masuk ke windows."  
     read -p "Tekan Enter untuk kembali ke menu..."
-
 fi
 
-# ===== 3. Lihat Windows aktif =====
+# =========================================================
+# MENU 3: LIHAT WINDOWS AKTIF
+# =========================================================
 
 if [ "$SISTEM" == "3" ]; then
     echo
@@ -325,7 +143,9 @@ if [ "$SISTEM" == "3" ]; then
     read -p "Tekan Enter untuk kembali ke menu..."
 fi
 
-# ===== 4. Masuk ke Windows =====
+# =========================================================
+# MENU 4: MASUK KE WINDOWS
+# =========================================================
 
 if [ "$SISTEM" == "4" ]; then
     echo
@@ -361,10 +181,11 @@ if [ "$SISTEM" == "4" ]; then
     sudo docker-compose -f "$FILE" up -d  
     sudo docker attach windows  
     read -p "Tekan Enter untuk kembali ke menu..."
-
 fi
 
-# ===== 5. Hapus Windows =====
+# =========================================================
+# MENU 5: HAPUS WINDOWS
+# =========================================================
 
 if [ "$SISTEM" == "5" ]; then
     echo
@@ -401,10 +222,11 @@ if [ "$SISTEM" == "5" ]; then
     rm -f "$FILE"  
     echo "Selesai dihapus."  
     read -p "Tekan Enter untuk kembali ke menu..."
-
 fi
 
-# ===== 6. Keluar =====
+# =========================================================
+# MENU 6: KELUAR
+# =========================================================
 
 if [ "$SISTEM" == "6" ]; then
     clear
