@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Playit Setup & Claim (Auto-Exit Fix)
-# Modified by ManzXD
+# Playit Setup & Claim (Fixed No-Freeze)
+# Modified by ManzXD & Gemini
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -12,13 +12,14 @@ NC='\033[0m'
 clear
 echo -e "${YELLOW}🔄 Menyiapkan Playit untuk Setup...${NC}"
 
-# 1. Download Playit
+# 1. Download Playit (Cek dulu biar gak download ulang)
 if [ ! -f "./playit-linux-amd64" ]; then
+    echo -e "${CYAN}Downloading Playit Agent...${NC}"
     wget -q https://github.com/playit-cloud/playit-agent/releases/download/v0.17.1/playit-linux-amd64
     chmod +x playit-linux-amd64
 fi
 
-# 2. Install QR Encoder
+# 2. Install QR Encoder (Cek dulu)
 if ! command -v qrencode &>/dev/null; then
     echo -e "${YELLOW}📦 Menginstall fitur QR Code...${NC}"
     sudo apt-get update -qq && sudo apt-get install -y qrencode -qq
@@ -27,24 +28,28 @@ fi
 echo -e "${YELLOW}🚀 Menjalankan Playit... Tunggu link muncul...${NC}"
 
 # 3. Jalankan Playit (Mode Setup)
+# Hapus log lama
 rm -f playit_log.txt
+# Jalankan di background
 ./playit-linux-amd64 > playit_log.txt 2>&1 &
 PID_PLAYIT=$!
 
-# Pastikan Playit mati kalau script di-close paksa
+# Safety: Matikan playit kalau script di-close paksa
 trap "kill $PID_PLAYIT 2>/dev/null; exit" SIGINT SIGTERM
 
 found=0
 claimed=0
 
 # --- STEP 1: CARI LINK & TAMPILKAN QR ---
+# Loop max 30 detik buat cari link
+TIMEOUT=0
 while [ $found -eq 0 ]; do
     if ! kill -0 $PID_PLAYIT 2>/dev/null; then
-        echo -e "${RED}❌ Playit mati tiba-tiba.${NC}"
+        echo -e "${RED}❌ Playit mati tiba-tiba. Cek koneksi/VPS.${NC}"
         exit 1
     fi
 
-    # Cari Link Claim
+    # Cari Link Claim di log
     LINK=$(grep -o 'https://playit.gg/claim/[a-zA-Z0-9-]*' playit_log.txt | head -n 1)
 
     if [ ! -z "$LINK" ]; then
@@ -52,51 +57,67 @@ while [ $found -eq 0 ]; do
         clear
         echo -e "\n${GREEN}✅ SIAP UNTUK CLAIM!${NC}\n"
         
-        echo -e "${CYAN}--- SILAHKAN SCAN QR CODE INI ---${NC}"
+        echo -e "${CYAN}--- SCAN QR CODE DI BAWAH ---${NC}"
         qrencode -t ANSIUTF8 "$LINK"
         
         echo -e "\n${CYAN}--- ATAU SALIN LINK MANUAL ---${NC}"
         echo -e "${YELLOW}$LINK${NC}"
         
-        echo -e "\n${YELLOW}⏳ Menunggu kamu melakukan Claim di browser...${NC}"
-        echo -e "(Jangan tutup script ini sampai muncul notif berhasil)"
+        echo -e "\n${GREEN}=============================================${NC}"
+        echo -e " ⏳  SILAHKAN BUKA LINK DI BROWSER HP/PC KAMU"
+        echo -e " 👉  SETELAH CLAIM BERHASIL, TUNGGU SEBENTAR..."
+        echo -e "${GREEN}=============================================${NC}"
+        echo -e "${RED}[!] Kalau sudah Claim tapi script diam saja,"
+        echo -e "[!] TEKAN [ENTER] UNTUK LANJUT MANUAL.${NC}"
     fi
-    sleep 2
+
+    sleep 1
+    TIMEOUT=$((TIMEOUT+1))
+    if [ $TIMEOUT -gt 30 ] && [ $found -eq 0 ]; then
+        echo -e "${RED}Gagal mendapatkan link claim. Coba jalankan ulang.${NC}"
+        kill $PID_PLAYIT
+        exit 1
+    fi
 done
 
-# --- STEP 2: MONITORING STATUS CLAIM ---
-# Kita tunggu sampai log menunjukkan tanda-tanda berhasil claim
+# --- STEP 2: MONITORING STATUS CLAIM (ANTI FREEZE) ---
 while [ $claimed -eq 0 ]; do
+    # 1. Cek User Input (Tekan Enter buat paksa lanjut)
+    # read -t 1 artinya nunggu 1 detik, kalau user tekan enter, $? jadi 0
+    read -t 1 -n 1 key
+    if [ $? -eq 0 ]; then
+        echo -e "\n${YELLOW}⏩ Melanjutkan secara manual...${NC}"
+        claimed=1
+        break
+    fi
+
+    # 2. Cek apakah process masih hidup
     if ! kill -0 $PID_PLAYIT 2>/dev/null; then
         echo -e "${RED}❌ Playit terhenti.${NC}"
         break
     fi
 
-    # Cek Log kalau ada kata-kata sukses
-    if grep -qE "secret saved|tunnel running|authenticated" playit_log.txt; then
+    # 3. Cek Log Otomatis
+    if grep -qE "secret saved|tunnel running|authenticated|setup complete" playit_log.txt; then
         claimed=1
-        
-        # --- CLAIM BERHASIL ---
-        clear
-        echo -e "${GREEN}=========================================${NC}"
-        echo -e "${GREEN}      ✅  BERHASIL DI-CLAIM!  ✅        ${NC}"
-        echo -e "${GREEN}=========================================${NC}"
-        echo -e ""
-        echo -e "${CYAN}Playit sudah terdaftar di akunmu.${NC}"
-        echo -e "${YELLOW}Mematikan process Playit setup...${NC}"
-        
-        # Matikan Playit Setup
-        kill $PID_PLAYIT 2>/dev/null
-        rm -f playit_log.txt
-        
-        echo -e "${GREEN}Process Setup Selesai & Dimatikan.${NC}"
-        echo -e "Sekarang kamu bisa jalankan Playit pakai script background-mu."
-        
-        # --- PERBAIKAN DI SINI ---
-        # Tidak ada lagi 'read -p', tapi langsung BREAK (Keluar Loop)
-        # Jadi script ini selesai, dan otomatis balik ke menu utama kamu.
-        sleep 2
         break
     fi
-    sleep 2
+    
+    # Animasi loading biar gak dikira freeze
+    echo -n "."
 done
+
+# --- STEP 3: SELESAI ---
+echo -e "\n"
+echo -e "${GREEN}=========================================${NC}"
+echo -e "${GREEN}      ✅  SETUP PLAYIT SELESAI  ✅       ${NC}"
+echo -e "${GREEN}=========================================${NC}"
+
+# Matikan process setup sementara
+kill $PID_PLAYIT 2>/dev/null
+rm -f playit_log.txt
+
+echo -e "${CYAN}Process setup dimatikan. Playit sudah terdaftar.${NC}"
+echo -e "${YELLOW}Script akan kembali otomatis dalam 3 detik...${NC}"
+sleep 3
+# Script exit otomatis di sini
