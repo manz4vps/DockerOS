@@ -16,7 +16,7 @@ while true; do
     echo "========================================="
     echo "   PANEL VNC (ANTI-STUCK + KVM SUPPORT)  "
     echo "========================================="
-    echo "1. INSTALL / PERBAIKI (Pilih ini)"
+    echo "1. INSTALL / PERBAIKI"
     echo "2. RESTART SERVICE"
     echo "3. CEK STATUS"
     echo "4. HAPUS SEMUA"
