@@ -14,7 +14,7 @@ fi
 while true; do
     clear
     echo "========================================="
-    echo "   PANEL VNC (ANTI-STUCK EDITION)        "
+    echo "   PANEL VNC (ANTI-STUCK + KVM SUPPORT)  "
     echo "========================================="
     echo "1. INSTALL / PERBAIKI (Pilih ini)"
     echo "2. RESTART SERVICE"
@@ -32,11 +32,22 @@ while true; do
             rm -f /usr/local/bin/start-vnc-custom.sh
 
             # Cek apakah container perlu dibuat ulang? 
-            # Kalau firefox sudah ada (dari install sebelumnya), kita skip install beratnya biar cepat.
             if [ ! "$(docker ps -a -q -f name=^${CONTAINER_NAME}$)" ]; then
                 echo "📦 Membuat Container Baru..."
+                
+                # --- LOGIKA BARU: DETEKSI KVM OTOMATIS ---
+                KVM_ARGS=""
+                if [ -e /dev/kvm ]; then
+                    echo "🚀 KVM Ditemukan! Mengaktifkan Hardware Acceleration..."
+                    KVM_ARGS="--device /dev/kvm --cap-add NET_ADMIN"
+                else
+                    echo "⚠️  /dev/kvm tidak ditemukan. Berjalan mode normal..."
+                fi
+                # -----------------------------------------
+
                 docker run -d --name $CONTAINER_NAME \
                     --restart always \
+                    $KVM_ARGS \
                     -p 6080:80 \
                     -e RESOLUTION=1200x580 \
                     -v /dev/shm:/dev/shm \
@@ -64,8 +75,6 @@ while true; do
             fi
 
             echo "⚙️  Membuat Script Auto-Start (Mode Detached)..."
-            # PERBAIKAN UTAMA ADA DI SINI:
-            # Saya tambahkan "-d" pada docker exec agar tidak STUCK menunggu.
             cat <<EOF > /usr/local/bin/start-vnc-custom.sh
 #!/bin/bash
 docker start $CONTAINER_NAME
