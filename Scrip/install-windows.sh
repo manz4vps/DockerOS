@@ -37,6 +37,7 @@ if [ "$SISTEM" == "2" ]; then
     fi
 
     # 2. Eksekusi Langsung (One-Liner)
+    clear
     bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-noVNC.sh)
 
     # 3. Selesai
