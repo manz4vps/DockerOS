@@ -14,13 +14,13 @@ fi
 while true; do
     clear
     echo "========================================="
-    echo "   PANEL VNC (ANTI-STUCK + KVM SUPPORT)  "
+    echo "   PANEL VNC (FIREFOX + FILEZILLA)       "
     echo "========================================="
     echo "1. INSTALL / PERBAIKI"
     echo "2. RESTART SERVICE"
     echo "3. CEK STATUS"
     echo "4. HAPUS SEMUA"
-    echo "5. KELUAR"
+    echo "0. KELUAR"
     echo "-----------------------------------------"
     read -p "Pilih: " OPSI
 
@@ -54,24 +54,43 @@ while true; do
                     -v "$DATA_DIR":/root \
                     dorowu/ubuntu-desktop-lxde-vnc >/dev/null
                 
-                echo "⏳ Menginstall Firefox..."
-                # Script Install Firefox (Versi Cepat - Fix GPG)
+                echo "⏳ Sedang menginstall Aplikasi (FileZilla & Firefox)..."
+                echo "⏳ Proses ini mungkin memakan waktu 2-3 menit..."
+
+                # Script Install: Hapus Chrome -> Install FileZilla -> Install Firefox
                 docker exec -t $CONTAINER_NAME /bin/bash -c '
+                    # 1. BERSIH-BERSIH CHROME
+                    echo "🧹 Menghapus Google Chrome..."
                     rm -f /etc/apt/sources.list.d/google-chrome.list
                     apt-get update --allow-insecure-repositories || true
-                    apt-get install -y wget gnupg nano procps ca-certificates apt-transport-https
+                    apt-get purge -y google-chrome-stable google-chrome-stable-sound || true
+                    apt-get autoremove -y
+
+                    # 2. PERSIAPAN TOOLS
+                    apt-get install -y wget gnupg nano procps ca-certificates apt-transport-https software-properties-common
+
+                    # 3. INSTALL FILEZILLA
+                    echo "📂 Menginstall FileZilla..."
+                    add-apt-repository universe -y
+                    apt-get update
+                    apt-get install -y filezilla
+
+                    # 4. INSTALL FIREFOX (Fix GPG)
+                    echo "🦊 Menginstall Firefox..."
                     apt-get remove firefox firefox-esr -y >/dev/null 2>&1
                     install -d -m 0755 /etc/apt/keyrings
                     wget --no-check-certificate -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | tee /etc/apt/keyrings/mozilla.gpg > /dev/null
                     echo "deb [signed-by=/etc/apt/keyrings/mozilla.gpg] https://packages.mozilla.org/apt mozilla main" | tee /etc/apt/sources.list.d/mozilla.list > /dev/null
-                    echo "Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000" > /etc/apt/preferences.d/mozilla
+                    echo -e "Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000" > /etc/apt/preferences.d/mozilla
                     apt-get update
                     apt-get install -y firefox
                     mkdir -p /root/.mozilla/firefox
+                    
+                    # Pre-load firefox agar folder config terbentuk
                     timeout 5s firefox --headless >/dev/null 2>&1
                 '
             else
-                echo "✅ Container & Firefox sudah ada. Melanjutkan setup Autostart..."
+                echo "✅ Container sudah ada. Melanjutkan setup Autostart..."
             fi
 
             echo "⚙️  Membuat Script Auto-Start (Mode Detached)..."
@@ -79,7 +98,7 @@ while true; do
 #!/bin/bash
 docker start $CONTAINER_NAME
 sleep 15
-# PENTING: flag -d artinya Detached (Jalan di background)
+# Menjalankan Firefox di background saat VNC nyala
 docker exec -d $CONTAINER_NAME /bin/bash -c "export DISPLAY=:1 && firefox --no-sandbox"
 EOF
             chmod +x /usr/local/bin/start-vnc-custom.sh
@@ -87,7 +106,7 @@ EOF
             echo "⚙️  Memasang Systemd Service..."
             cat <<EOF | sudo tee /etc/systemd/system/$SERVICE_NAME.service
 [Unit]
-Description=Auto Start VNC Firefox
+Description=Auto Start VNC Firefox + FileZilla Installed
 After=docker.service network.target
 Requires=docker.service
 
@@ -106,8 +125,8 @@ EOF
             sudo systemctl enable $SERVICE_NAME
             sudo systemctl start $SERVICE_NAME
             
-            echo "✅ SELESAI! Tidak stuck lagi."
-            echo "👉 Service Autostart sudah aktif."
+            echo "✅ SELESAI! Chrome dihapus, FileZilla terinstall."
+            echo "👉 Firefox akan terbuka otomatis."
             read -p "Tekan Enter..."
             ;;
 
@@ -128,10 +147,11 @@ EOF
             rm -f /etc/systemd/system/$SERVICE_NAME.service
             rm -f /usr/local/bin/start-vnc-custom.sh
             docker rm -f $CONTAINER_NAME
+         
             echo "✅ Bersih."
             read -p "Tekan Enter..."
             ;;
-        5)
+        0)
             exit 0
             ;;
     esac
