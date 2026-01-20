@@ -35,13 +35,13 @@ banner
 step "Mendownload & Mengekstrak Tema..."
 cd /var/www/
 # Hapus file lama kalo ada biar bersih
-rm -f theme-stellar.zip
+rm -f Stellar-v3.4.1.zip
 # Download file dari link kamu
-wget -O theme-stellar.zip "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/theme-stellar.zip"
+wget -O Stellar-v3.4.1.zip "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/Stellar-v3.4.1.zip"
 
 # Unzip (Otomatis Timpa/Overwrite tanpa tanya 'All')
 echo -e "${KUNING}Mengekstrak file...${RESET}"
-unzip -o theme-stellar.zip
+unzip -o Stellar-v3.4.1.zip
 
 # 2. INSTALL NODEJS & YARN
 step "Menginstall NodeJS v24 & Yarn..."
