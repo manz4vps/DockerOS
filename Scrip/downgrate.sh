@@ -22,7 +22,7 @@ php artisan down
 
 # Download latest release
 echo "⬇️ Downloading latest Panel release..."
-curl -L https://github.com/pterodactyl/panel/releases/download/v1.11.7/panel.tar.gz | tar -xzv
+curl -L https://github.com/pterodactyl/panel/releases/download/v1.11.11/panel.tar.gz | tar -xzv
 
 # Fix permissions
 echo "🔑 Setting correct permissions..."
