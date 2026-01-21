@@ -2,7 +2,7 @@
 
 # ==================================================
 #   SSHX AUTO INSTALLER & FIXER by ManzXD
-#   Modified: Auto-Launch Menu & Looping Interface
+#   Modified by Gemini: Fixed QR Rendering
 # ==================================================
 
 # Warna
@@ -36,7 +36,6 @@ chmod +x /usr/local/bin/sshx
 echo -e "${GREEN}      Selesai.${NC}"
 
 echo -e "${BLUE}[3/5] Membuat Script Wrapper (Backend)...${NC}"
-# === BAGIAN INI SUDAH DIPERBAIKI (ANTI BUG WARNA) ===
 cat << 'EOF' > /usr/local/bin/sshx-wrapper
 #!/bin/bash
 LINK_FILE="/root/sshx_link.txt"
@@ -95,7 +94,7 @@ systemctl restart sshx
 echo -e "${GREEN}      Service SSHX Aktif & Auto-Start.${NC}"
 
 echo -e "${BLUE}[5/5] Membuat Menu Kontrol...${NC}"
-# Membuat menu dengan LOOP (While True) agar tidak langsung exit
+# Membuat menu dengan LOOP
 cat << 'EOF' > /usr/local/bin/menu-sshx
 #!/bin/bash
 GREEN='\033[0;32m'
@@ -122,7 +121,10 @@ while true; do
             if [ -f "$LINK_FILE" ]; then
                 LINK=$(cat "$LINK_FILE")
                 echo -e "Link: ${YELLOW}$LINK${NC}\n"
-                qrencode -t ANSIUTF8 "$LINK"
+                
+                # BAGIAN INI YANG DIPERBAIKI (GANTI KE TYPE ANSI)
+                # ANSI membuat QR lebih besar tapi kontrasnya jelas (Hitam Putih)
+                qrencode -t ANSI "$LINK"
             else
                 echo -e "${RED}Belum ada link. Tunggu sebentar atau Restart SSHX.${NC}"
             fi
