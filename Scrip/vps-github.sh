@@ -10,11 +10,15 @@ CYAN="\e[36m"
 RESET="\e[0m"
 BOLD="\e[1m"
 
-# Fungsi untuk menghapus container & data
+# --- FUNGSI HAPUS (Disesuaikan path parent) ---
 hapus_container() {
     local container_name=$1
     local file_script="$container_name.sh"
-    local data_dir="vmdata_$container_name"
+    
+    # Menentukan lokasi folder data di parent directory (cd ..)
+    local parent_dir
+    parent_dir="$(cd .. && pwd)"
+    local data_dir="$parent_dir/vmdata_$container_name"
 
     echo -e "${YELLOW}➤ Memproses penghapusan: $container_name${RESET}"
 
@@ -26,7 +30,7 @@ hapus_container() {
         echo -e "   - Container Docker: ${RED}Tidak ditemukan${RESET}"
     fi
 
-    # 2. Hapus File Script (.sh)
+    # 2. Hapus File Script (.sh) -> Ini ada di folder sekarang
     if [ -f "$file_script" ]; then
         rm "$file_script"
         echo -e "   - File Script ($file_script): ${GREEN}Terhapus${RESET}"
@@ -34,20 +38,16 @@ hapus_container() {
         echo -e "   - File Script: ${RED}Tidak ditemukan${RESET}"
     fi
 
-    # 3. Hapus Folder Data
+    # 3. Hapus Folder Data -> Ini ada di folder parent (luar)
     if [ -d "$data_dir" ]; then
         rm -rf "$data_dir"
         echo -e "   - Folder Data ($data_dir): ${GREEN}Terhapus${RESET}"
     else
-        echo -e "   - Folder Data: ${RED}Tidak ditemukan${RESET}"
+        echo -e "   - Folder Data (di luar): ${RED}Tidak ditemukan${RESET}"
     fi
 
-    # 4. Bersihkan entry di .bashrc (menghapus baris yang mengandung nama container/file)
-    # Ini menghapus baris spesifik logic auto start
+    # 4. Bersihkan .bashrc
     if grep -q "$container_name" ~/.bashrc; then
-         # Backup dulu jaga-jaga
-         cp ~/.bashrc ~/.bashrc.bak
-         # Hapus blok logic (agak tricky, jadi kita hapus baris yang mengandung nama container tsb)
          sed -i "/$container_name/d" ~/.bashrc
          echo -e "   - Config .bashrc: ${GREEN}Dibersihkan${RESET}"
     fi
@@ -109,10 +109,16 @@ while true; do
       read -rp "CPU (contoh 2): " CPU
       read -rp "Disk (contoh 20G): " DISK
 
-      # Folder data spesifik
-      DATA_DIR="vmdata_$NAME"
-      mkdir -p "$DATA_DIR"
+      # --- UPDATE LOKASI DATA ---
+      # Ambil path parent directory (cd ..)
+      PARENT_DIR="$(cd .. && pwd)"
+      # Buat path folder data di parent
+      HOST_DATA_DIR="$PARENT_DIR/vmdata_$NAME"
       
+      echo -e "${YELLOW}Membuat folder data di: $HOST_DATA_DIR${RESET}"
+      mkdir -p "$HOST_DATA_DIR"
+      
+      # File .sh tetap di folder ini
       FILE="$NAME.sh"
 
       cat > "$FILE" <<EOF
@@ -120,7 +126,7 @@ while true; do
 docker run -it --rm \\
   --name "$NAME" \\
   --device /dev/kvm \\
-  -v "\$PWD/$DATA_DIR":/vmdata \\
+  -v "$HOST_DATA_DIR":/vmdata \\
   -e RAM="$RAM" \\
   -e CPU="$CPU" \\
   -e DISK_SIZE="$DISK" \\
@@ -147,12 +153,11 @@ EOF
       clear
       echo -e "${BOLD}${RED}🗑️  HAPUS CONTAINER & DATA${RESET}"
       
-      # Ambil list file .sh
+      # Ambil list file .sh di folder saat ini
       files=(*.sh)
       
-      # Cek jika tidak ada file
       if [ ! -e "${files[0]}" ]; then
-          echo -e "${RED}Tidak ada file script (.sh) ditemukan!${RESET}"
+          echo -e "${RED}Tidak ada file script (.sh) di folder ini!${RESET}"
           read -rp "Enter untuk kembali..."
           continue
       fi
@@ -170,13 +175,12 @@ EOF
       echo ""
       read -rp "Pilih Nomor: " DEL_OPT
       
-      # Logic Hapus
       if [ "$DEL_OPT" -eq 0 ]; then
           continue
       elif [ "$DEL_OPT" -eq 88 ]; then
           echo -e "\n${BOLD}${RED}⚠️  PERINGATAN KERAS! ⚠️${RESET}"
-          echo -e "Anda akan menghapus ${BOLD}SEMUA${RESET} container, script, dan data yang ada di list."
-          read -rp "Apakah anda yakin? (y/n): " SURE
+          echo -e "Anda akan menghapus ${BOLD}SEMUA${RESET} container dan folder data di luar directory."
+          read -rp "Yakin? (y/n): " SURE
           if [[ "$SURE" == "y" || "$SURE" == "Y" ]]; then
               for file in "${files[@]}"; do
                   C_NAME=$(basename "$file" .sh)
@@ -238,6 +242,7 @@ EOF
           if grep -q "PENGATURAN AUTO START VPS" ~/.bashrc; then
               echo -e "${YELLOW}Settingan autostart sudah ada. Hapus manual dulu atau gunakan Menu 4 (Hapus) untuk reset.${RESET}"
           else
+              # Inject logic
               cat <<EOF >> ~/.bashrc
 
 # === PENGATURAN AUTO START VPS ===
