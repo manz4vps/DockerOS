@@ -10,15 +10,16 @@ CYAN="\e[36m"
 RESET="\e[0m"
 BOLD="\e[1m"
 
-# File history & Path
+# File history & Path Script
 LAST_SESSION_FILE=".last_session"
-# Mengambil lokasi file script saat ini dengan aman
+# Menggunakan readlink untuk memastikan path absolut (bukan relative)
 SCRIPT_PATH=$(readlink -f "$0")
 
 # --- LOGIKA AUTO START DI AWAL (Saat Terminal Baru) ---
 if [ -f "$LAST_SESSION_FILE" ]; then
   LAST_NAME=$(cat "$LAST_SESSION_FILE")
   
+  # Cek jika container/file startup masih ada
   if [ -f "$LAST_NAME.sh" ]; then
     echo -e "${YELLOW}⚠️  Sesi terakhir terdeteksi: ${CYAN}$LAST_NAME${RESET}"
     echo -e "Github/Terminal mungkin baru restart."
@@ -27,14 +28,15 @@ if [ -f "$LAST_SESSION_FILE" ]; then
     
     if [[ "$AUTO_CHOICE" =~ ^[Yy]$ ]]; then
       echo -e "${GREEN}Memproses Auto Start...${RESET}"
+      # Stop dulu biar gak conflict
       docker stop "$LAST_NAME" 2>/dev/null || true
+      # Jalankan ulang
       bash "$LAST_NAME.sh"
       exit 0
     else
       echo -e "${RED}Oke, container dimatikan. Bye!${RESET}"
       docker stop "$LAST_NAME" 2>/dev/null || true
-      # Kita biarkan lanjut ke menu (atau exit kalau mau benar-benar tutup)
-      # exit 0 
+      exit 0 # Langsung keluar terminal sesuai request
     fi
   fi
 fi
@@ -52,7 +54,7 @@ EOF
 sleep 0.7
 clear
 
-echo -e "\033[1;32m✨ Make By Manz & Ndaa (Auto-BASHRC Fix)\033[0m"
+echo -e "\033[1;32m✨ Make By Manz & Ndaa (Fixed .bashrc Logic)\033[0m"
 sleep 0.5
 clear
 
@@ -99,6 +101,7 @@ while true; do
       mkdir -p vmdata
       FILE="$FINAL_NAME.sh"
 
+      # Simpan sesi
       echo "$FINAL_NAME" > "$LAST_SESSION_FILE"
 
       cat > "$FILE" <<EOF
@@ -125,6 +128,7 @@ EOF
       read -rp "Enter..." ;;
 
     3)
+      # Reconnect Manual
       clear
       if [ -f "$LAST_SESSION_FILE" ]; then
          LAST_NAME=$(cat "$LAST_SESSION_FILE")
@@ -158,7 +162,7 @@ EOF
       docker stop "$C" 2>/dev/null || true
       docker rm -f "$C" 2>/dev/null || true
       rm -f "$C.sh"
-      rm -rf vmdata 
+      rm -rf vmdata  # Hapus folder data
       rm -f "$LAST_SESSION_FILE"
       
       echo -e "${GREEN}Bersih total.${RESET}"
@@ -166,39 +170,48 @@ EOF
       ;;
 
     6)
+      # MENU BARU: Pasang ke .bashrc
       clear
-      # --- PENGAMANAN ERROR ---
-      # Cek apakah script dijalankan dari file fisik atau tidak
-      if [[ ! -f "$SCRIPT_PATH" ]] || [[ "$SCRIPT_PATH" == *"/proc/"* ]]; then
-          echo -e "${RED}ERROR: Script tidak disimpan sebagai file!${RESET}"
-          echo -e "${YELLOW}Kamu tidak bisa menggunakan Auto-Start jika script dijalankan langsung (copy-paste).${RESET}"
-          echo -e "CARA BENAR:"
-          echo -e "1. Ketik: nano panel.sh"
-          echo -e "2. Paste kode ini"
-          echo -e "3. Save (Ctrl+X, Y)"
-          echo -e "4. Jalanin: ./panel.sh"
-          echo -e "5. Baru pilih menu ini lagi."
+      BASHRC_FILE="$HOME/.bashrc"
+      
+      # --- SAFETY CHECK (PENTING) ---
+      # Mencegah path '/proc/' yang bikin error di screenshot kamu
+      if [[ "$SCRIPT_PATH" == *"/proc/"* ]] || [[ ! -f "$SCRIPT_PATH" ]]; then
+          echo -e "${RED}⛔ ERROR PATH TERDETEKSI!${RESET}"
+          echo -e "Kamu menjalankan script ini langsung (copy-paste) atau via pipe."
+          echo -e "Ini yang bikin error ${YELLOW}bash: /proc/...${RESET} di terminal kamu."
+          echo
+          echo -e "${GREEN}SOLUSI:${RESET}"
+          echo -e "1. Simpan script ini jadi file, misal: ${BOLD}panel.sh${RESET}"
+          echo -e "2. Jalankan file-nya: ${BOLD}./panel.sh${RESET}"
+          echo -e "3. Baru pilih menu nomor 6 lagi."
           read -rp "Enter untuk kembali..."
           continue
       fi
-      # ------------------------
-
-      BASHRC_FILE="$HOME/.bashrc"
+      
       CMD="bash $SCRIPT_PATH"
       
+      # Bersihkan error lama (yang /proc/ tadi) otomatis
+      if grep -q "/proc/" "$BASHRC_FILE"; then
+         echo -e "${YELLOW}Membersihkan baris error lama di .bashrc...${RESET}"
+         sed -i '/\/proc\//d' "$BASHRC_FILE"
+      fi
+
+      # Cek apakah sudah ada di .bashrc
       if grep -q "$SCRIPT_PATH" "$BASHRC_FILE"; then
-          echo -e "${YELLOW}Auto-start sudah terpasang!${RESET}"
-          echo -e "Lokasi: $SCRIPT_PATH"
-          echo -e "Mau dihapus? (y/n)"
+          echo -e "${YELLOW}Auto-start sudah terpasang sebelumnya!${RESET}"
+          echo -e "Path: $SCRIPT_PATH"
+          echo -e "Mau dihapus dari auto-start? (y/n)"
           read -rp "Pilih: " DEL_OPT
           if [[ "$DEL_OPT" == "y" ]]; then
+              # Hapus baris yang mengandung path script ini
               sed -i "\|$SCRIPT_PATH|d" "$BASHRC_FILE"
               sed -i '/# Auto Start Panel VPS/d' "$BASHRC_FILE"
               echo -e "${GREEN}Auto-start dimatikan.${RESET}"
           fi
       else
           echo -e "${CYAN}Menambahkan script ke .bashrc...${RESET}"
-          # Bersihkan sisa-sisa error lama jika ada
+          # Hapus entri lama biar gak double
           sed -i '/Auto Start Panel VPS/d' "$BASHRC_FILE"
           
           echo "" >> "$BASHRC_FILE"
