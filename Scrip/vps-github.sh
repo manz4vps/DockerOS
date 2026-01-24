@@ -73,9 +73,9 @@ while true; do
   echo -e "${YELLOW}1)${RESET} 🧱 Buat OS VPS Baru"
   echo -e "${YELLOW}2)${RESET} 🔍 Lihat Container Aktif"
   echo -e "${YELLOW}3)${RESET} ⏹️ Stop Container"
-  echo -e "${YELLOW}4)${RESET} 🗑️ Hapus Container (Pilih / Semua)"
+  echo -e "${YELLOW}4)${RESET} 🗑️ Hapus Container"
   echo -e "${YELLOW}5)${RESET} 💻 Jalankan VPS Manual"
-  echo -e "${YELLOW}6)${RESET} 🔄 Pasang Auto Start (.bashrc)"
+  echo -e "${YELLOW}6)${RESET} 🔄 Pasang Auto Start"
   echo -e "${YELLOW}0)${RESET} ❌ Keluar"
   echo
   read -rp "Pilih opsi (0-6): " MENU
