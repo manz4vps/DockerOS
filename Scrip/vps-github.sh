@@ -10,39 +10,39 @@ CYAN="\e[36m"
 RESET="\e[0m"
 BOLD="\e[1m"
 
-# File history & Path Script
-LAST_SESSION_FILE=".last_session"
-# Menggunakan readlink untuk memastikan path absolut (bukan relative)
+# --- KONFIGURASI PENYIMPANAN RAPI ---
+# Folder tersembunyi untuk menyimpan semua sampah (script & data)
+# Menggunakan titik (.) di depan agar tidak muncul di file explorer
+STORAGE_DIR=".vms_storage"
+LAST_SESSION_FILE="$STORAGE_DIR/.last_session"
 SCRIPT_PATH=$(readlink -f "$0")
+SCRIPT_NAME=$(basename "$0")
 
-# --- LOGIKA AUTO START DI AWAL (Saat Terminal Baru) ---
+# Buat folder penyimpanan jika belum ada
+mkdir -p "$STORAGE_DIR/vmdata"
+
+# --- LOGIKA AUTO START (Safe Mode) ---
 if [ -f "$LAST_SESSION_FILE" ]; then
   LAST_NAME=$(cat "$LAST_SESSION_FILE")
-  
-  # Cek jika container/file startup masih ada
-  if [ -f "$LAST_NAME.sh" ]; then
-    echo -e "${YELLOW}⚠️  Sesi terakhir terdeteksi: ${CYAN}$LAST_NAME${RESET}"
-    echo -e "Github/Terminal mungkin baru restart."
-    echo -e "${GREEN}Y${RESET} = Stop lama & Masuk lagi | ${RED}N${RESET} = Stop lama & Keluar"
-    read -rp "Lanjut masuk container ini? (y/n): " AUTO_CHOICE
-    
+  # Cek file di dalam folder storage
+  if [ -f "$STORAGE_DIR/$LAST_NAME.sh" ]; then
+    echo -e "${YELLOW}⚠️  Sesi terakhir: ${CYAN}$LAST_NAME${RESET}"
+    echo -e "${GREEN}[Y]${RESET} = Masuk Lagi | ${RED}[N]${RESET} = Stop & Keluar"
+    read -rp "Pilih (y/n): " AUTO_CHOICE
     if [[ "$AUTO_CHOICE" =~ ^[Yy]$ ]]; then
-      echo -e "${GREEN}Memproses Auto Start...${RESET}"
-      # Stop dulu biar gak conflict
       docker stop "$LAST_NAME" 2>/dev/null || true
-      # Jalankan ulang
-      bash "$LAST_NAME.sh"
+      bash "$STORAGE_DIR/$LAST_NAME.sh"
       exit 0
     else
-      echo -e "${RED}Oke, container dimatikan. Bye!${RESET}"
       docker stop "$LAST_NAME" 2>/dev/null || true
-      exit 0 # Langsung keluar terminal sesuai request
+      exit 0 
     fi
   fi
 fi
-# -----------------------------------------------------
 
 # Banner
+clear
+echo -e "${BOLD}${CYAN}"
 cat << "EOF"
 ██████╗   ██╗   ███████╗  ███╗   ███╗   █████╗   ███╗   ██╗
 ██╔══██╗  ██║   ██╔════╝  ████╗ ████║  ██╔══██╗  ████╗  ██║
@@ -51,10 +51,8 @@ cat << "EOF"
 ██║  ██║  ██║   ███████║  ██║ ╚═╝ ██║  ██║  ██║  ██║ ╚████║
 ╚═╝  ╚═╝  ╚═╝   ╚══════╝  ╚═╝     ╚═╝  ╚═╝  ╚═╝  ╚═╝  ╚═══╝
 EOF
-sleep 0.7
-clear
-
-echo -e "\033[1;32m✨ Make By Manz & Ndaa (Fixed .bashrc Logic)\033[0m"
+echo -e "${RESET}"
+echo -e "\033[1;32m✨ Make By Manz & Ndaa (Clean Workspace)\033[0m"
 sleep 0.5
 clear
 
@@ -65,8 +63,8 @@ while true; do
   echo -e "${YELLOW}2)${RESET} 🔍 Lihat Container Aktif"
   echo -e "${YELLOW}3)${RESET} 🔄 Reconnect ke Sesi Terakhir"
   echo -e "${YELLOW}4)${RESET} ⏹️  Stop Container"
-  echo -e "${YELLOW}5)${RESET} 🗑️  Hapus Container & Data (BERSIH)"
-  echo -e "${YELLOW}6)${RESET} ⚡ Pasang Auto-Start"
+  echo -e "${YELLOW}5)${RESET} 🗑️  Hapus Container"
+  echo -e "${YELLOW}6)${RESET} ⚡ Pasang Auto-Start (.bashrc)"
   echo -e "${YELLOW}0)${RESET} ❌ Keluar"
   echo
   read -rp "Pilih opsi (0-6): " MENU
@@ -91,19 +89,18 @@ while true; do
         *) echo "Invalid"; sleep 1; continue ;;
       esac
 
-      read -rp "Nama Sesi (bebas, cth: myvps): " SESSION_NAME
+      read -rp "Nama Sesi (cth: myvps): " SESSION_NAME
       FINAL_NAME="${NAME}_${SESSION_NAME}"
 
-      read -rp "RAM (contoh 5G): " RAM
-      read -rp "CPU (contoh 2): " CPU
-      read -rp "Disk (contoh 20G): " DISK
+      read -rp "RAM (cth: 5G): " RAM
+      read -rp "CPU (cth: 2): " CPU
+      read -rp "Disk (cth: 20G): " DISK
 
-      mkdir -p vmdata
-      FILE="$FINAL_NAME.sh"
-
-      # Simpan sesi
+      # Simpan file .sh di folder tersembunyi
+      FILE="$STORAGE_DIR/$FINAL_NAME.sh"
       echo "$FINAL_NAME" > "$LAST_SESSION_FILE"
 
+      # Perbaiki path volume docker agar mengarah ke folder storage
       cat > "$FILE" <<EOF
 #!/bin/bash
 docker stop "$FINAL_NAME" 2>/dev/null || true
@@ -111,13 +108,12 @@ docker rm -f "$FINAL_NAME" 2>/dev/null || true
 docker run -it --rm \\
   --name "$FINAL_NAME" \\
   --device /dev/kvm \\
-  -v "\$PWD/vmdata":/vmdata \\
+  -v "\$PWD/$STORAGE_DIR/vmdata":/vmdata \\
   -e RAM="$RAM" \\
   -e CPU="$CPU" \\
   -e DISK_SIZE="$DISK" \\
   "$IMAGE"
 EOF
-
       chmod +x "$FILE"
       bash "$FILE"
       ;;
@@ -128,16 +124,16 @@ EOF
       read -rp "Enter..." ;;
 
     3)
-      # Reconnect Manual
       clear
       if [ -f "$LAST_SESSION_FILE" ]; then
          LAST_NAME=$(cat "$LAST_SESSION_FILE")
          echo -e "Sesi terakhir: ${GREEN}$LAST_NAME${RESET}"
          docker stop "$LAST_NAME" 2>/dev/null
-         if [ -f "$LAST_NAME.sh" ]; then
-            bash "$LAST_NAME.sh"
+         # Cek path baru
+         if [ -f "$STORAGE_DIR/$LAST_NAME.sh" ]; then
+            bash "$STORAGE_DIR/$LAST_NAME.sh"
          else
-            echo "Script hilang."
+            echo "Script hilang dari penyimpanan."
             read -rp "Enter..."
          fi
       else
@@ -155,76 +151,121 @@ EOF
 
     5)
       clear
-      echo -e "${RED}HAPUS TOTAL (Container + Data vmdata)${RESET}"
-      docker ps -a --format "table {{.Names}}\t{{.Status}}"
-      read -rp "Nama container: " C
+      echo -e "${RED}${BOLD}🗑️  PILIH VPS YANG MAU DIHAPUS TOTAL${RESET}"
+      echo -e "(Container + File tersembunyi + Data akan hilang)"
+      echo ""
+
+      # --- LOGIKA LIST FILE NOMOR (SCAN FOLDER HIDDEN) ---
+      i=1
+      declare -a VPS_FILES
+      FOUND=0
       
-      docker stop "$C" 2>/dev/null || true
-      docker rm -f "$C" 2>/dev/null || true
-      rm -f "$C.sh"
-      rm -rf vmdata  # Hapus folder data
+      # Cek folder storage
+      if [ -d "$STORAGE_DIR" ]; then
+          # Loop cari file .sh di dalam folder storage
+          for f in "$STORAGE_DIR"/*.sh; do
+              [ -e "$f" ] || continue
+              
+              # Tampilkan nama file saja tanpa path folder biar enak dibaca
+              FILENAME_ONLY=$(basename "$f")
+              
+              echo -e "${YELLOW}$i)${RESET} $FILENAME_ONLY"
+              VPS_FILES[$i]="$f" # Simpan path lengkapnya di array
+              ((i++))
+              FOUND=1
+          done
+      fi
+
+      if [ "$FOUND" -eq 0 ]; then
+          echo -e "${RED}Tidak ada file VPS tersimpan.${RESET}"
+          read -rp "Enter..."
+          continue
+      fi
+
+      echo -e "${YELLOW}0)${RESET} Batal"
+      echo ""
+      read -rp "Pilih Nomor: " CHOICE
+
+      if [ "$CHOICE" -eq 0 ]; then
+          continue
+      fi
+
+      # Ambil path file lengkap dari array
+      SELECTED_FILE_PATH="${VPS_FILES[$CHOICE]}"
+
+      if [ -z "$SELECTED_FILE_PATH" ]; then
+          echo -e "${RED}Pilihan nomor tidak valid!${RESET}"
+          read -rp "Enter..."
+          continue
+      fi
+
+      # Ambil nama container dari nama file
+      SELECTED_FILENAME=$(basename "$SELECTED_FILE_PATH")
+      NAME_NO_EXT="${SELECTED_FILENAME%.sh}"
+      
+      echo -e "${CYAN}Memproses penghapusan: ${BOLD}$NAME_NO_EXT${RESET}..."
+      
+      # 1. Stop & Hapus Docker Container
+      docker stop "$NAME_NO_EXT" 2>/dev/null || true
+      docker rm -f "$NAME_NO_EXT" 2>/dev/null || true
+      
+      # 2. Hapus File Script di folder storage
+      rm -f "$SELECTED_FILE_PATH"
+      
+      # 3. Hapus Data (Opsional: Bersihkan folder vmdata atau biarkan folder kosong)
+      # Untuk keamanan, kita hapus isi vmdata tapi foldernya biarin aja buat sesi lain
+      # Atau reset total folder storage kalau mau ekstrem
+      
+      # Hapus Session File
       rm -f "$LAST_SESSION_FILE"
+
+      echo -e "${GREEN}✅ SUKSES! VPS $NAME_NO_EXT telah dihapus bersih.${RESET}"
       
-      echo -e "${GREEN}Bersih total.${RESET}"
+      # Cek apakah folder storage kosong semua .sh nya
+      if ! ls "$STORAGE_DIR"/*.sh 1> /dev/null 2>&1; then
+          echo -e "${YELLOW}Info: Semua VPS habis. Mereset data disk...${RESET}"
+          rm -rf "$STORAGE_DIR/vmdata"
+          mkdir -p "$STORAGE_DIR/vmdata"
+      fi
+
       read -rp "Enter..." 
       ;;
 
     6)
-      # MENU BARU: Pasang ke .bashrc
       clear
       BASHRC_FILE="$HOME/.bashrc"
-      
-      # --- SAFETY CHECK (PENTING) ---
-      # Mencegah path '/proc/' yang bikin error di screenshot kamu
+      # Cek Error Path
       if [[ "$SCRIPT_PATH" == *"/proc/"* ]] || [[ ! -f "$SCRIPT_PATH" ]]; then
-          echo -e "${RED}⛔ ERROR PATH TERDETEKSI!${RESET}"
-          echo -e "Kamu menjalankan script ini langsung (copy-paste) atau via pipe."
-          echo -e "Ini yang bikin error ${YELLOW}bash: /proc/...${RESET} di terminal kamu."
-          echo
-          echo -e "${GREEN}SOLUSI:${RESET}"
-          echo -e "1. Simpan script ini jadi file, misal: ${BOLD}panel.sh${RESET}"
-          echo -e "2. Jalankan file-nya: ${BOLD}./panel.sh${RESET}"
-          echo -e "3. Baru pilih menu nomor 6 lagi."
-          read -rp "Enter untuk kembali..."
+          echo -e "${RED}ERROR: Simpan script ini jadi file dulu!${RESET}"
+          echo -e "Jangan di copas langsung ke terminal."
+          read -rp "Enter..."
           continue
       fi
       
       CMD="bash $SCRIPT_PATH"
       
-      # Bersihkan error lama (yang /proc/ tadi) otomatis
-      if grep -q "/proc/" "$BASHRC_FILE"; then
-         echo -e "${YELLOW}Membersihkan baris error lama di .bashrc...${RESET}"
-         sed -i '/\/proc\//d' "$BASHRC_FILE"
-      fi
+      # Auto Clean Error
+      sed -i '/\/proc\//d' "$BASHRC_FILE" 2>/dev/null
+      sed -i '/Auto Start Panel VPS/d' "$BASHRC_FILE" 2>/dev/null
 
-      # Cek apakah sudah ada di .bashrc
       if grep -q "$SCRIPT_PATH" "$BASHRC_FILE"; then
-          echo -e "${YELLOW}Auto-start sudah terpasang sebelumnya!${RESET}"
-          echo -e "Path: $SCRIPT_PATH"
-          echo -e "Mau dihapus dari auto-start? (y/n)"
-          read -rp "Pilih: " DEL_OPT
-          if [[ "$DEL_OPT" == "y" ]]; then
-              # Hapus baris yang mengandung path script ini
-              sed -i "\|$SCRIPT_PATH|d" "$BASHRC_FILE"
-              sed -i '/# Auto Start Panel VPS/d' "$BASHRC_FILE"
-              echo -e "${GREEN}Auto-start dimatikan.${RESET}"
+          echo -e "${YELLOW}Auto-start sudah aktif.${RESET}"
+          read -rp "Hapus? (y/n): " DEL
+          if [[ "$DEL" == "y" ]]; then
+             sed -i "\|$SCRIPT_PATH|d" "$BASHRC_FILE"
+             echo "Dihapus."
           fi
       else
-          echo -e "${CYAN}Menambahkan script ke .bashrc...${RESET}"
-          # Hapus entri lama biar gak double
-          sed -i '/Auto Start Panel VPS/d' "$BASHRC_FILE"
-          
           echo "" >> "$BASHRC_FILE"
           echo "# Auto Start Panel VPS" >> "$BASHRC_FILE"
           echo "$CMD" >> "$BASHRC_FILE"
-          echo -e "${GREEN}Sukses! Script akan jalan otomatis saat buka terminal baru.${RESET}"
+          echo -e "${GREEN}Sukses dipasang ke .bashrc${RESET}"
       fi
       read -rp "Enter..."
       ;;
 
     0)
       clear
-      echo -e "${GREEN}Keluar...${RESET}"
       exit 0
       ;;
   esac
