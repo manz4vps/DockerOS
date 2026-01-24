@@ -10,15 +10,15 @@ CYAN="\e[36m"
 RESET="\e[0m"
 BOLD="\e[1m"
 
-# File history
+# File history & Path
 LAST_SESSION_FILE=".last_session"
-SCRIPT_PATH=$(realpath "$0")
+# Mengambil lokasi file script saat ini dengan aman
+SCRIPT_PATH=$(readlink -f "$0")
 
 # --- LOGIKA AUTO START DI AWAL (Saat Terminal Baru) ---
 if [ -f "$LAST_SESSION_FILE" ]; then
   LAST_NAME=$(cat "$LAST_SESSION_FILE")
   
-  # Cek jika container/file startup masih ada
   if [ -f "$LAST_NAME.sh" ]; then
     echo -e "${YELLOW}⚠️  Sesi terakhir terdeteksi: ${CYAN}$LAST_NAME${RESET}"
     echo -e "Github/Terminal mungkin baru restart."
@@ -27,15 +27,14 @@ if [ -f "$LAST_SESSION_FILE" ]; then
     
     if [[ "$AUTO_CHOICE" =~ ^[Yy]$ ]]; then
       echo -e "${GREEN}Memproses Auto Start...${RESET}"
-      # Stop dulu biar gak conflict
       docker stop "$LAST_NAME" 2>/dev/null || true
-      # Jalankan ulang
       bash "$LAST_NAME.sh"
       exit 0
     else
       echo -e "${RED}Oke, container dimatikan. Bye!${RESET}"
       docker stop "$LAST_NAME" 2>/dev/null || true
-      exit 0 # Langsung keluar terminal sesuai request
+      # Kita biarkan lanjut ke menu (atau exit kalau mau benar-benar tutup)
+      # exit 0 
     fi
   fi
 fi
@@ -53,7 +52,7 @@ EOF
 sleep 0.7
 clear
 
-echo -e "\033[1;32m✨ Make By Manz & Ndaa (Auto-BASHRC Edition)\033[0m"
+echo -e "\033[1;32m✨ Make By Manz & Ndaa (Auto-BASHRC Fix)\033[0m"
 sleep 0.5
 clear
 
@@ -100,7 +99,6 @@ while true; do
       mkdir -p vmdata
       FILE="$FINAL_NAME.sh"
 
-      # Simpan sesi
       echo "$FINAL_NAME" > "$LAST_SESSION_FILE"
 
       cat > "$FILE" <<EOF
@@ -127,7 +125,6 @@ EOF
       read -rp "Enter..." ;;
 
     3)
-      # Reconnect Manual
       clear
       if [ -f "$LAST_SESSION_FILE" ]; then
          LAST_NAME=$(cat "$LAST_SESSION_FILE")
@@ -161,7 +158,7 @@ EOF
       docker stop "$C" 2>/dev/null || true
       docker rm -f "$C" 2>/dev/null || true
       rm -f "$C.sh"
-      rm -rf vmdata  # Hapus folder data
+      rm -rf vmdata 
       rm -f "$LAST_SESSION_FILE"
       
       echo -e "${GREEN}Bersih total.${RESET}"
@@ -169,23 +166,41 @@ EOF
       ;;
 
     6)
-      # MENU BARU: Pasang ke .bashrc
       clear
+      # --- PENGAMANAN ERROR ---
+      # Cek apakah script dijalankan dari file fisik atau tidak
+      if [[ ! -f "$SCRIPT_PATH" ]] || [[ "$SCRIPT_PATH" == *"/proc/"* ]]; then
+          echo -e "${RED}ERROR: Script tidak disimpan sebagai file!${RESET}"
+          echo -e "${YELLOW}Kamu tidak bisa menggunakan Auto-Start jika script dijalankan langsung (copy-paste).${RESET}"
+          echo -e "CARA BENAR:"
+          echo -e "1. Ketik: nano panel.sh"
+          echo -e "2. Paste kode ini"
+          echo -e "3. Save (Ctrl+X, Y)"
+          echo -e "4. Jalanin: ./panel.sh"
+          echo -e "5. Baru pilih menu ini lagi."
+          read -rp "Enter untuk kembali..."
+          continue
+      fi
+      # ------------------------
+
       BASHRC_FILE="$HOME/.bashrc"
       CMD="bash $SCRIPT_PATH"
       
-      # Cek apakah sudah ada di .bashrc
       if grep -q "$SCRIPT_PATH" "$BASHRC_FILE"; then
-          echo -e "${YELLOW}Auto-start sudah terpasang sebelumnya!${RESET}"
-          echo -e "Mau dihapus dari auto-start? (y/n)"
+          echo -e "${YELLOW}Auto-start sudah terpasang!${RESET}"
+          echo -e "Lokasi: $SCRIPT_PATH"
+          echo -e "Mau dihapus? (y/n)"
           read -rp "Pilih: " DEL_OPT
           if [[ "$DEL_OPT" == "y" ]]; then
-              # Hapus baris yang mengandung path script ini
               sed -i "\|$SCRIPT_PATH|d" "$BASHRC_FILE"
+              sed -i '/# Auto Start Panel VPS/d' "$BASHRC_FILE"
               echo -e "${GREEN}Auto-start dimatikan.${RESET}"
           fi
       else
-          echo -e "${CYAN}Menambahkan script ke startup terminal (.bashrc)...${RESET}"
+          echo -e "${CYAN}Menambahkan script ke .bashrc...${RESET}"
+          # Bersihkan sisa-sisa error lama jika ada
+          sed -i '/Auto Start Panel VPS/d' "$BASHRC_FILE"
+          
           echo "" >> "$BASHRC_FILE"
           echo "# Auto Start Panel VPS" >> "$BASHRC_FILE"
           echo "$CMD" >> "$BASHRC_FILE"
