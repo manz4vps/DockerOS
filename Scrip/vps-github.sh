@@ -10,7 +10,7 @@ CYAN="\e[36m"
 RESET="\e[0m"
 BOLD="\e[1m"
 
-# --- FUNGSI HAPUS (Disesuaikan path parent) ---
+# --- FUNGSI HAPUS (Logic Data di Luar Folder) ---
 hapus_container() {
     local container_name=$1
     local file_script="$container_name.sh"
@@ -45,12 +45,7 @@ hapus_container() {
     else
         echo -e "   - Folder Data (di luar): ${RED}Tidak ditemukan${RESET}"
     fi
-
-    # 4. Bersihkan .bashrc
-    if grep -q "$container_name" ~/.bashrc; then
-         sed -i "/$container_name/d" ~/.bashrc
-         echo -e "   - Config .bashrc: ${GREEN}Dibersihkan${RESET}"
-    fi
+    # Catatan: Kita tidak perlu hapus .bashrc disini lagi, karena logic Menu 6 sekarang Universal.
     echo ""
 }
 
@@ -109,16 +104,13 @@ while true; do
       read -rp "CPU (contoh 2): " CPU
       read -rp "Disk (contoh 20G): " DISK
 
-      # --- UPDATE LOKASI DATA ---
-      # Ambil path parent directory (cd ..)
+      # --- LOKASI DATA DI PARENT DIR ---
       PARENT_DIR="$(cd .. && pwd)"
-      # Buat path folder data di parent
       HOST_DATA_DIR="$PARENT_DIR/vmdata_$NAME"
       
       echo -e "${YELLOW}Membuat folder data di: $HOST_DATA_DIR${RESET}"
       mkdir -p "$HOST_DATA_DIR"
       
-      # File .sh tetap di folder ini
       FILE="$NAME.sh"
 
       cat > "$FILE" <<EOF
@@ -153,9 +145,7 @@ EOF
       clear
       echo -e "${BOLD}${RED}🗑️  HAPUS CONTAINER & DATA${RESET}"
       
-      # Ambil list file .sh di folder saat ini
       files=(*.sh)
-      
       if [ ! -e "${files[0]}" ]; then
           echo -e "${RED}Tidak ada file script (.sh) di folder ini!${RESET}"
           read -rp "Enter untuk kembali..."
@@ -179,7 +169,7 @@ EOF
           continue
       elif [ "$DEL_OPT" -eq 88 ]; then
           echo -e "\n${BOLD}${RED}⚠️  PERINGATAN KERAS! ⚠️${RESET}"
-          echo -e "Anda akan menghapus ${BOLD}SEMUA${RESET} container dan folder data di luar directory."
+          echo -e "Anda akan menghapus ${BOLD}SEMUA${RESET} container dan data."
           read -rp "Yakin? (y/n): " SURE
           if [[ "$SURE" == "y" || "$SURE" == "Y" ]]; then
               for file in "${files[@]}"; do
@@ -216,58 +206,51 @@ EOF
 
     6)
       clear
-      echo -e "${BOLD}${CYAN}🔄 Setup Auto Start VPS (.bashrc)${RESET}"
+      echo -e "${BOLD}${CYAN}🔄 Setup Auto Start VPS (Universal)${RESET}"
       
-      files=(*.sh)
-      if [ ! -e "${files[0]}" ]; then
-          echo -e "${RED}Tidak ada file script (.sh) ditemukan!${RESET}"
-          read -rp "Enter untuk kembali..."
-          continue
-      fi
-
-      echo "Pilih Container untuk Auto Start:"
-      i=1
-      for file in "${files[@]}"; do
-          echo -e "${YELLOW}$i)${RESET} $file"
-          ((i++))
-      done
-      
-      echo ""
-      read -rp "Pilih Nomor: " NUM
-      
-      if [[ "$NUM" =~ ^[0-9]+$ ]] && [ "$NUM" -ge 1 ] && [ "$NUM" -le "${#files[@]}" ]; then
-          START_FILE="${files[$((NUM-1))]}"
-          CONTAINER_NAME=$(basename "$START_FILE" .sh)
+      # Cek apakah sudah ada settingan universal ini di bashrc
+      if grep -q "PENGATURAN AUTO START VPS" ~/.bashrc; then
+          echo -e "${YELLOW}Auto start sudah terpasang.${RESET}"
+          echo "Script ini sudah otomatis/universal. Tidak perlu dipasang ulang walau ganti OS."
+      else
+          # Ambil lokasi folder script saat ini
+          CURRENT_DIR=$(pwd)
           
-          if grep -q "PENGATURAN AUTO START VPS" ~/.bashrc; then
-              echo -e "${YELLOW}Settingan autostart sudah ada. Hapus manual dulu atau gunakan Menu 4 (Hapus) untuk reset.${RESET}"
-          else
-              # Inject logic
-              cat <<EOF >> ~/.bashrc
+          # Inject Logic Universal ke .bashrc
+          # Script ini akan mencari file .sh apapun yang ada di folder ini saat login
+          cat <<EOF >> ~/.bashrc
 
 # === PENGATURAN AUTO START VPS ===
-# Cek apakah container $CONTAINER_NAME sudah jalan
-if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-    echo -e "\033[1;33m⚠️  Container ${CONTAINER_NAME} sedang berjalan!\033[0m"
-    read -rp "Matikan container dan masuk ulang? (y/n): " YN
-    if [[ "\$YN" == "y" || "\$YN" == "Y" ]]; then
-        echo -e "\033[1;31m⏹️  Mematikan container...\033[0m"
-        docker stop ${CONTAINER_NAME}
-        echo -e "\033[1;32m🚀 Memulai ulang...\033[0m"
-        bash ./${START_FILE}
+# Variable lokasi script manager (Otomatis)
+VPS_MANAGER_DIR="$CURRENT_DIR"
+
+# Cari file .sh pertama yang ditemukan di folder tersebut (Universal)
+TARGET_FILE=\$(ls "\$VPS_MANAGER_DIR"/*.sh 2>/dev/null | head -n 1)
+
+if [ -f "\$TARGET_FILE" ]; then
+    CONTAINER_NAME=\$(basename "\$TARGET_FILE" .sh)
+
+    # Cek apakah container sudah jalan
+    if docker ps --format '{{.Names}}' | grep -q "^\${CONTAINER_NAME}\$"; then
+        echo -e "\033[1;33m⚠️  Container \${CONTAINER_NAME} sedang berjalan!\033[0m"
+        read -rp "Matikan container dan masuk ulang? (y/n): " YN
+        if [[ "\$YN" == "y" || "\$YN" == "Y" ]]; then
+            echo -e "\033[1;31m⏹️  Mematikan container...\033[0m"
+            docker stop \${CONTAINER_NAME}
+            echo -e "\033[1;32m🚀 Memulai ulang...\033[0m"
+            bash "\$TARGET_FILE"
+        else
+            echo "Oke, tetap di terminal host."
+        fi
     else
-        echo "Oke, tetap di terminal host."
+        # Jika container mati, langsung jalankan tanpa tanya
+        bash "\$TARGET_FILE"
     fi
-else
-    # Jika container mati, langsung jalankan
-    bash ./${START_FILE}
 fi
 # =================================
 EOF
-              echo -e "${GREEN}Sukses!${RESET} Auto Start aktif untuk $CONTAINER_NAME."
-          fi
-      else
-          echo -e "${RED}Nomor tidak valid!${RESET}"
+          echo -e "${GREEN}Sukses!${RESET} Auto Start Universal telah dipasang."
+          echo -e "Sekarang .bashrc akan otomatis mendeteksi script .sh yang kamu punya."
       fi
       read -rp "Enter untuk kembali..." 
       ;;
