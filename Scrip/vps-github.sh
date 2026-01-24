@@ -66,7 +66,7 @@ while true; do
   echo -e "${YELLOW}3)${RESET} 🔄 Reconnect ke Sesi Terakhir"
   echo -e "${YELLOW}4)${RESET} ⏹️  Stop Container"
   echo -e "${YELLOW}5)${RESET} 🗑️  Hapus Container & Data (BERSIH)"
-  echo -e "${YELLOW}6)${RESET} ⚡ Pasang Auto-Start (.bashrc)"
+  echo -e "${YELLOW}6)${RESET} ⚡ Pasang Auto-Start"
   echo -e "${YELLOW}0)${RESET} ❌ Keluar"
   echo
   read -rp "Pilih opsi (0-6): " MENU
