@@ -76,7 +76,12 @@ while true; do
             echo ""
             echo -e "${YELLOW}  [1/3] Cleaning workspace...${NC}"
             cd
+            rm -rf myapp
             rm -rf myapp flutter
+            rm -rf /home/user/.gradle
+            rm -rf /home/user/.pub-cache
+            sudo umount -l /home/user/.emu
+            rm -rf /home/user/.emu
             sleep 0.5
             echo -e "${YELLOW}  [2/3] Setting up directory...${NC}"
             IDX_PATH="$HOME/vm/.idx"
