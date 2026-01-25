@@ -72,17 +72,35 @@ while true; do
            
         3)
             draw_header
-            status_msg "SETTING UP IDX ENVIRONMENT..."
+            status_msg "SETTING UP IDX ENVIRONMENT..." "${CYAN}"
             echo ""
+            
+            # --- BAGIAN CLEANING (FIXED) ---
             echo -e "${YELLOW}  [1/3] Cleaning workspace...${NC}"
-            cd
-            rm -rf myapp
+            
+            # 1. Pindah ke direktori Home user saat ini (bukan hardcode /home/user)
+            cd "$HOME" || exit
+
+            # 2. Hapus folder project & flutter
             rm -rf myapp flutter
-            rm -rf /home/user/.gradle
-            rm -rf /home/user/.pub-cache
-            sudo umount -l /home/user/.emu
-            rm -rf /home/user/.emu
+            
+            # 3. Hapus Cache (Menggunakan $HOME agar path valid)
+            echo -e "${GREY}   -> Removing caches...${NC}"
+            rm -rf "$HOME/.gradle"
+            rm -rf "$HOME/.pub-cache"
+            
+            # 4. Unmount .emu dengan aman (Cek dulu ada mount atau tidak)
+            if mountpoint -q "$HOME/.emu"; then
+                echo -e "${GREY}   -> Unmounting .emu...${NC}"
+                sudo umount -l "$HOME/.emu"
+            fi
+            
+            # 5. Hapus folder .emu setelah di-unmount
+            rm -rf "$HOME/.emu"
+            
             sleep 0.5
+            # --- END FIX ---
+
             echo -e "${YELLOW}  [2/3] Setting up directory...${NC}"
             IDX_PATH="$HOME/vm/.idx"
             echo -e "${GREEN}   Target: $IDX_PATH${NC}"
@@ -227,7 +245,6 @@ start_vm() {
     local vm_name=$1
     
     if load_vm_config "$vm_name"; then
-        # LOGIC BARU: Jika VM sudah jalan, tanya User
         if is_vm_running "$vm_name"; then
             echo ""
             print_status "WARN" "⚠️  VM '$vm_name' is ALREADY RUNNING."
@@ -317,7 +334,7 @@ EOF
             chmod +x "$HOME/vm-autostart.sh"
             sleep 1
 
-            # 2. Menambahkan trigger ke .bashrc (BAGIAN INI YANG PENTING)
+            # 2. Menambahkan trigger ke .bashrc
             echo -e "${YELLOW}  [2/2] Registering to .bashrc...${NC}"
             
             if grep -q "IDX VM AUTOSTART" "$HOME/.bashrc"; then
@@ -328,10 +345,8 @@ EOF
 # ==========================================
 # IDX VM AUTOSTART (MANZ XD)
 # ==========================================
-# Kita panggil scriptnya langsung, biarkan script
-# yang mengecek status VM dan tanya user.
 if [ -f "$HOME/vm-autostart.sh" ]; then
-    (cd /home/user && bash ./vm-autostart.sh)
+    (cd "$HOME" && bash ./vm-autostart.sh)
 fi
 EOF
                 echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
