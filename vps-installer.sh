@@ -72,14 +72,49 @@ while true; do
            
         3)
             draw_header
-            status_msg "SETTING UP IDX ENVIRONMENT..."
+            status_msg "SETTING UP IDX ENVIRONMENT..." "${CYAN}"
             echo ""
+            
+            # --- START CLEANING (SIMPLE UMOUNT) ---
             echo -e "${YELLOW}  [1/3] Cleaning workspace...${NC}"
-            cd
-            rm -rf myapp flutter
-            sleep 0.5
+            
+            # 1. Kill proses pengganggu
+            echo -e "${GREY}   -> Stopping background processes...${NC}"
+            pkill -f gradle 2>/dev/null
+            pkill -f flutter 2>/dev/null
+            pkill -f dart 2>/dev/null
+            pkill -f qemu 2>/dev/null
+            pkill -f androidsdkroot 2>/dev/null
+            # 2. Jeda Wajib (Biar lock lepas)
+            echo -e "${GREY}   -> Waiting 3s...${NC}"
+            sleep 3
+            
+            # 3. Pindah folder & Hapus Cache
+            cd /home/user || exit
+            
+            echo -e "${GREY}   -> Removing caches...${NC}"
+            rm -rf /home/user/.gradle
+            rm -rf /home/user/.pub-cache
+            rm -rf /home/user/myapp
+            rm -rf /home/user/flutter
+            
+            # 4. HANDLE .EMU (SIMPLE UMOUNT)
+            # Langsung unmount paksa tanpa cek kondisi
+            echo -e "${GREY}   -> Unmounting .emu...${NC}"
+            sudo umount -l /home/user/.emu 2>/dev/null
+            sudo umount -l /home/user/.androidsdkroot 2>/dev/null
+            
+            # Hapus folder .emu (Error disembunyikan kalau masih busy)
+            rm -rf /home/user/.emu 2>/dev/null
+            rm -rf /home/user/.androidsdkroot 2>/dev/null
+            
+            
+            echo -e "${GREEN}   ✅ Workspace Cleaned.${NC}"
+            sleep 1
+            # --- END CLEANING ---
+
             echo -e "${YELLOW}  [2/3] Setting up directory...${NC}"
-            IDX_PATH="$HOME/vm/.idx"
+            IDX_PATH="/home/user/vm/.idx"
             echo -e "${GREEN}   Target: $IDX_PATH${NC}"
             mkdir -p "$IDX_PATH"
             cd "$IDX_PATH"
@@ -222,7 +257,6 @@ start_vm() {
     local vm_name=$1
     
     if load_vm_config "$vm_name"; then
-        # LOGIC BARU: Jika VM sudah jalan, tanya User
         if is_vm_running "$vm_name"; then
             echo ""
             print_status "WARN" "⚠️  VM '$vm_name' is ALREADY RUNNING."
@@ -312,7 +346,7 @@ EOF
             chmod +x "$HOME/vm-autostart.sh"
             sleep 1
 
-            # 2. Menambahkan trigger ke .bashrc (BAGIAN INI YANG PENTING)
+            # 2. Menambahkan trigger ke .bashrc
             echo -e "${YELLOW}  [2/2] Registering to .bashrc...${NC}"
             
             if grep -q "IDX VM AUTOSTART" "$HOME/.bashrc"; then
@@ -323,10 +357,8 @@ EOF
 # ==========================================
 # IDX VM AUTOSTART (MANZ XD)
 # ==========================================
-# Kita panggil scriptnya langsung, biarkan script
-# yang mengecek status VM dan tanya user.
 if [ -f "$HOME/vm-autostart.sh" ]; then
-    (cd /home/user && bash ./vm-autostart.sh)
+    (cd "$HOME" && bash ./vm-autostart.sh)
 fi
 EOF
                 echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
