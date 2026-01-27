@@ -98,7 +98,7 @@ if [ "$SISTEM" == "1" ]; then
     YAML_FILE="windows${VERSION}.yml"  
 
 cat > $YAML_FILE <<EOL
-version: "3.8"
+version: "3.3"
 services:
   windows:
     image: manz4vps/windows
