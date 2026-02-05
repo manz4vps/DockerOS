@@ -49,7 +49,7 @@ line
 
 # ---------------- START ----------------
 banner
-read -p "🌐 Enter domain (panel.example.com): " DOMAIN
+read -p " 🌐 Enter domain (panel.example.com): " DOMAIN
 
 # --- Dependencies ---
 clear
