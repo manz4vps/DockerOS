@@ -42,15 +42,14 @@ cat << "EOF"
         PTERODACTYL PANEL INSTALLER
 EOF
 echo -e "${C_RESET}"
-line
-echo -e "${C_GREEN}⚡ Auto-Detect: Ubuntu Jammy / Noble${C_RESET}"
+line"
 echo -e "${C_PURPLE}🧠 Fixed by ManzXD Helper${C_RESET}"
 line
 }
 
 # ---------------- START ----------------
 banner
-read -p "🌐 Enter domain (panel.example.com): " DOMAIN
+read -p " 🌐 Enter domain (panel.example.com): " DOMAIN
 
 # --- Dependencies ---
 clear
