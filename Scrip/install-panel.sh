@@ -42,7 +42,7 @@ cat << "EOF"
         PTERODACTYL PANEL INSTALLER
 EOF
 echo -e "${C_RESET}"
-line"
+line
 echo -e "${C_PURPLE}🧠 Fixed by ManzXD Helper${C_RESET}"
 line
 }
