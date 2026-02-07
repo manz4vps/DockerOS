@@ -861,16 +861,15 @@ declare -A OS_OPTIONS=(
 
 # Defined Order for Menu Display (Agar urut sesuai request)
 OS_ORDER=(
-    "Ubuntu 25.04    \033[0;32m|261MB"
-    "Ubuntu 24.04    \033[0;32m|248MB"
-    "Ubuntu 22.04    \033[0;32m|294MB"
-    "Debian 13       \033[0;32m|322MB"
-    "Debian 12       \033[0;32m|323MB"
-    "Debian 11       \033[0;32m|252MB"
-    "CentOS Stream 9 \033[0;32m|1.4GB"
-    "Fedora 43       \033[0;32m|556MB"
-    "AlmaLinux 9     \033[0;32m|514MB"
-    "Rocky Linux 9   \033[0;32m|618MB"
+    "Ubuntu 24.04 Minimal \033[1;33m| ~350MB\033[0m"
+    "Ubuntu 22.04 Minimal \033[1;33m| ~300MB\033[0m"
+    "Debian 12 (Bookworm) \033[1;33m| ~280MB\033[0m"
+    "AlmaLinux 9 Minimal  \033[1;33m| ~560MB\033[0m"
+    "Rocky Linux 9 Minimal\033[1;33m| ~560MB\033[0m"
+    "CentOS Stream 9      \033[1;33m| ~600MB\033[0m"
+    "Ubuntu 25.04 Minimal \033[1;33m| ~260MB\033[0m"
+    "Debian 13 (Trixie)   \033[1;33m| ~250MB\033[0m"
+    "Debian 11 (Bullseye) \033[1;33m| ~250MB\033[0m"
 )
 
 # Start the main menu
