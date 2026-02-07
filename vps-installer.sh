@@ -50,7 +50,7 @@ while true; do
     echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                              ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -ne "${YELLOW}  Select Option [0-4]: ${NC}"
+    echo -ne "${YELLOW}  Select Option [0-5]: ${NC}"
     read selection
 
     case $selection in
