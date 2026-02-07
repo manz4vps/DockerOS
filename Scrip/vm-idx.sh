@@ -847,30 +847,30 @@ mkdir -p "$VM_DIR"
 
 # Supported OS Configuration (Data Storage)
 declare -A OS_OPTIONS=(
-    ["Ubuntu 25.04"]="ubuntu|plucky|https://cloud-images.ubuntu.com/minimal/daily/plucky/current/plucky-minimal-cloudimg-amd64.img|ubuntu25|ubuntu|ubuntu"
-    ["Ubuntu 24.04"]="ubuntu|noble|https://cloud-images.ubuntu.com/minimal/releases/noble/current/ubuntu-24.04-minimal-cloudimg-amd64.img|ubuntu24|ubuntu|ubuntu"
-    ["Ubuntu 22.04"]="ubuntu|jammy|https://cloud-images.ubuntu.com/minimal/releases/jammy/current/ubuntu-22.04-minimal-cloudimg-amd64.img|ubuntu22|ubuntu|ubuntu"
-    ["Debian 13 (Trixie)"]="debian|trixie|https://cloud.debian.org/images/cloud/trixie/daily/debian-13-genericcloud-amd64-daily.qcow2|debian13|debian|debian"
-    ["Debian 12 (Bookworm)"]="debian|bookworm|https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2|debian12|debian|debian"
-    ["Debian 11 (Bullseye)"]="debian|bullseye|https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-genericcloud-amd64.qcow2|debian11|debian|debian"
-    ["Fedora 40"]="fedora|40|https://download.fedoraproject.org/pub/fedora/linux/releases/40/Cloud/x86_64/images/Fedora-Cloud-Base-40-1.14.x86_64.qcow2|fedora40|fedora|fedora"
+    ["Ubuntu 25.04"]="ubuntu|plucky|https://cloud-images.ubuntu.com/minimal/daily/plucky/relese/plucky-minimal-cloudimg-amd64.img|ubuntu25|ubuntu|ubuntu"
+    ["Ubuntu 24.04"]="ubuntu|noble|https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img|ubuntu24|ubuntu|ubuntu"
+    ["Ubuntu 22.04"]="ubuntu|jammy|https://cloud-images.ubuntu.com/minimal/releases/jammy/release/ubuntu-22.04-minimal-cloudimg-amd64.img|ubuntu22|ubuntu|ubuntu"
+    ["Debian 13 "]="debian|trixie|https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-genericcloud-arm64-daily.qcow2|debian13|debian|debian"
+    ["Debian 12 "]="debian|bookworm|https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-genericcloud-arm64-daily.tar.xz|debian12|debian|debian"
+    ["Debian 11 "]="debian|bullseye|https://cloud.debian.org/images/cloud/bullseye/daily/latest/debian-11-genericcloud-arm64-daily.qcow2|debian|debian"
+    ["Fedora 40"]="fedora|43|https://ftp.yz.yamagata-u.ac.jp/pub/linux/fedora-projects/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2|fedora43|fedora|fedora"
     ["CentOS Stream 9"]="centos|stream9|https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2|centos9|centos|centos"
-    ["AlmaLinux 9"]="almalinux|9|https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2|almalinux9|alma|alma"
+    ["AlmaLinux 9"]="almalinux|9|https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-OpenNebula-latest.x86_64.qcow2|almalinux9|alma|alma"
     ["Rocky Linux 9"]="rockylinux|9|https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2|rocky9|rocky|rocky"
 )
 
 # Defined Order for Menu Display (Agar urut sesuai request)
 OS_ORDER=(
-    "Ubuntu 25.04"
-    "Ubuntu 24.04"
-    "Ubuntu 22.04"
-    "Debian 13"
-    "Debian 12"
-    "Debian 11"
-    "CentOS Stream 9"
-    "Fedora 40"
-    "AlmaLinux 9"
-    "Rocky Linux 9"
+    "Ubuntu 25.04 |261MB"
+    "Ubuntu 24.04 |248MB"
+    "Ubuntu 22.04 |294MB"
+    "Debian 13 |322MB"
+    "Debian 12 |323MB"
+    "Debian 11 |252MB"
+    "CentOS Stream 9 |1.4GB"
+    "Fedora 43 |556MB"
+    "AlmaLinux 9 |514MB"
+    "Rocky Linux 9 |618MB"
 )
 
 # Start the main menu
