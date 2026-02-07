@@ -204,7 +204,7 @@ while true; do
     echo -e "${CYAN} │${NC}  ${GREEN}[2]${NC} Create User       ${GRAY}:: (Add Admin/User)${NC}        ${CYAN}│${NC}"
     echo -e "${CYAN} │${NC}  ${YELLOW}[3]${NC} Update Panel      ${GRAY}:: (Latest Release)${NC}        ${CYAN}│${NC}"
     echo -e "${CYAN} │${NC}  ${RED}[4]${NC} Uninstall Panel   ${GRAY}:: (Remove Data)${NC}           ${CYAN}│${NC}"
-    echo -e "${CYAN} |${NC}  ${GREEN}[5]${NC} Install Panel2    ${GRAY}:: (Panel With Theme)${NC}      ${CYAN}|${NC}"
+    echo -e "${CYAN} |${NC}  ${GREEN}[5]${NC} Install FeatherPanel    ${GRAY}:: (Panel With Theme)${NC}${CYAN}|${NC}"
     echo -e "${CYAN} │${NC}                                                       ${CYAN}│${NC}"
     echo -e "${CYAN} │${NC}  ${WHITE}[0] Exit System${NC}                                   ${CYAN}│${NC}"
     echo -e "${CYAN} └───────────────────────────────────────────────────────┘${NC}"
