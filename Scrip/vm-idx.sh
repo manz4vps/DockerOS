@@ -6,7 +6,6 @@ set -euo pipefail
 # =============================
 
 # --- COLOR DEFINITIONS ---
-# Mendefinisikan kode warna ANSI untuk header
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -16,7 +15,7 @@ CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m' # No Color (Reset)
 
-# Function to display header (Now COLORFUL)
+# Function to display header
 display_header() {
     clear
     echo -e "${BLUE}  ╔══════════════════════════════════════╗${NC}"
@@ -46,16 +45,11 @@ check_image_lock() {
     local img_file=$1
     local vm_name=$2
     
-    # Check if QEMU is already using this image
     if lsof "$img_file" 2>/dev/null | grep -q qemu-system; then
         print_status "WARN" "🔒 Image file $img_file is already in use by another QEMU process"
-        
-        # Find the process ID
         local pid=$(lsof "$img_file" 2>/dev/null | grep qemu-system | awk '{print $2}' | head -1)
         if [[ -n "$pid" ]]; then
             print_status "INFO" "🔍 Process ID using the image: $pid"
-            
-            # Check if it's our own VM
             if ps -p "$pid" -o cmd= | grep -q "$vm_name"; then
                 print_status "INFO" "🤔 This appears to be the same VM already running"
                 read -p "$(print_status "INPUT" "🔄 Kill existing process and restart? (y/N): ")" kill_choice
@@ -78,12 +72,9 @@ check_image_lock() {
         return 1
     fi
     
-    # Check for lock files
     local lock_file="${img_file}.lock"
     if [[ -f "$lock_file" ]]; then
         print_status "WARN" "🔒 Lock file found: $lock_file"
-        
-        # Check if lock file is stale (older than 5 minutes)
         if [[ $(find "$lock_file" -mmin +5 2>/dev/null) ]]; then
             print_status "WARN" "⏰ Lock file appears stale (older than 5 minutes)"
             read -p "$(print_status "INPUT" "🗑️  Remove stale lock file? (y/N): ")" remove_lock
@@ -104,7 +95,6 @@ check_image_lock() {
 validate_input() {
     local type=$1
     local value=$2
-    
     case $type in
         "number")
             if ! [[ "$value" =~ ^[0-9]+$ ]]; then
@@ -144,13 +134,11 @@ validate_input() {
 check_dependencies() {
     local deps=("qemu-system-x86_64" "wget" "cloud-localds" "qemu-img" "lsof")
     local missing_deps=()
-    
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
             missing_deps+=("$dep")
         fi
     done
-    
     if [ ${#missing_deps[@]} -ne 0 ]; then
         print_status "ERROR" "🔧 Missing dependencies: ${missing_deps[*]}"
         print_status "INFO" "💡 On Ubuntu/Debian, try: sudo apt install qemu-system cloud-image-utils wget lsof"
@@ -173,12 +161,9 @@ get_vm_list() {
 load_vm_config() {
     local vm_name=$1
     local config_file="$VM_DIR/$vm_name.conf"
-    
     if [[ -f "$config_file" ]]; then
-        # Clear previous variables
         unset VM_NAME OS_TYPE CODENAME IMG_URL HOSTNAME USERNAME PASSWORD
         unset DISK_SIZE MEMORY CPUS SSH_PORT GUI_MODE PORT_FORWARDS IMG_FILE SEED_FILE CREATED
-        
         source "$config_file"
         return 0
     else
@@ -190,7 +175,6 @@ load_vm_config() {
 # Function to save VM configuration
 save_vm_config() {
     local config_file="$VM_DIR/$VM_NAME.conf"
-    
     cat > "$config_file" <<EOF
 VM_NAME="$VM_NAME"
 OS_TYPE="$OS_TYPE"
@@ -209,7 +193,6 @@ IMG_FILE="$IMG_FILE"
 SEED_FILE="$SEED_FILE"
 CREATED="$CREATED"
 EOF
-    
     print_status "SUCCESS" "💾 Configuration saved to $config_file"
 }
 
@@ -217,21 +200,23 @@ EOF
 create_new_vm() {
     print_status "INFO" "🆕 Creating a new VM"
     
-    # OS Selection
+    # OS Selection (Updated to use OS_ORDER for sorting)
     print_status "INFO" "🌍 Select an OS to set up:"
-    local os_options=()
+    
     local i=1
-    for os in "${!OS_OPTIONS[@]}"; do
+    for os in "${OS_ORDER[@]}"; do
         echo "  $i) $os"
-        os_options[$i]="$os"
         ((i++))
     done
     
     while true; do
-        read -p "$(print_status "INPUT" "🎯 Enter your choice (1-${#OS_OPTIONS[@]}): ")" choice
-        if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le ${#OS_OPTIONS[@]} ]; then
-            local os="${os_options[$choice]}"
-            IFS='|' read -r OS_TYPE CODENAME IMG_URL DEFAULT_HOSTNAME DEFAULT_USERNAME DEFAULT_PASSWORD <<< "${OS_OPTIONS[$os]}"
+        read -p "$(print_status "INPUT" "🎯 Enter your choice (1-${#OS_ORDER[@]}): ")" choice
+        if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le ${#OS_ORDER[@]} ]; then
+            # Get OS name from the ordered array using index (choice - 1)
+            local os_name="${OS_ORDER[$((choice-1))]}"
+            
+            # Fetch config data from the associative array using the name
+            IFS='|' read -r OS_TYPE CODENAME IMG_URL DEFAULT_HOSTNAME DEFAULT_USERNAME DEFAULT_PASSWORD <<< "${OS_OPTIONS[$os_name]}"
             break
         else
             print_status "ERROR" "❌ Invalid selection. Try again."
@@ -243,7 +228,6 @@ create_new_vm() {
         read -p "$(print_status "INPUT" "🏷️  Enter VM name (default: $DEFAULT_HOSTNAME): ")" VM_NAME
         VM_NAME="${VM_NAME:-$DEFAULT_HOSTNAME}"
         if validate_input "name" "$VM_NAME"; then
-            # Check if VM name already exists
             if [[ -f "$VM_DIR/$VM_NAME.conf" ]]; then
                 print_status "ERROR" "⚠️  VM with name '$VM_NAME' already exists"
             else
@@ -307,7 +291,6 @@ create_new_vm() {
         read -p "$(print_status "INPUT" "🔌 SSH Port (default: 2222): ")" SSH_PORT
         SSH_PORT="${SSH_PORT:-2222}"
         if validate_input "port" "$SSH_PORT"; then
-            # Check if port is already in use
             if ss -tln 2>/dev/null | grep -q ":$SSH_PORT "; then
                 print_status "ERROR" "🚫 Port $SSH_PORT is already in use"
             else
@@ -330,28 +313,21 @@ create_new_vm() {
         fi
     done
 
-    # Additional network options
     read -p "$(print_status "INPUT" "🌐 Additional port forwards (e.g., 8080:80, press Enter for none): ")" PORT_FORWARDS
 
     IMG_FILE="$VM_DIR/$VM_NAME.img"
     SEED_FILE="$VM_DIR/$VM_NAME-seed.iso"
     CREATED="$(date)"
 
-    # Download and setup VM image
     setup_vm_image
-    
-    # Save configuration
     save_vm_config
 }
 
 # Function to setup VM image
 setup_vm_image() {
     print_status "INFO" "📥 Downloading and preparing image..."
-    
-    # Create VM directory if it doesn't exist
     mkdir -p "$VM_DIR"
     
-    # Check if image already exists
     if [[ -f "$IMG_FILE" ]]; then
         print_status "INFO" "✅ Image file already exists. Skipping download."
     else
@@ -363,10 +339,8 @@ setup_vm_image() {
         mv "$IMG_FILE.tmp" "$IMG_FILE"
     fi
     
-    # Resize the disk image if needed
     if ! qemu-img resize "$IMG_FILE" "$DISK_SIZE" 2>/dev/null; then
         print_status "WARN" "⚠️  Failed to resize disk image. Creating new image with specified size..."
-        # Create a new image with the specified size
         rm -f "$IMG_FILE"
         qemu-img create -f qcow2 -F qcow2 -b "$IMG_FILE" "$IMG_FILE.tmp" "$DISK_SIZE" 2>/dev/null || \
         qemu-img create -f qcow2 "$IMG_FILE" "$DISK_SIZE"
@@ -375,7 +349,6 @@ setup_vm_image() {
         fi
     fi
 
-    # cloud-init configuration
     cat > user-data <<EOF
 #cloud-config
 hostname: $HOSTNAME
@@ -413,7 +386,6 @@ start_vm() {
     local vm_name=$1
     
     if load_vm_config "$vm_name"; then
-        # Check if image is already in use
         if ! check_image_lock "$IMG_FILE" "$vm_name"; then
             print_status "ERROR" "🔒 Cannot start VM: Image file is locked by another process"
             read -p "$(print_status "INPUT" "🔄 Do you want to force kill all QEMU processes using this image? (y/N): ")" force_kill
@@ -424,14 +396,12 @@ start_vm() {
                     pkill -9 -f "qemu-system.*$IMG_FILE"
                 fi
                 print_status "SUCCESS" "✅ Terminated processes using the image"
-                # Remove any lock files
                 rm -f "${IMG_FILE}.lock" 2>/dev/null
             else
                 return 1
             fi
         fi
         
-        # Check if VM is already running
         if is_vm_running "$vm_name"; then
             print_status "WARN" "⚠️  VM '$vm_name' is already running"
             read -p "$(print_status "INPUT" "🔄 Stop and restart? (y/N): ")" restart_choice
@@ -447,19 +417,16 @@ start_vm() {
         print_status "INFO" "🔌 SSH: ssh -p $SSH_PORT $USERNAME@localhost"
         print_status "INFO" "🔑 Password: $PASSWORD"
         
-        # Check if image file exists
         if [[ ! -f "$IMG_FILE" ]]; then
             print_status "ERROR" "❌ VM image file not found: $IMG_FILE"
             return 1
         fi
         
-        # Check if seed file exists
         if [[ ! -f "$SEED_FILE" ]]; then
             print_status "WARN" "⚠️  Seed file not found, recreating..."
             setup_vm_image
         fi
         
-        # Base QEMU command
         local qemu_cmd=(
             qemu-system-x86_64
             -enable-kvm
@@ -473,7 +440,6 @@ start_vm() {
             -netdev "user,id=n0,hostfwd=tcp::$SSH_PORT-:22"
         )
 
-        # Add port forwards if specified
         if [[ -n "$PORT_FORWARDS" ]]; then
             IFS=',' read -ra forwards <<< "$PORT_FORWARDS"
             for forward in "${forwards[@]}"; do
@@ -483,7 +449,6 @@ start_vm() {
             done
         fi
 
-        # Add GUI or console mode
         if [[ "$GUI_MODE" == true ]]; then
             qemu_cmd+=(-vga virtio -display gtk,gl=on)
             print_status "INFO" "🖥️  Starting in GUI mode..."
@@ -493,7 +458,6 @@ start_vm() {
             print_status "INFO" "🛑 Press Ctrl+A then X to exit QEMU console"
         fi
 
-        # Add performance enhancements
         qemu_cmd+=(
             -device virtio-balloon-pci
             -object rng-random,filename=/dev/urandom,id=rng0
@@ -503,10 +467,8 @@ start_vm() {
         print_status "INFO" "⚡ Starting QEMU..."
         echo "📊 Configuration: ${MEMORY}MB RAM, ${CPUS} CPUs, ${DISK_SIZE} disk"
         
-        # Start the VM
         if ! "${qemu_cmd[@]}"; then
             print_status "ERROR" "❌ Failed to start VM. There might be a problem with the image file or configuration."
-            # Try to clean up lock files
             rm -f "${IMG_FILE}.lock" 2>/dev/null
             return 1
         fi
@@ -518,19 +480,16 @@ start_vm() {
 # Function to delete a VM
 delete_vm() {
     local vm_name=$1
-    
     print_status "WARN" "⚠️  ⚠️  ⚠️  This will permanently delete VM '$vm_name' and all its data!"
     read -p "$(print_status "INPUT" "🗑️  Are you sure? (y/N): ")" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         if load_vm_config "$vm_name"; then
-            # Check if VM is running
             if is_vm_running "$vm_name"; then
                 print_status "WARN" "⚠️  VM is currently running. Stopping it first..."
                 stop_vm "$vm_name"
                 sleep 2
             fi
-            
             rm -f "$IMG_FILE" "$SEED_FILE" "$VM_DIR/$vm_name.conf" "${IMG_FILE}.lock" 2>/dev/null
             print_status "SUCCESS" "✅ VM '$vm_name' has been deleted"
         fi
@@ -542,7 +501,6 @@ delete_vm() {
 # Function to show VM info
 show_vm_info() {
     local vm_name=$1
-    
     if load_vm_config "$vm_name"; then
         echo
         print_status "INFO" "📊 VM Information: $vm_name"
@@ -561,14 +519,12 @@ show_vm_info() {
         echo "💿 Image File: $IMG_FILE"
         echo "🌱 Seed File: $SEED_FILE"
         
-        # Show lock status
         if check_image_lock "$IMG_FILE" "$vm_name" >/dev/null 2>&1; then
             echo "🔓 Image Status: Unlocked"
         else
             echo "🔒 Image Status: Locked (possibly in use)"
         fi
         
-        # Show if VM is running
         if is_vm_running "$vm_name"; then
             echo "🚀 Status: Running"
         else
@@ -584,44 +540,27 @@ show_vm_info() {
 # Function to check if VM is running
 is_vm_running() {
     local vm_name=$1
-    
-    # First try to find by image file
-    if pgrep -f "qemu-system.*$vm_name" >/dev/null; then
-        return 0
-    fi
-    
-    # Also check by image file path
+    if pgrep -f "qemu-system.*$vm_name" >/dev/null; then return 0; fi
     if load_vm_config "$vm_name" 2>/dev/null; then
-        if pgrep -f "qemu-system.*$IMG_FILE" >/dev/null; then
-            return 0
-        fi
+        if pgrep -f "qemu-system.*$IMG_FILE" >/dev/null; then return 0; fi
     fi
-    
     return 1
 }
 
 # Function to stop a running VM
 stop_vm() {
     local vm_name=$1
-    
     if load_vm_config "$vm_name"; then
         if is_vm_running "$vm_name"; then
             print_status "INFO" "🛑 Stopping VM: $vm_name"
-            
-            # Try graceful shutdown first
             pkill -f "qemu-system.*$IMG_FILE"
             sleep 2
-            
-            # Check if it stopped
             if is_vm_running "$vm_name"; then
                 print_status "WARN" "⚠️  VM did not stop gracefully, forcing termination..."
                 pkill -9 -f "qemu-system.*$IMG_FILE"
                 sleep 1
             fi
-            
-            # Clean up lock files
             rm -f "${IMG_FILE}.lock" 2>/dev/null
-            
             if is_vm_running "$vm_name"; then
                 print_status "ERROR" "❌ Failed to stop VM"
                 return 1
@@ -630,7 +569,6 @@ stop_vm() {
             fi
         else
             print_status "INFO" "💤 VM $vm_name is not running"
-            # Still try to clean up any lock files
             rm -f "${IMG_FILE}.lock" 2>/dev/null
         fi
     fi
@@ -639,10 +577,8 @@ stop_vm() {
 # Function to edit VM configuration
 edit_vm_config() {
     local vm_name=$1
-    
     if load_vm_config "$vm_name"; then
         print_status "INFO" "✏️  Editing VM: $vm_name"
-        
         while true; do
             echo "📝 What would you like to edit?"
             echo "  1) 🏷️  Hostname"
@@ -663,124 +599,74 @@ edit_vm_config() {
                     while true; do
                         read -p "$(print_status "INPUT" "🏷️  Enter new hostname (current: $HOSTNAME): ")" new_hostname
                         new_hostname="${new_hostname:-$HOSTNAME}"
-                        if validate_input "name" "$new_hostname"; then
-                            HOSTNAME="$new_hostname"
-                            break
-                        fi
-                    done
-                    ;;
+                        if validate_input "name" "$new_hostname"; then HOSTNAME="$new_hostname"; break; fi
+                    done ;;
                 2)
                     while true; do
                         read -p "$(print_status "INPUT" "👤 Enter new username (current: $USERNAME): ")" new_username
                         new_username="${new_username:-$USERNAME}"
-                        if validate_input "username" "$new_username"; then
-                            USERNAME="$new_username"
-                            break
-                        fi
-                    done
-                    ;;
+                        if validate_input "username" "$new_username"; then USERNAME="$new_username"; break; fi
+                    done ;;
                 3)
                     while true; do
                         read -s -p "$(print_status "INPUT" "🔑 Enter new password (current: ****): ")" new_password
                         new_password="${new_password:-$PASSWORD}"
                         echo
-                        if [ -n "$new_password" ]; then
-                            PASSWORD="$new_password"
-                            break
-                        else
-                            print_status "ERROR" "❌ Password cannot be empty"
-                        fi
-                    done
-                    ;;
+                        if [ -n "$new_password" ]; then PASSWORD="$new_password"; break;
+                        else print_status "ERROR" "❌ Password cannot be empty"; fi
+                    done ;;
                 4)
                     while true; do
                         read -p "$(print_status "INPUT" "🔌 Enter new SSH port (current: $SSH_PORT): ")" new_ssh_port
                         new_ssh_port="${new_ssh_port:-$SSH_PORT}"
                         if validate_input "port" "$new_ssh_port"; then
-                            # Check if port is already in use
                             if [ "$new_ssh_port" != "$SSH_PORT" ] && ss -tln 2>/dev/null | grep -q ":$new_ssh_port "; then
                                 print_status "ERROR" "🚫 Port $new_ssh_port is already in use"
-                            else
-                                SSH_PORT="$new_ssh_port"
-                                break
-                            fi
+                            else SSH_PORT="$new_ssh_port"; break; fi
                         fi
-                    done
-                    ;;
+                    done ;;
                 5)
                     while true; do
                         read -p "$(print_status "INPUT" "🖥️  Enable GUI mode? (y/n, current: $GUI_MODE): ")" gui_input
                         gui_input="${gui_input:-}"
-                        if [[ "$gui_input" =~ ^[Yy]$ ]]; then 
-                            GUI_MODE=true
-                            break
-                        elif [[ "$gui_input" =~ ^[Nn]$ ]]; then
-                            GUI_MODE=false
-                            break
-                        elif [ -z "$gui_input" ]; then
-                            # Keep current value if user just pressed Enter
-                            break
-                        else
-                            print_status "ERROR" "❌ Please answer y or n"
-                        fi
-                    done
-                    ;;
+                        if [[ "$gui_input" =~ ^[Yy]$ ]]; then GUI_MODE=true; break;
+                        elif [[ "$gui_input" =~ ^[Nn]$ ]]; then GUI_MODE=false; break;
+                        elif [ -z "$gui_input" ]; then break;
+                        else print_status "ERROR" "❌ Please answer y or n"; fi
+                    done ;;
                 6)
                     read -p "$(print_status "INPUT" "🌐 Additional port forwards (current: ${PORT_FORWARDS:-None}): ")" new_port_forwards
-                    PORT_FORWARDS="${new_port_forwards:-$PORT_FORWARDS}"
-                    ;;
+                    PORT_FORWARDS="${new_port_forwards:-$PORT_FORWARDS}" ;;
                 7)
                     while true; do
                         read -p "$(print_status "INPUT" "🧠 Enter new memory in MB (current: $MEMORY): ")" new_memory
                         new_memory="${new_memory:-$MEMORY}"
-                        if validate_input "number" "$new_memory"; then
-                            MEMORY="$new_memory"
-                            break
-                        fi
-                    done
-                    ;;
+                        if validate_input "number" "$new_memory"; then MEMORY="$new_memory"; break; fi
+                    done ;;
                 8)
                     while true; do
                         read -p "$(print_status "INPUT" "⚡ Enter new CPU count (current: $CPUS): ")" new_cpus
                         new_cpus="${new_cpus:-$CPUS}"
-                        if validate_input "number" "$new_cpus"; then
-                            CPUS="$new_cpus"
-                            break
-                        fi
-                    done
-                    ;;
+                        if validate_input "number" "$new_cpus"; then CPUS="$new_cpus"; break; fi
+                    done ;;
                 9)
                     while true; do
                         read -p "$(print_status "INPUT" "💾 Enter new disk size (current: $DISK_SIZE): ")" new_disk_size
                         new_disk_size="${new_disk_size:-$DISK_SIZE}"
-                        if validate_input "size" "$new_disk_size"; then
-                            DISK_SIZE="$new_disk_size"
-                            break
-                        fi
-                    done
-                    ;;
-                0)
-                    return 0
-                    ;;
-                *)
-                    print_status "ERROR" "❌ Invalid selection"
-                    continue
-                    ;;
+                        if validate_input "size" "$new_disk_size"; then DISK_SIZE="$new_disk_size"; break; fi
+                    done ;;
+                0) return 0 ;;
+                *) print_status "ERROR" "❌ Invalid selection"; continue ;;
             esac
             
-            # Recreate seed image with new configuration if user/password/hostname changed
             if [[ "$edit_choice" -eq 1 || "$edit_choice" -eq 2 || "$edit_choice" -eq 3 ]]; then
                 print_status "INFO" "🔄 Updating cloud-init configuration..."
                 setup_vm_image
             fi
             
-            # Save configuration
             save_vm_config
-            
             read -p "$(print_status "INPUT" "🔄 Continue editing? (y/N): ")" continue_editing
-            if [[ ! "$continue_editing" =~ ^[Yy]$ ]]; then
-                break
-            fi
+            if [[ ! "$continue_editing" =~ ^[Yy]$ ]]; then break; fi
         done
     fi
 }
@@ -788,16 +674,12 @@ edit_vm_config() {
 # Function to resize VM disk
 resize_vm_disk() {
     local vm_name=$1
-    
     if load_vm_config "$vm_name"; then
-        # Check if VM is running
         if is_vm_running "$vm_name"; then
             print_status "ERROR" "❌ Cannot resize disk while VM is running. Please stop the VM first."
             return 1
         fi
-        
         print_status "INFO" "💾 Current disk size: $DISK_SIZE"
-        
         while true; do
             read -p "$(print_status "INPUT" "📈 Enter new disk size (e.g., 50G): ")" new_disk_size
             if validate_input "size" "$new_disk_size"; then
@@ -806,30 +688,6 @@ resize_vm_disk() {
                     return 0
                 fi
                 
-                # Check if new size is smaller than current (not recommended)
-                local current_size_num=${DISK_SIZE%[GgMm]}
-                local new_size_num=${new_disk_size%[GgMm]}
-                local current_unit=${DISK_SIZE: -1}
-                local new_unit=${new_disk_size: -1}
-                
-                # Convert both to MB for comparison
-                if [[ "$current_unit" =~ [Gg] ]]; then
-                    current_size_num=$((current_size_num * 1024))
-                fi
-                if [[ "$new_unit" =~ [Gg] ]]; then
-                    new_size_num=$((new_size_num * 1024))
-                fi
-                
-                if [[ $new_size_num -lt $current_size_num ]]; then
-                    print_status "WARN" "⚠️  Shrinking disk size is not recommended and may cause data loss!"
-                    read -p "$(print_status "INPUT" "⚠️  Are you sure you want to continue? (y/N): ")" confirm_shrink
-                    if [[ ! "$confirm_shrink" =~ ^[Yy]$ ]]; then
-                        print_status "INFO" "👍 Disk resize cancelled."
-                        return 0
-                    fi
-                fi
-                
-                # Resize the disk
                 print_status "INFO" "📈 Resizing disk to $new_disk_size..."
                 if qemu-img resize "$IMG_FILE" "$new_disk_size"; then
                     DISK_SIZE="$new_disk_size"
@@ -848,26 +706,18 @@ resize_vm_disk() {
 # Function to show VM performance metrics
 show_vm_performance() {
     local vm_name=$1
-    
     if load_vm_config "$vm_name"; then
         if is_vm_running "$vm_name"; then
             print_status "INFO" "📊 Performance metrics for VM: $vm_name"
             echo "📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈"
-            
-            # Get QEMU process ID
             local qemu_pid=$(pgrep -f "qemu-system.*$IMG_FILE")
             if [[ -n "$qemu_pid" ]]; then
-                # Show process stats
                 echo "⚡ QEMU Process Stats:"
                 ps -p "$qemu_pid" -o pid,%cpu,%mem,sz,rss,vsz,cmd --no-headers
                 echo
-                
-                # Show memory usage
                 echo "🧠 Memory Usage:"
                 free -h
                 echo
-                
-                # Show disk usage
                 echo "💾 Disk Usage:"
                 df -h "$IMG_FILE" 2>/dev/null || du -h "$IMG_FILE"
             else
@@ -888,10 +738,8 @@ show_vm_performance() {
 # Function to fix VM issues
 fix_vm_issues() {
     local vm_name=$1
-    
     if load_vm_config "$vm_name"; then
         print_status "INFO" "🔧 Fixing issues for VM: $vm_name"
-        
         echo "🔧 Select issue to fix:"
         echo "  1) 🔓 Remove lock files"
         echo "  2) 🗑️  Recreate seed image"
@@ -900,27 +748,21 @@ fix_vm_issues() {
         echo "  0) ↩️  Back"
         
         read -p "$(print_status "INPUT" "🎯 Enter your choice: ")" fix_choice
-        
         case $fix_choice in
             1)
                 print_status "INFO" "🔓 Removing lock files..."
                 rm -f "${IMG_FILE}.lock" 2>/dev/null
                 rm -f "${IMG_FILE}"*.lock 2>/dev/null
-                print_status "SUCCESS" "✅ Lock files removed"
-                ;;
+                print_status "SUCCESS" "✅ Lock files removed" ;;
             2)
                 print_status "INFO" "🔄 Recreating seed image..."
-                if [[ -f "$SEED_FILE" ]]; then
-                    rm -f "$SEED_FILE"
-                fi
+                if [[ -f "$SEED_FILE" ]]; then rm -f "$SEED_FILE"; fi
                 setup_vm_image
-                print_status "SUCCESS" "✅ Seed image recreated"
-                ;;
+                print_status "SUCCESS" "✅ Seed image recreated" ;;
             3)
                 print_status "INFO" "🔄 Recreating configuration..."
                 save_vm_config
-                print_status "SUCCESS" "✅ Configuration recreated"
-                ;;
+                print_status "SUCCESS" "✅ Configuration recreated" ;;
             4)
                 print_status "INFO" "💀 Killing stuck processes..."
                 pkill -f "qemu-system.*$IMG_FILE" 2>/dev/null
@@ -930,14 +772,9 @@ fix_vm_issues() {
                     print_status "SUCCESS" "✅ Forcefully killed stuck processes"
                 else
                     print_status "INFO" "💤 No stuck processes found"
-                fi
-                ;;
-            0)
-                return 0
-                ;;
-            *)
-                print_status "ERROR" "❌ Invalid selection"
-                ;;
+                fi ;;
+            0) return 0 ;;
+            *) print_status "ERROR" "❌ Invalid selection" ;;
         esac
     fi
 }
@@ -946,7 +783,6 @@ fix_vm_issues() {
 main_menu() {
     while true; do
         display_header
-        
         local vms=($(get_vm_list))
         local vm_count=${#vms[@]}
         
@@ -954,9 +790,7 @@ main_menu() {
             print_status "INFO" "📁 Found $vm_count existing VM(s):"
             for i in "${!vms[@]}"; do
                 local status="💤"
-                if is_vm_running "${vms[$i]}"; then
-                    status="🚀"
-                fi
+                if is_vm_running "${vms[$i]}"; then status="🚀"; fi
                 printf "  %2d) %s %s\n" $((i+1)) "${vms[$i]}" "$status"
             done
             echo
@@ -978,100 +812,19 @@ main_menu() {
         echo
         
         read -p "$(print_status "INPUT" "🎯 Enter your choice: ")" choice
-        
         case $choice in
-            1)
-                create_new_vm
-                ;;
-            2)
-                if [ $vm_count -gt 0 ]; then
-                    read -p "$(print_status "INPUT" "🚀 Enter VM number to start: ")" vm_num
-                    if [[ "$vm_num" =~ ^[0-9]+$ ]] && [ "$vm_num" -ge 1 ] && [ "$vm_num" -le $vm_count ]; then
-                        start_vm "${vms[$((vm_num-1))]}"
-                    else
-                        print_status "ERROR" "❌ Invalid selection"
-                    fi
-                fi
-                ;;
-            3)
-                if [ $vm_count -gt 0 ]; then
-                    read -p "$(print_status "INPUT" "🛑 Enter VM number to stop: ")" vm_num
-                    if [[ "$vm_num" =~ ^[0-9]+$ ]] && [ "$vm_num" -ge 1 ] && [ "$vm_num" -le $vm_count ]; then
-                        stop_vm "${vms[$((vm_num-1))]}"
-                    else
-                        print_status "ERROR" "❌ Invalid selection"
-                    fi
-                fi
-                ;;
-            4)
-                if [ $vm_count -gt 0 ]; then
-                    read -p "$(print_status "INPUT" "📊 Enter VM number to show info: ")" vm_num
-                    if [[ "$vm_num" =~ ^[0-9]+$ ]] && [ "$vm_num" -ge 1 ] && [ "$vm_num" -le $vm_count ]; then
-                        show_vm_info "${vms[$((vm_num-1))]}"
-                    else
-                        print_status "ERROR" "❌ Invalid selection"
-                    fi
-                fi
-                ;;
-            5)
-                if [ $vm_count -gt 0 ]; then
-                    read -p "$(print_status "INPUT" "✏️  Enter VM number to edit: ")" vm_num
-                    if [[ "$vm_num" =~ ^[0-9]+$ ]] && [ "$vm_num" -ge 1 ] && [ "$vm_num" -le $vm_count ]; then
-                        edit_vm_config "${vms[$((vm_num-1))]}"
-                    else
-                        print_status "ERROR" "❌ Invalid selection"
-                    fi
-                fi
-                ;;
-            6)
-                if [ $vm_count -gt 0 ]; then
-                    read -p "$(print_status "INPUT" "🗑️  Enter VM number to delete: ")" vm_num
-                    if [[ "$vm_num" =~ ^[0-9]+$ ]] && [ "$vm_num" -ge 1 ] && [ "$vm_num" -le $vm_count ]; then
-                        delete_vm "${vms[$((vm_num-1))]}"
-                    else
-                        print_status "ERROR" "❌ Invalid selection"
-                    fi
-                fi
-                ;;
-            7)
-                if [ $vm_count -gt 0 ]; then
-                    read -p "$(print_status "INPUT" "📈 Enter VM number to resize disk: ")" vm_num
-                    if [[ "$vm_num" =~ ^[0-9]+$ ]] && [ "$vm_num" -ge 1 ] && [ "$vm_num" -le $vm_count ]; then
-                        resize_vm_disk "${vms[$((vm_num-1))]}"
-                    else
-                        print_status "ERROR" "❌ Invalid selection"
-                    fi
-                fi
-                ;;
-            8)
-                if [ $vm_count -gt 0 ]; then
-                    read -p "$(print_status "INPUT" "📊 Enter VM number to show performance: ")" vm_num
-                    if [[ "$vm_num" =~ ^[0-9]+$ ]] && [ "$vm_num" -ge 1 ] && [ "$vm_num" -le $vm_count ]; then
-                        show_vm_performance "${vms[$((vm_num-1))]}"
-                    else
-                        print_status "ERROR" "❌ Invalid selection"
-                    fi
-                fi
-                ;;
-            9)
-                if [ $vm_count -gt 0 ]; then
-                    read -p "$(print_status "INPUT" "🔧 Enter VM number to fix issues: ")" vm_num
-                    if [[ "$vm_num" =~ ^[0-9]+$ ]] && [ "$vm_num" -ge 1 ] && [ "$vm_num" -le $vm_count ]; then
-                        fix_vm_issues "${vms[$((vm_num-1))]}"
-                    else
-                        print_status "ERROR" "❌ Invalid selection"
-                    fi
-                fi
-                ;;
-            0)
-                print_status "INFO" "👋 Goodbye!"
-                exit 0
-                ;;
-            *)
-                print_status "ERROR" "❌ Invalid option"
-                ;;
+            1) create_new_vm ;;
+            2) [ $vm_count -gt 0 ] && { read -p "$(print_status "INPUT" "🚀 Enter VM number to start: ")" n; [ "$n" -ge 1 ] && [ "$n" -le $vm_count ] && start_vm "${vms[$((n-1))]}"; } ;;
+            3) [ $vm_count -gt 0 ] && { read -p "$(print_status "INPUT" "🛑 Enter VM number to stop: ")" n; [ "$n" -ge 1 ] && [ "$n" -le $vm_count ] && stop_vm "${vms[$((n-1))]}"; } ;;
+            4) [ $vm_count -gt 0 ] && { read -p "$(print_status "INPUT" "📊 Enter VM number to show info: ")" n; [ "$n" -ge 1 ] && [ "$n" -le $vm_count ] && show_vm_info "${vms[$((n-1))]}"; } ;;
+            5) [ $vm_count -gt 0 ] && { read -p "$(print_status "INPUT" "✏️  Enter VM number to edit: ")" n; [ "$n" -ge 1 ] && [ "$n" -le $vm_count ] && edit_vm_config "${vms[$((n-1))]}"; } ;;
+            6) [ $vm_count -gt 0 ] && { read -p "$(print_status "INPUT" "🗑️  Enter VM number to delete: ")" n; [ "$n" -ge 1 ] && [ "$n" -le $vm_count ] && delete_vm "${vms[$((n-1))]}"; } ;;
+            7) [ $vm_count -gt 0 ] && { read -p "$(print_status "INPUT" "📈 Enter VM number to resize disk: ")" n; [ "$n" -ge 1 ] && [ "$n" -le $vm_count ] && resize_vm_disk "${vms[$((n-1))]}"; } ;;
+            8) [ $vm_count -gt 0 ] && { read -p "$(print_status "INPUT" "📊 Enter VM number to show performance: ")" n; [ "$n" -ge 1 ] && [ "$n" -le $vm_count ] && show_vm_performance "${vms[$((n-1))]}"; } ;;
+            9) [ $vm_count -gt 0 ] && { read -p "$(print_status "INPUT" "🔧 Enter VM number to fix issues: ")" n; [ "$n" -ge 1 ] && [ "$n" -le $vm_count ] && fix_vm_issues "${vms[$((n-1))]}"; } ;;
+            0) print_status "INFO" "👋 Goodbye!"; exit 0 ;;
+            *) print_status "ERROR" "❌ Invalid option" ;;
         esac
-        
         read -p "$(print_status "INPUT" "⏎ Press Enter to continue...")"
     done
 }
@@ -1086,7 +839,7 @@ check_dependencies
 VM_DIR="${VM_DIR:-$HOME/vms}"
 mkdir -p "$VM_DIR"
 
-# Supported OS list - UPDATED WITH UBUNTU 25.10
+# Supported OS Configuration (Data Storage)
 declare -A OS_OPTIONS=(
     ["Ubuntu 25.10"]="ubuntu|questing|https://cloud-images.ubuntu.com/releases/25.10/release/ubuntu-25.10-server-cloudimg-amd64.img|ubuntu2510|ubuntu|ubuntu"
     ["Ubuntu 24.04"]="ubuntu|noble|https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img|ubuntu24|ubuntu|ubuntu"
@@ -1098,6 +851,20 @@ declare -A OS_OPTIONS=(
     ["CentOS Stream 9"]="centos|stream9|https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2|centos9|centos|centos"
     ["AlmaLinux 9"]="almalinux|9|https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2|almalinux9|alma|alma"
     ["Rocky Linux 9"]="rockylinux|9|https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2|rocky9|rocky|rocky"
+)
+
+# Defined Order for Menu Display (Agar urut sesuai request)
+OS_ORDER=(
+    "Ubuntu 25.10"
+    "Ubuntu 24.04"
+    "Ubuntu 22.04"
+    "Debian 13"
+    "Debian 12"
+    "Debian 11"
+    "CentOS Stream 9"
+    "Fedora 40"
+    "AlmaLinux 9"
+    "Rocky Linux 9"
 )
 
 # Start the main menu
