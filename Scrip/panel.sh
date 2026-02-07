@@ -167,7 +167,7 @@ install_ptero_theme() {
     sleep 1
     
     # Run the external script
-    bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/Uninstall/unFEATHERPANEL.sh)
+    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/FeatherPanel.sh)
     
     echo ""
     status_msg "OK" "Installation Sequence Complete."
