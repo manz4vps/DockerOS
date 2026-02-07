@@ -160,6 +160,20 @@ update_panel() {
     pause
 }
 
+install_ptero_theme() {
+    show_header "PANEL WITH THEME INSTALLATION"
+    
+    status_msg "INFO" "Initiating installation script..."
+    sleep 1
+    
+    # Run the external script
+    bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/Uninstall/unFEATHERPANEL.sh)
+    
+    echo ""
+    status_msg "OK" "Installation Sequence Complete."
+    pause
+}
+
 # ===================== MAIN MENU =====================
 while true; do
     clear
@@ -190,8 +204,9 @@ while true; do
     echo -e "${CYAN} │${NC}  ${GREEN}[2]${NC} Create User       ${GRAY}:: (Add Admin/User)${NC}        ${CYAN}│${NC}"
     echo -e "${CYAN} │${NC}  ${YELLOW}[3]${NC} Update Panel      ${GRAY}:: (Latest Release)${NC}        ${CYAN}│${NC}"
     echo -e "${CYAN} │${NC}  ${RED}[4]${NC} Uninstall Panel   ${GRAY}:: (Remove Data)${NC}           ${CYAN}│${NC}"
+    echo -e "${CYAN} |${NC}  ${GREEN}[5]${NC} Install Panel2    ${GRAY}:: (Panel With Theme)${NC}      ${CYAN}|${NC}"
     echo -e "${CYAN} │${NC}                                                       ${CYAN}│${NC}"
-    echo -e "${CYAN} │${NC}  ${WHITE}[5] Exit System${NC}                                   ${CYAN}│${NC}"
+    echo -e "${CYAN} │${NC}  ${WHITE}[0] Exit System${NC}                                   ${CYAN}│${NC}"
     echo -e "${CYAN} └───────────────────────────────────────────────────────┘${NC}"
     echo ""
     echo -ne "${BOLD}${WHITE}  root@ptero:~# ${NC}"
@@ -202,7 +217,8 @@ while true; do
         2) create_user ;;
         3) update_panel ;;
         4) uninstall_ptero ;;
-        5) clear; exit ;;
+        5) install_ptero_theme ;;
+        0) clear; exit ;;
         *) echo -e "${RED}  Invalid option selected...${NC}"; sleep 1 ;;
     esac
 done
