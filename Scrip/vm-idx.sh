@@ -480,16 +480,22 @@ start_vm() {
 # Function to delete a VM
 delete_vm() {
     local vm_name=$1
+    
     print_status "WARN" "⚠️  ⚠️  ⚠️  This will permanently delete VM '$vm_name' and all its data!"
-    read -p "$(print_status "INPUT" "🗑️  Are you sure? (y/N): ")" -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    
+    # --- BAGIAN YANG DIPERBAIKI ---
+    # Saya hapus '-n 1' supaya dia nunggu kita ketik 'y' lalu ENTER
+    # Saya pakai variabel 'confirmation' biar lebih aman daripada '$REPLY'
+    read -p "$(print_status "INPUT" "🗑️  Are you sure? (y/N): ")" confirmation
+    
+    if [[ "$confirmation" =~ ^[Yy]$ ]]; then
         if load_vm_config "$vm_name"; then
             if is_vm_running "$vm_name"; then
                 print_status "WARN" "⚠️  VM is currently running. Stopping it first..."
                 stop_vm "$vm_name"
                 sleep 2
             fi
+            
             rm -f "$IMG_FILE" "$SEED_FILE" "$VM_DIR/$vm_name.conf" "${IMG_FILE}.lock" 2>/dev/null
             print_status "SUCCESS" "✅ VM '$vm_name' has been deleted"
         fi
