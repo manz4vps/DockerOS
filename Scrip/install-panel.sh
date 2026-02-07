@@ -51,8 +51,6 @@ run_step() {
     echo -e "${C_BLUE}➜ PROSES SAAT INI:${C_RESET}"
     echo -e "${C_YELLOW}   $message${C_RESET}"
     line
-    echo -e "${C_GRAY}   Log Output (Live):${C_RESET}"
-
     tput csr $HEADER_SIZE $TOTAL_LINES
     tput cup $HEADER_SIZE 0
     eval "$command"
