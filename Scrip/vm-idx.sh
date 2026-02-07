@@ -205,7 +205,7 @@ create_new_vm() {
     
     local i=1
     for os in "${OS_ORDER[@]}"; do
-        echo "  $i) $os"
+        echo -e "  $i) $os"
         ((i++))
     done
     
