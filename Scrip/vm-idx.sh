@@ -846,18 +846,17 @@ VM_DIR="${VM_DIR:-$HOME/vms}"
 mkdir -p "$VM_DIR"
 
 # Supported OS Configuration (Data Storage)
-# Supported OS Configuration (Data Storage)
-# KUNCI (Nama di dalam kurung siku) HARUS SAMA PERSIS DENGAN YANG ADA DI OS_ORDER
+# KUNCI (NAMA) SUDAH DISAMAKAN DENGAN MENU WARNA DI BAWAH AGAR TIDAK ERROR
 declare -A OS_OPTIONS=(
-    ["Ubuntu 25.04  \033[1;33m|261MB\033[0m"]="ubuntu|plucky|https://cloud-images.ubuntu.com/minimal/daily/plucky/current/plucky-minimal-cloudimg-amd64.img|ubuntu25|ubuntu|ubuntu"
-    ["Ubuntu 24.04  \033[1;33m|248MB\033[0m"]="ubuntu|noble|https://cloud-images.ubuntu.com/minimal/releases/noble/current/ubuntu-24.04-minimal-cloudimg-amd64.img|ubuntu24|ubuntu|ubuntu"
-    ["Ubuntu 22.04  \033[1;33m|294MB\033[0m"]="ubuntu|jammy|https://cloud-images.ubuntu.com/minimal/releases/jammy/current/ubuntu-22.04-minimal-cloudimg-amd64.img|ubuntu22|ubuntu|ubuntu"
-    ["Debian 13  \033[1;33m|322MB\033[0m"]="debian|trixie|https://cloud.debian.org/images/cloud/trixie/daily/debian-13-genericcloud-amd64-daily.qcow2|debian13|debian|debian"
-    ["Debian 12  \033[1;33m|323MB\033[0m"]="debian|bookworm|https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2|debian12|debian|debian"
-    ["Debian 11  \033[1;33m|252MB\033[0m"]="debian|bullseye|https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-genericcloud-amd64.qcow2|debian11|debian|debian"
-    ["Fedora 43  \033[1;33m|556MB\033[0m"]="fedora|43|https://ftp.yz.yamagata-u.ac.jp/pub/linux/fedora-projects/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic.x86_64-41-1.4.qcow2|fedora43|fedora|fedora"
+    ["Ubuntu 25.04  \033[1;33m|261MB\033[0m"]="ubuntu|plucky|https://cloud-images.ubuntu.com/minimal/daily/plucky/relese/plucky-minimal-cloudimg-amd64.img|ubuntu25|ubuntu|ubuntu"
+    ["Ubuntu 24.04  \033[1;33m|248MB\033[0m"]="ubuntu|noble|https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img|ubuntu24|ubuntu|ubuntu"
+    ["Ubuntu 22.04  \033[1;33m|294MB\033[0m"]="ubuntu|jammy|https://cloud-images.ubuntu.com/minimal/releases/jammy/release/ubuntu-22.04-minimal-cloudimg-amd64.img|ubuntu22|ubuntu|ubuntu"
+    ["Debian 13  \033[1;33m|322MB\033[0m"]="debian|trixie|https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-genericcloud-arm64-daily.qcow2|debian13|debian|debian"
+    ["Debian 12  \033[1;33m|323MB\033[0m"]="debian|bookworm|https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-genericcloud-arm64-daily.tar.xz|debian12|debian|debian"
+    ["Debian 11  \033[1;33m|252MB\033[0m"]="debian|bullseye|https://cloud.debian.org/images/cloud/bullseye/daily/latest/debian-11-genericcloud-arm64-daily.qcow2|debian|debian"
     ["CentOS Stream 9  \033[1;33m|1.4GB\033[0m"]="centos|stream9|https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2|centos9|centos|centos"
-    ["AlmaLinux 9  \033[1;33m|514MB\033[0m"]="almalinux|9|https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2|almalinux9|alma|alma"
+    ["Fedora 43  \033[1;33m|556MB\033[0m"]="fedora|43|https://ftp.yz.yamagata-u.ac.jp/pub/linux/fedora-projects/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2|fedora43|fedora|fedora"
+    ["AlmaLinux 9  \033[1;33m|514MB\033[0m"]="almalinux|9|https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-OpenNebula-latest.x86_64.qcow2|almalinux9|alma|alma"
     ["Rocky Linux 9  \033[1;33m|618MB\033[0m"]="rockylinux|9|https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2|rocky9|rocky|rocky"
 )
 
