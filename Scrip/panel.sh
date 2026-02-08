@@ -209,7 +209,7 @@ while true; do
     echo -e "${CYAN} │${NC}  ${WHITE}[0] Exit System${NC}                                   ${CYAN}│${NC}"
     echo -e "${CYAN} └───────────────────────────────────────────────────────┘${NC}"
     echo ""
-    echo -ne "${BOLD}${WHITE}  root@ptero:~# ${NC}"
+    echo -ne "${BOLD}${WHITE}  Masukkan Pilihan [0-5]: ${NC}"
     read choice
 
     case $choice in
