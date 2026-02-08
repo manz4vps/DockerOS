@@ -92,7 +92,7 @@ echo ""
 
 # Domain Input
 type_write "ENTER TARGET DOMAIN:"
-echo -ne "${NEON_GREEN} root@install:~$ ${RESET}"
+echo -ne "${NEON_GREEN} 🌐 Enter domain (panel.example.com): ${RESET}"
 read DOMAIN
 DOMAIN=${DOMAIN:-panel.example.com}
 
