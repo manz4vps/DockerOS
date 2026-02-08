@@ -18,13 +18,13 @@ trap 'echo -e "\n${MERAH}Exiting...${RESET}"; exit 0' SIGINT
 banner() {
     clear
     echo -e "${CYAN}=============================================${RESET}"
-    echo -e "${UNGU}   __  __                  __  __  ____  ${RESET}"
+    echo -e "${UNGU}   __  __                   __  __  ____  ${RESET}"
     echo -e "${UNGU}  |  \/  | __ _ _ __  ____ \ \/ / |  _ \ ${RESET}"
     echo -e "${UNGU}  | |\/| |/ _\` | '_ \|_  /  \  /  | | | |${RESET}"
     echo -e "${UNGU}  | |  | | (_| | | | |/ /   /  \  | |_| |${RESET}"
     echo -e "${UNGU}  |_|  |_|\__,_|_| |_/___| /_/\_\ |____/ ${RESET}"
     echo -e "${CYAN}=============================================${RESET}"
-    echo -e "${PUTIH}      DOCKER OS INSTALLER | BY MANZXD    ${RESET}"
+    echo -e "${PUTIH}       DOCKER OS INSTALLER | BY MANZXD     ${RESET}"
     echo -e "${CYAN}=============================================${RESET}"
 }
 
@@ -61,13 +61,41 @@ jalankan() {
     read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali..."
 }
 
+# === SUB-MENU WINGS (BARU) ===
+menu_wings() {
+    local sub_opt
+    while true; do
+        clear
+        echo -e "${CYAN}=============================================${RESET}"
+        echo -e "${KUNING}          🪶  MENU INSTALLER WINGS           ${RESET}"
+        echo -e "${CYAN}=============================================${RESET}"
+        echo -e " ${TEBAL}1)${RESET}🦇 Wings Pterodactyl (Original)"
+        echo -e " ${TEBAL}2)${RESET}🕊️  Wings Feather (FeatherPanel)"
+        echo -e "${CYAN}---------------------------------------------${RESET}"
+        echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
+        echo -e "${CYAN}=============================================${RESET}"
+        
+        echo -ne "${TEBAL}Pilih [0-2]: ${RESET}"
+        read -r sub_opt
+        sub_opt=$(echo "$sub_opt" | tr -d '[:space:]')
+
+        case $sub_opt in
+            1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/wings.sh" ;;
+            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/FeatherWings.sh" ;;
+            0) return ;;
+            "") ;; 
+            *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
+        esac
+    done
+}
+
 # === SUB-MENU CONNECTION ===
 menu_connection() {
     local sub_opt
     while true; do
         clear
         echo -e "${CYAN}=============================================${RESET}"
-        echo -e "${KUNING}          🌐 MENU KONEKSI & TUNNEL          ${RESET}"
+        echo -e "${KUNING}          🌐 MENU KONEKSI & TUNNEL           ${RESET}"
         echo -e "${CYAN}=============================================${RESET}"
         echo -e " ${TEBAL}1)${RESET}⚒️  Install Localtonet"
         echo -e " ${TEBAL}2)${RESET}🔨  Install Tailscale"
@@ -104,7 +132,7 @@ menu_cloudflare() {
     while true; do
         clear
         echo -e "${CYAN}=============================================${RESET}"
-        echo -e "${KUNING}           ☁️  MENU CLOUDFLARE              ${RESET}"
+        echo -e "${KUNING}            ☁️  MENU CLOUDFLARE               ${RESET}"
         echo -e "${CYAN}=============================================${RESET}"
         echo -e " ${TEBAL}1)${RESET}☁️  Cloudflare Raw Script (Manual)"
         echo -e " ${TEBAL}2)${RESET}🔒  Cloudflared Tunnel (Token)"
@@ -131,7 +159,7 @@ menu_cloudflare() {
 while true; do
     banner
     echo -e " ${TEBAL}1)${RESET}🧩  Panel Pterodactyl"
-    echo -e " ${TEBAL}2)${RESET}🪶  Wings Pterodactyl"
+    echo -e " ${TEBAL}2)${RESET}🪶  Install Wings (Ptero/Feather) ▶"
     echo -e " ${TEBAL}3)${RESET}🚀  SSH (connect)"
     echo -e " ${TEBAL}4)${RESET}🌐  Connection Tools (Playit/MineCube) ▶"
     echo -e " ${TEBAL}5)${RESET}🧱  Blueprint Framework"
@@ -151,7 +179,7 @@ while true; do
 
     case $pilihan in
         1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/panel.sh" ;;
-        2) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/wings.sh" ;;
+        2) menu_wings ;; # Masuk ke Sub-Menu Wings
         3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/ssh.sh" ;;
         4) menu_connection ;;  # Masuk ke Sub-Menu Connection
         5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/blueprint.sh" ;;
