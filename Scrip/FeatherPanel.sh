@@ -137,7 +137,7 @@ pnpm install --dir /var/www/featherpanel/frontendv2/
 # ==============================
 DB_NAME=featherpanel
 DB_USER=featherpanel
-DB_PASS=1234
+DB_PASS=manzxd123
 mariadb -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
 mariadb -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';"
 mariadb -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1' WITH GRANT OPTION;"
