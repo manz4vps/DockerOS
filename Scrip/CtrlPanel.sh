@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Warna untuk output
+# --- KONFIGURASI WARNA & STYLE ---
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -18,7 +18,7 @@ show_logo() {
     cat << "EOF"
 ██████╗ ████████╗██████╗ ██╗     ██████╗  █████╗ ███╗   ██╗███████╗██╗     
 ██╔════╝╚══██╔══╝██╔══██╗██║     ██╔══██╗██╔══██╗████╗  ██║██╔════╝██║     
-██║        ██║   ██████╔╝██████╔╝███████║██╔██╗ ██║█████╗  ██║     
+██║        ██║   ██████╔╝██║     ██████╔╝███████║██╔██╗ ██║█████╗  ██║     
 ██║        ██║   ██╔══██╗██║     ██╔═══╝ ██╔══██║██║╚██╗██║██╔══╝  ██║     
 ╚██████╗   ██║   ██║  ██║███████╗██║     ██║  ██║██║ ╚████║███████╗███████╗
  ╚═════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝
@@ -43,11 +43,12 @@ fi
 show_logo
 
 # --- INPUT USER ---
-read -p "Masukkan Domain Anda (contoh: dash.domain.com): " DOMAIN
-read -p "Masukkan Email untuk SSL (contoh: admin@domain.com): " EMAIL
-read -p "Masukkan Password Database Baru untuk user 'ctrlpaneluser': " DBPASS
+echo -e "${BOLD}Silakan isi data berikut:${NC}"
+read -p "Masukkan Domain Dashboard (contoh: billing.domain.com): " DOMAIN
+read -p "Masukkan Email untuk SSL (contoh: emailmu@gmail.com): " EMAIL
+read -p "Buat Password Database Baru (untuk user ctrlpanel): " DBPASS
 echo ""
-echo -e "${YELLOW}Proses instalasi akan segera dimulai...${NC}"
+echo -e "${YELLOW}Siap! Proses instalasi otomatis dimulai dalam 3 detik...${NC}"
 sleep 3
 
 # --- DETEKSI OS ---
@@ -89,7 +90,7 @@ elif [[ "$DISTRO" == "ubuntu" ]]; then
     curl -fsSL https://packages.redis.io/gpg | gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
     echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
     
-    # MariaDB Repo Setup (Khusus Ubuntu 20.04/22.04 sesuai request)
+    # MariaDB Repo Setup
     curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | bash
 
 else
@@ -100,8 +101,8 @@ fi
 # Update setelah tambah repo
 apt update -y
 
-# --- INSTALL DEPENDENCIES (SAMA UNTUK KEDUANYA) ---
-echo -e "${YELLOW}Menginstall paket-paket yang diperlukan (PHP, Nginx, MariaDB, Redis)...${NC}"
+# --- INSTALL DEPENDENCIES ---
+echo -e "${YELLOW}Menginstall paket-paket yang diperlukan (PHP 8.3, Nginx, MariaDB, Redis)...${NC}"
 apt install -y php8.3 php8.3-{common,cli,gd,mysql,mbstring,bcmath,xml,fpm,curl,zip,intl,redis} mariadb-server nginx git redis-server certbot python3-certbot-nginx
 
 # Enable Redis
@@ -112,27 +113,35 @@ echo -e "${YELLOW}Menginstall Composer...${NC}"
 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # --- SETUP CTRL PANEL FILES ---
-echo -e "${YELLOW}Mendownload CtrlPanel...${NC}"
+echo -e "${YELLOW}Mendownload Source Code CtrlPanel...${NC}"
 mkdir -p /var/www/ctrlpanel
 cd /var/www/ctrlpanel
+# Hapus folder jika sudah ada isinya biar clean install
+rm -rf *
 git clone https://github.com/Ctrlpanel-gg/panel.git ./
 
 # --- SETUP DATABASE ---
 echo -e "${YELLOW}Membuat Database dan User MySQL...${NC}"
-# Kita gunakan mysql command langsung karena root biasanya auth socket
-mysql -e "CREATE USER 'ctrlpaneluser'@'127.0.0.1' IDENTIFIED BY '$DBPASS';"
-mysql -e "CREATE DATABASE ctrlpanel;"
+mysql -e "CREATE USER IF NOT EXISTS 'ctrlpaneluser'@'127.0.0.1' IDENTIFIED BY '$DBPASS';"
+mysql -e "CREATE DATABASE IF NOT EXISTS ctrlpanel;"
 mysql -e "GRANT ALL PRIVILEGES ON ctrlpanel.* TO 'ctrlpaneluser'@'127.0.0.1';"
 mysql -e "FLUSH PRIVILEGES;"
 
 # --- INSTALL DEPENDENCIES PANEL ---
-echo -e "${YELLOW}Menjalankan Composer Install...${NC}"
+echo -e "${YELLOW}Menjalankan Composer Install (Mohon Tunggu)...${NC}"
 COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
 
-# --- SETUP ENV & KEY (Optional tapi penting, biasanya panel butuh .env) ---
+# --- SETUP ENV & KEY ---
+echo -e "${YELLOW}Mengatur Environment (.env)...${NC}"
 cp .env.example .env
 sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DBPASS/" .env
-sed -i "s/APP_URL=http:\/\/localhost/APP_URL=https:\/\/$DOMAIN/" .env
+sed -i "s|APP_URL=http://localhost|APP_URL=https://$DOMAIN|" .env
+# Set database info explicitly just in case
+sed -i "s/DB_HOST=127.0.0.1/DB_HOST=127.0.0.1/" .env
+sed -i "s/DB_PORT=3306/DB_PORT=3306/" .env
+sed -i "s/DB_DATABASE=ctrlpanel/DB_DATABASE=ctrlpanel/" .env
+sed -i "s/DB_USERNAME=root/DB_USERNAME=ctrlpaneluser/" .env
+
 php artisan key:generate
 php artisan storage:link
 
@@ -140,7 +149,7 @@ php artisan storage:link
 echo -e "${YELLOW}Mengkonfigurasi Nginx...${NC}"
 rm /etc/nginx/sites-enabled/default
 
-# Buat config sementara untuk port 80 agar Certbot bisa jalan dulu
+# Config sementara untuk port 80 (biar Certbot jalan)
 cat <<EOF > /etc/nginx/sites-available/ctrlpanel.conf
 server {
     listen 80;
@@ -164,10 +173,10 @@ systemctl restart nginx
 
 # --- SETUP SSL (CERTBOT) ---
 echo -e "${YELLOW}Meminta sertifikat SSL dari Let's Encrypt...${NC}"
+# Kita stop nginx sebentar jika certbot butuh port 80, tapi pakai plugin nginx lebih aman
 certbot certonly --nginx -d $DOMAIN --non-interactive --agree-tos -m $EMAIL
 
 # --- KONFIGURASI NGINX FULL (DENGAN SSL) ---
-# Menimpa config Nginx dengan versi lengkap sesuai request user
 cat <<EOF > /etc/nginx/sites-available/ctrlpanel.conf
 server {
     listen 80;
@@ -241,7 +250,7 @@ echo -e "${YELLOW}Mengatur Permission dan Cronjob...${NC}"
 chown -R www-data:www-data /var/www/ctrlpanel/
 chmod -R 755 /var/www/ctrlpanel/storage /var/www/ctrlpanel/bootstrap/cache
 
-# Menambahkan cronjob tanpa menghapus yang lama
+# Menambahkan cronjob
 (crontab -l 2>/dev/null; echo "* * * * * php /var/www/ctrlpanel/artisan schedule:run >> /dev/null 2>&1") | crontab -
 
 # --- QUEUE WORKER ---
@@ -268,8 +277,12 @@ echo ""
 echo -e "${GREEN}==================================================${NC}"
 echo -e "${GREEN}           INSTALASI SELESAI!                     ${NC}"
 echo -e "${GREEN}==================================================${NC}"
+echo -e "Akses Dashboard di: https://$DOMAIN"
+echo -e "Silakan buka link tersebut untuk menyelesaikan Setup Admin."
+echo -e "Database Info (Jika diminta):"
+echo -e "  - DB Host: 127.0.0.1"
+echo -e "  - DB Name: ctrlpanel"
+echo -e "  - DB User: ctrlpaneluser"
+echo -e "  - DB Pass: $DBPASS"
 echo ""
-echo -e "Silakan akses panel di: https://$DOMAIN/installer"
-echo -e "Database User: ctrlpaneluser"
-echo -e "Database Pass: $DBPASS"
-echo ""
+echo -e "${CYAN}Terima kasih telah menggunakan script MANZ4VPS!${NC}"
