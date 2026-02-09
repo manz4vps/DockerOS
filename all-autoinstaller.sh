@@ -167,6 +167,7 @@ while true; do
     echo -e " ${TEBAL}7)${RESET}🎨  Pasang Tema (Theme)"
     echo -e " ${TEBAL}8)${RESET}🔌  Install Addon"
     echo -e " ${TEBAL}9)${RESET}🚀  Install SSHX (Remote)"
+    echo -e " ${TEBAL}10)${RESET}🧱 Install CtrlPanel (Biling)"
     
     echo -e "${CYAN}---------------------------------------------${RESET}"
     echo -e " ${TEBAL}0)${RESET}🚪 KELUAR"
@@ -187,6 +188,7 @@ while true; do
         7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme.sh" ;;
         8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/addon.sh" ;;
         9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/sshx.sh" ;;
+        10) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/CtrlPanel.sh" ;;
         0) 
             echo -e "\n${HIJAU}Terimakasih Telah Menggunakan Script Ini!${RESET}"
             exit 0 
