@@ -27,9 +27,9 @@ EOF
     
     # Bagian Footer Credit (Kustom manz4vps)
     echo -e "${YELLOW}==============================================================${NC}"
-    echo -e "${GREEN}    >> OFFICIAL SCRIPT | DEVELOPED BY: ${PURPLE}${BOLD}MANZ4VPS${NC}${GREEN} <<    ${NC}"
+    echo -e "${GREEN}    OFFICIAL SCRIPT | WEB INSTALLER MODE (FIXED)              ${NC}"
     echo -e "${YELLOW}==============================================================${NC}"
-    echo -e "${CYAN}       OS Auto-Detect: Debian 10-12 & Ubuntu 20.04-22.04      ${NC}"
+    echo -e "${CYAN}        SPECIAL FOR CLOUDFLARE TUNNEL (PORT 8081)             ${NC}"
     echo ""
 }
 
@@ -45,7 +45,6 @@ show_logo
 # --- INPUT USER ---
 echo -e "${BOLD}Silakan isi data berikut:${NC}"
 read -p "Masukkan Domain Dashboard (contoh: billing.domain.com): " DOMAIN
-read -p "Masukkan Email untuk SSL (contoh: emailmu@gmail.com): " EMAIL
 read -p "Buat Password Database Baru (untuk user ctrlpanel): " DBPASS
 echo ""
 echo -e "${YELLOW}Siap! Proses instalasi otomatis dimulai dalam 3 detik...${NC}"
@@ -54,159 +53,93 @@ sleep 3
 # --- DETEKSI OS ---
 if [ -f /etc/os-release ]; then
     . /etc/os-release
-    OS=$NAME
     DISTRO=$ID
-    VERSION=$VERSION_ID
-else
-    echo -e "${RED}OS tidak dapat dideteksi. Script berhenti.${NC}"
-    exit 1
 fi
-
-echo -e "${GREEN}OS Terdeteksi: $OS ($DISTRO $VERSION)${NC}"
 
 # Update awal
 apt update -y
-apt install -y curl git zip unzip tar lsb-release ca-certificates apt-transport-https software-properties-common gnupg
+apt install -y curl git zip unzip tar lsb-release ca-certificates apt-transport-https software-properties-common gnupg mariadb-server nginx redis-server
 
-# --- BRANCHING INSTALLATION BERDASARKAN OS ---
+# --- PHP SETUP (AUTO DETECT) ---
 if [[ "$DISTRO" == "debian" ]]; then
-    echo -e "${YELLOW}Mengkonfigurasi Repositori untuk Debian...${NC}"
-    
-    # PHP Repo Debian
     wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
     echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php.list
-    
-    # Redis Repo
-    curl -fsSL https://packages.redis.io/gpg | gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
-    echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
-
 elif [[ "$DISTRO" == "ubuntu" ]]; then
-    echo -e "${YELLOW}Mengkonfigurasi Repositori untuk Ubuntu...${NC}"
-    
-    # PHP Repo Ubuntu
     LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
-    
-    # Redis Repo
-    curl -fsSL https://packages.redis.io/gpg | gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
-    echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
-    
-    # MariaDB Repo Setup
-    curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | bash
-
-else
-    echo -e "${RED}Distro $DISTRO tidak didukung secara otomatis oleh script ini.${NC}"
-    exit 1
 fi
-
-# Update setelah tambah repo
 apt update -y
-
-# --- INSTALL DEPENDENCIES ---
-echo -e "${YELLOW}Menginstall paket-paket yang diperlukan (PHP 8.3, Nginx, MariaDB, Redis)...${NC}"
-apt install -y php8.3 php8.3-{common,cli,gd,mysql,mbstring,bcmath,xml,fpm,curl,zip,intl,redis} mariadb-server nginx git redis-server certbot python3-certbot-nginx
-
-# Enable Redis
-systemctl enable --now redis-server
+apt install -y php8.3 php8.3-{common,cli,gd,mysql,mbstring,bcmath,xml,fpm,curl,zip,intl,redis}
 
 # --- INSTALL COMPOSER ---
 echo -e "${YELLOW}Menginstall Composer...${NC}"
-curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+if ! command -v composer &> /dev/null; then
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+fi
 
-# --- SETUP CTRL PANEL FILES ---
-echo -e "${YELLOW}Mendownload Source Code CtrlPanel...${NC}"
-mkdir -p /var/www/ctrlpanel
-cd /var/www/ctrlpanel
-# Hapus folder jika sudah ada isinya biar clean install
-rm -rf *
-git clone https://github.com/Ctrlpanel-gg/panel.git ./
+# --- BERSIH-BERSIH DATABASE LAMA ---
+echo -e "${YELLOW}Reset Database Lama (Biar Bersih)...${NC}"
+mysql -e "DROP DATABASE IF EXISTS ctrlpanel;"
+mysql -e "DROP USER IF EXISTS 'ctrlpaneluser'@'127.0.0.1';"
+mysql -e "FLUSH PRIVILEGES;"
 
-# --- SETUP DATABASE ---
-echo -e "${YELLOW}Membuat Database dan User MySQL...${NC}"
-mysql -e "CREATE USER IF NOT EXISTS 'ctrlpaneluser'@'127.0.0.1' IDENTIFIED BY '$DBPASS';"
-mysql -e "CREATE DATABASE IF NOT EXISTS ctrlpanel;"
+# --- SETUP DATABASE BARU (KOSONGAN) ---
+# Kita cuma bikin User & DB, TAPI GAK KITA ISI (Migrate). Biar Web Installer yang ngisi.
+echo -e "${YELLOW}Membuat Database Kosong...${NC}"
+mysql -e "CREATE USER 'ctrlpaneluser'@'127.0.0.1' IDENTIFIED BY '$DBPASS';"
+mysql -e "CREATE DATABASE ctrlpanel;"
 mysql -e "GRANT ALL PRIVILEGES ON ctrlpanel.* TO 'ctrlpaneluser'@'127.0.0.1';"
 mysql -e "FLUSH PRIVILEGES;"
 
-# --- INSTALL DEPENDENCIES PANEL ---
-echo -e "${YELLOW}Menjalankan Composer Install (Mohon Tunggu)...${NC}"
-COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+# --- SETUP CTRL PANEL FILES ---
+echo -e "${YELLOW}Download Source Code CtrlPanel...${NC}"
+mkdir -p /var/www/ctrlpanel
+cd /var/www/ctrlpanel
+rm -rf * # Hapus sisa lama
+git clone https://github.com/Ctrlpanel-gg/panel.git ./
+
+echo -e "${YELLOW}Composer Install...${NC}"
+COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --quiet
 
 # --- SETUP ENV & KEY ---
 echo -e "${YELLOW}Mengatur Environment (.env)...${NC}"
 cp .env.example .env
-sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DBPASS/" .env
+# Kita setup DB Connection aja, sisanya nanti via Web
 sed -i "s|APP_URL=http://localhost|APP_URL=https://$DOMAIN|" .env
-# Set database info explicitly just in case
 sed -i "s/DB_HOST=127.0.0.1/DB_HOST=127.0.0.1/" .env
 sed -i "s/DB_PORT=3306/DB_PORT=3306/" .env
 sed -i "s/DB_DATABASE=ctrlpanel/DB_DATABASE=ctrlpanel/" .env
 sed -i "s/DB_USERNAME=root/DB_USERNAME=ctrlpaneluser/" .env
+sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DBPASS/" .env
 
 php artisan key:generate
 php artisan storage:link
 
-# --- KONFIGURASI NGINX ---
-echo -e "${YELLOW}Mengkonfigurasi Nginx...${NC}"
-rm /etc/nginx/sites-enabled/default
+# --- PERMISSION FIX ---
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data /var/www/ctrlpanel
 
-# Config sementara untuk port 80 (biar Certbot jalan)
+# ⚠️ SAYA HAPUS MIGRATE & SEED DI SINI SUPAYA WEB INSTALLER GAK ERROR ⚠️
+
+# --- KONFIGURASI NGINX (PORT 8081) ---
+# Set ke 8081 biar aman buat Cloudflare Tunnel
+echo -e "${YELLOW}Mengkonfigurasi Nginx (Port 8081)...${NC}"
+rm /etc/nginx/sites-enabled/default 2>/dev/null
+rm /etc/nginx/sites-enabled/ctrlpanel.conf 2>/dev/null
+
 cat <<EOF > /etc/nginx/sites-available/ctrlpanel.conf
 server {
-    listen 80;
+    listen 8081;
     server_name $DOMAIN;
     root /var/www/ctrlpanel/public;
     index index.php;
     
-    location / {
-        try_files \$uri \$uri/ /index.php?\$query_string;
-    }
-
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-    }
-}
-EOF
-
-ln -s /etc/nginx/sites-available/ctrlpanel.conf /etc/nginx/sites-enabled/ctrlpanel.conf
-systemctl restart nginx
-
-# --- SETUP SSL (CERTBOT) ---
-echo -e "${YELLOW}Meminta sertifikat SSL dari Let's Encrypt...${NC}"
-# Kita stop nginx sebentar jika certbot butuh port 80, tapi pakai plugin nginx lebih aman
-certbot certonly --nginx -d $DOMAIN --non-interactive --agree-tos -m $EMAIL
-
-# --- KONFIGURASI NGINX FULL (DENGAN SSL) ---
-cat <<EOF > /etc/nginx/sites-available/ctrlpanel.conf
-server {
-    listen 80;
-    server_name $DOMAIN;
-    return 301 https://\$server_name\$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name $DOMAIN;
-
-    root /var/www/ctrlpanel/public;
-    index index.php;
-
     access_log /var/log/nginx/ctrlpanel.app-access.log;
     error_log  /var/log/nginx/ctrlpanel.app-error.log error;
-
     client_max_body_size 100m;
     client_body_timeout 120s;
-
     sendfile off;
 
-    # SSL Configuration
-    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
-    ssl_session_cache shared:SSL:10m;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384";
-    ssl_prefer_server_ciphers on;
-
+    # Cloudflare Headers
     add_header X-Content-Type-Options nosniff;
     add_header X-XSS-Protection "1; mode=block";
     add_header X-Robots-Tag none;
@@ -225,64 +158,41 @@ server {
         include fastcgi_params;
         fastcgi_param PHP_VALUE "upload_max_filesize = 100M \n post_max_size=100M";
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        fastcgi_param HTTP_PROXY "";
-        fastcgi_intercept_errors off;
-        fastcgi_buffer_size 16k;
-        fastcgi_buffers 4 16k;
-        fastcgi_connect_timeout 300;
-        fastcgi_send_timeout 300;
-        fastcgi_read_timeout 300;
         include /etc/nginx/fastcgi_params;
-    }
-
-    location ~ /\.ht {
-        deny all;
     }
 }
 EOF
 
-# Restart Nginx dengan config baru
+ln -s /etc/nginx/sites-available/ctrlpanel.conf /etc/nginx/sites-enabled/ctrlpanel.conf
 nginx -t
 systemctl restart nginx
-
-# --- PERMISSIONS & CRON ---
-echo -e "${YELLOW}Mengatur Permission dan Cronjob...${NC}"
-chown -R www-data:www-data /var/www/ctrlpanel/
-chmod -R 755 /var/www/ctrlpanel/storage /var/www/ctrlpanel/bootstrap/cache
-
-# Menambahkan cronjob
-(crontab -l 2>/dev/null; echo "* * * * * php /var/www/ctrlpanel/artisan schedule:run >> /dev/null 2>&1") | crontab -
 
 # --- QUEUE WORKER ---
 echo -e "${YELLOW}Membuat Service Queue Worker...${NC}"
 cat <<EOF > /etc/systemd/system/ctrlpanel.service
 [Unit]
 Description=Ctrlpanel Queue Worker
-
 [Service]
 User=www-data
 Group=www-data
 Restart=always
 ExecStart=/usr/bin/php /var/www/ctrlpanel/artisan queue:work --sleep=3 --tries=3
-StartLimitBurst=0
-
 [Install]
 WantedBy=multi-user.target
 EOF
-
 systemctl daemon-reload
 systemctl enable --now ctrlpanel.service
 
 echo ""
 echo -e "${GREEN}==================================================${NC}"
-echo -e "${GREEN}           INSTALASI SELESAI!                     ${NC}"
+echo -e "${GREEN}       INSTALASI SIAP! LANJUTKAN DI BROWSER       ${NC}"
 echo -e "${GREEN}==================================================${NC}"
-echo -e "Akses Dashboard di: https://$DOMAIN"
-echo -e "Silakan buka link tersebut untuk menyelesaikan Setup Admin."
-echo -e "Database Info (Jika diminta):"
-echo -e "  - DB Host: 127.0.0.1"
-echo -e "  - DB Name: ctrlpanel"
-echo -e "  - DB User: ctrlpaneluser"
-echo -e "  - DB Pass: $DBPASS"
+echo -e "Sekarang buka: https://$DOMAIN"
+echo -e "Lalu ikuti langkah ini:"
+echo -e "1. Klik Next."
+echo -e "2. Masukkan Password Database: $DBPASS"
+echo -e "3. Klik Next (Database akan diisi otomatis tanpa error)."
+echo -e "4. Masukkan URL & API Key Pterodactyl kamu di halaman selanjutnya."
+echo -e "5. Buat User Admin di web."
 echo ""
-echo -e "${CYAN}Terima kasih telah menggunakan script MANZ4VPS!${NC}"
+echo -e "${CYAN}Mantap kan? Gak perlu pusing terminal lagi!${NC}"
