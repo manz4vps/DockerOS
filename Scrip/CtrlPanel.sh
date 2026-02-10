@@ -27,7 +27,7 @@ EOF
     
     # Bagian Footer Credit (Kustom manz4vps)
     echo -e "${YELLOW}==============================================================${NC}"
-    echo -e "${GREEN}    OFFICIAL SCRIPT | WEB INSTALLER MODE (FIXED)              ${NC}"
+    echo -e "${GREEN}    OFFICIAL SCRIPT | WEB INSTALLER (SAFE MODE/NO WIPE)       ${NC}"
     echo -e "${YELLOW}==============================================================${NC}"
     echo -e "${CYAN}        SPECIAL FOR CLOUDFLARE TUNNEL (PORT 8081)             ${NC}"
     echo ""
@@ -45,10 +45,10 @@ show_logo
 # --- INPUT USER ---
 echo -e "${BOLD}Silakan isi data berikut:${NC}"
 read -p "Masukkan Domain Dashboard (contoh: billing.domain.com): " DOMAIN
-read -p "Buat Password Database Baru (untuk user ctrlpanel): " DBPASS
+read -p "Buat Password Database (Baru/Lama): " DBPASS
 echo ""
-echo -e "${YELLOW}Siap! Proses instalasi otomatis dimulai dalam 3 detik...${NC}"
-sleep 3
+echo -e "${YELLOW}Siap! Proses perbaikan/instalasi dimulai...${NC}"
+sleep 2
 
 # --- DETEKSI OS ---
 if [ -f /etc/os-release ]; then
@@ -56,7 +56,7 @@ if [ -f /etc/os-release ]; then
     DISTRO=$ID
 fi
 
-# Update awal
+# Update awal (Aman dijalankan ulang)
 apt update -y
 apt install -y curl git zip unzip tar lsb-release ca-certificates apt-transport-https software-properties-common gnupg mariadb-server nginx redis-server
 
@@ -71,39 +71,43 @@ apt update -y
 apt install -y php8.3 php8.3-{common,cli,gd,mysql,mbstring,bcmath,xml,fpm,curl,zip,intl,redis}
 
 # --- INSTALL COMPOSER ---
-echo -e "${YELLOW}Menginstall Composer...${NC}"
+echo -e "${YELLOW}Cek Composer...${NC}"
 if ! command -v composer &> /dev/null; then
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 fi
 
-# --- BERSIH-BERSIH DATABASE LAMA ---
-echo -e "${YELLOW}Reset Database Lama (Biar Bersih)...${NC}"
-mysql -e "DROP DATABASE IF EXISTS ctrlpanel;"
-mysql -e "DROP USER IF EXISTS 'ctrlpaneluser'@'127.0.0.1';"
-mysql -e "FLUSH PRIVILEGES;"
-
-# --- SETUP DATABASE BARU (KOSONGAN) ---
-# Kita cuma bikin User & DB, TAPI GAK KITA ISI (Migrate). Biar Web Installer yang ngisi.
-echo -e "${YELLOW}Membuat Database Kosong...${NC}"
-mysql -e "CREATE USER 'ctrlpaneluser'@'127.0.0.1' IDENTIFIED BY '$DBPASS';"
-mysql -e "CREATE DATABASE ctrlpanel;"
+# --- SETUP DATABASE (SAFE MODE) ---
+# Menggunakan IF NOT EXISTS supaya tidak menghapus database lama
+echo -e "${YELLOW}Setup Database (Tanpa Hapus Data Lama)...${NC}"
+mysql -e "CREATE USER IF NOT EXISTS 'ctrlpaneluser'@'127.0.0.1' IDENTIFIED BY '$DBPASS';"
+mysql -e "CREATE DATABASE IF NOT EXISTS ctrlpanel;"
 mysql -e "GRANT ALL PRIVILEGES ON ctrlpanel.* TO 'ctrlpaneluser'@'127.0.0.1';"
 mysql -e "FLUSH PRIVILEGES;"
 
 # --- SETUP CTRL PANEL FILES ---
-echo -e "${YELLOW}Download Source Code CtrlPanel...${NC}"
 mkdir -p /var/www/ctrlpanel
 cd /var/www/ctrlpanel
-rm -rf * # Hapus sisa lama
-git clone https://github.com/Ctrlpanel-gg/panel.git ./
 
-echo -e "${YELLOW}Composer Install...${NC}"
-COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --quiet
+# Cek apakah folder sudah ada isinya?
+if [ ! -f "artisan" ]; then
+    echo -e "${YELLOW}Folder kosong, mendownload CtrlPanel...${NC}"
+    git clone https://github.com/Ctrlpanel-gg/panel.git ./
+    echo -e "${YELLOW}Install Vendor (Composer)...${NC}"
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --quiet
+    
+    echo -e "${YELLOW}Membuat file .env baru...${NC}"
+    cp .env.example .env
+else
+    echo -e "${YELLOW}File CtrlPanel sudah ada, melewati download & install composer...${NC}"
+    echo -e "${YELLOW}(Kalau mau update manual, jalankan 'git pull' sendiri)${NC}"
+fi
 
-# --- SETUP ENV & KEY ---
-echo -e "${YELLOW}Mengatur Environment (.env)...${NC}"
-cp .env.example .env
-# Kita setup DB Connection aja, sisanya nanti via Web
+# --- SETUP ENV & KEY (OVERWRITE CONFIG) ---
+# Kita update config .env supaya settingan Nginx/Domain bener
+echo -e "${YELLOW}Mengupdate Environment (.env)...${NC}"
+# Kalau file .env belum ada (kasus aneh), copy dulu
+if [ ! -f ".env" ]; then cp .env.example .env; fi
+
 sed -i "s|APP_URL=http://localhost|APP_URL=https://$DOMAIN|" .env
 sed -i "s/DB_HOST=127.0.0.1/DB_HOST=127.0.0.1/" .env
 sed -i "s/DB_PORT=3306/DB_PORT=3306/" .env
@@ -111,17 +115,18 @@ sed -i "s/DB_DATABASE=ctrlpanel/DB_DATABASE=ctrlpanel/" .env
 sed -i "s/DB_USERNAME=root/DB_USERNAME=ctrlpaneluser/" .env
 sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DBPASS/" .env
 
-php artisan key:generate
+# Generate key cuma kalau belum ada key (biar session gak logout)
+if ! grep -q "APP_KEY=base64" .env; then
+    php artisan key:generate
+fi
 php artisan storage:link
 
-# --- PERMISSION FIX ---
+# --- PERMISSION FIX (SELALU DIJALANKAN BIAR AMAN) ---
+echo -e "${YELLOW}Memperbaiki Izin Folder (Permissions)...${NC}"
 chmod -R 775 storage bootstrap/cache
 chown -R www-data:www-data /var/www/ctrlpanel
 
-# ⚠️ SAYA HAPUS MIGRATE & SEED DI SINI SUPAYA WEB INSTALLER GAK ERROR ⚠️
-
 # --- KONFIGURASI NGINX (PORT 8081) ---
-# Set ke 8081 biar aman buat Cloudflare Tunnel
 echo -e "${YELLOW}Mengkonfigurasi Nginx (Port 8081)...${NC}"
 rm /etc/nginx/sites-enabled/default 2>/dev/null
 rm /etc/nginx/sites-enabled/ctrlpanel.conf 2>/dev/null
@@ -168,7 +173,7 @@ nginx -t
 systemctl restart nginx
 
 # --- QUEUE WORKER ---
-echo -e "${YELLOW}Membuat Service Queue Worker...${NC}"
+echo -e "${YELLOW}Restart Service Queue Worker...${NC}"
 cat <<EOF > /etc/systemd/system/ctrlpanel.service
 [Unit]
 Description=Ctrlpanel Queue Worker
@@ -185,14 +190,14 @@ systemctl enable --now ctrlpanel.service
 
 echo ""
 echo -e "${GREEN}==================================================${NC}"
-echo -e "${GREEN}       INSTALASI SIAP! LANJUTKAN DI BROWSER       ${NC}"
+echo -e "${GREEN}       SAFE MODE SELESAI! LANJUT DI BROWSER       ${NC}"
 echo -e "${GREEN}==================================================${NC}"
 echo -e "Sekarang buka: https://$DOMAIN"
 echo -e "Lalu ikuti langkah ini:"
 echo -e "1. Klik Next."
 echo -e "2. Masukkan Password Database: $DBPASS"
-echo -e "3. Klik Next (Database akan diisi otomatis tanpa error)."
-echo -e "4. Masukkan URL & API Key Pterodactyl kamu di halaman selanjutnya."
+echo -e "3. Klik Next (Semoga database terhubung lancar)."
+echo -e "4. Lanjut isi URL & API Key."
 echo -e "5. Buat User Admin di web."
 echo ""
-echo -e "${CYAN}Mantap kan? Gak perlu pusing terminal lagi!${NC}"
+echo -e "${CYAN}Note: Script ini tidak menghapus data lamamu.${NC}"
