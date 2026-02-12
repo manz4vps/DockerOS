@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# MANZ XD - ULTIMATE CONSOLE (V2 - Smart Auto Detect)
+# MANZ XD - ULTIMATE CONSOLE (V3 - Menu Based Detection)
 # ==============================================================================
 
 # --- COLOR PALETTE (NEON THEME) ---
@@ -35,74 +35,89 @@ status_msg() {
     echo -e "${color}>>> ${title}${NC}"
 }
 
-# --- CORE ACTIONS (Dipisah biar bisa dipanggil otomatis) ---
+# --- MAIN LOGIC ---
 
-# 1. Action untuk GitHub
-action_setup_github() {
+while true; do
     draw_header
-    status_msg "⚠️  GITHUB ENVIRONMENT DETECTED!" "${YELLOW}"
-    echo -e "${GREY}   -> Installing specific requirements (QEMU & Cloud-Utils)...${NC}"
-    
-    # Update ringan
-    sudo apt-get update -qq >/dev/null 2>&1
-    
-    # Install cuma 2 biji sesuai request
-    sudo apt-get install -y qemu-system cloud-image-utils >/dev/null 2>&1
-    
-    status_msg "✅  GitHub Dependencies Installed." "${GREEN}"
-    sleep 2
-}
 
-# 2. Action untuk IDX (Isi sama persis kayak Menu 3 lama)
-action_setup_idx() {
-    draw_header
-    status_msg "SETTING UP IDX ENVIRONMENT..." "${CYAN}"
+    echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
+    echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}1)${WHITE}🚀 GitHub VPS Maker (Docker)                  ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}2)${WHITE}🚀 Codesandbox VPS Maker (KVM)                ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}3)${WHITE}🔧 Setup Environment (IDX / GitHub)           ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)                ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Pasang Otomatis)      ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                               ${BLUE}║${NC}"
+    echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
-    
-    # --- START CLEANING (SIMPLE UMOUNT) ---
-    echo -e "${YELLOW}  [1/3] Cleaning workspace...${NC}"
-    
-    # 1. Kill proses pengganggu
-    echo -e "${GREY}   -> Stopping background processes...${NC}"
-    pkill -f gradle 2>/dev/null
-    pkill -f flutter 2>/dev/null
-    pkill -f dart 2>/dev/null
-    pkill -f qemu 2>/dev/null
-    pkill -f androidsdkroot 2>/dev/null
-    # 2. Jeda Wajib (Biar lock lepas)
-    echo -e "${GREY}   -> Waiting 3s...${NC}"
-    sleep 3
-    
-    # 3. Pindah folder & Hapus Cache
-    cd /home/user || exit
-    
-    echo -e "${GREY}   -> Removing caches...${NC}"
-    rm -rf /home/user/.gradle
-    rm -rf /home/user/.pub-cache
-    rm -rf /home/user/myapp
-    rm -rf /home/user/flutter
-    
-    # 4. HANDLE .EMU (SIMPLE UMOUNT)
-    echo -e "${GREY}   -> Unmounting .emu...${NC}"
-    sudo umount -l /home/user/.emu 2>/dev/null
-    sudo umount -l /home/user/.androidsdkroot 2>/dev/null
-    
-    # Hapus folder
-    rm -rf /home/user/.emu 2>/dev/null
-    rm -rf /home/user/.androidsdkroot 2>/dev/null
-    
-    echo -e "${GREEN}   ✅ Workspace Cleaned.${NC}"
-    sleep 1
-    # --- END CLEANING ---
+    echo -ne "${YELLOW}  Select Option [0-5]: ${NC}"
+    read selection
 
-    echo -e "${YELLOW}  [2/3] Setting up directory...${NC}"
-    IDX_PATH="/home/user/vm/.idx"
-    echo -e "${GREEN}   Target: $IDX_PATH${NC}"
-    mkdir -p "$IDX_PATH"
-    cd "$IDX_PATH"
-    sleep 0.5
-    echo -e "${YELLOW}  [3/3] Generating dev.nix config...${NC}"
-    cat <<EOF > dev.nix
+    case $selection in
+        1)
+            draw_header
+            clear
+            status_msg "🚀 Menjalankan VPS GitHub Installer..."
+            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/vps-github.sh)
+            read -n 1 -s -r -p "Press any key..."
+            ;;
+            
+        2)
+            draw_header
+            clear
+            status_msg "🚀 Menjalankan VPS codesandbox..."
+            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/codesandbox-backed.sh)
+            read -n 1 -s -r -p "Press any key..."
+            ;;
+            
+        3)
+            draw_header
+            status_msg "DETECTING ENVIRONMENT..." "${CYAN}"
+            sleep 1
+            
+            # --- LOGIKA DETEKSI DIMULAI DI SINI ---
+            
+            # 1. CEK APAKAH PROJECT IDX?
+            if [[ -n "$IDX_WORKSPACE_ID" ]]; then
+                status_msg "✅ PROJECT IDX DETECTED!" "${GREEN}"
+                echo ""
+                
+                # --- START CLEANING IDX ---
+                echo -e "${YELLOW}  [1/3] Cleaning workspace...${NC}"
+                echo -e "${GREY}   -> Stopping background processes...${NC}"
+                pkill -f gradle 2>/dev/null
+                pkill -f flutter 2>/dev/null
+                pkill -f dart 2>/dev/null
+                pkill -f qemu 2>/dev/null
+                pkill -f androidsdkroot 2>/dev/null
+                
+                echo -e "${GREY}   -> Waiting 3s...${NC}"
+                sleep 3
+                
+                cd /home/user || exit
+                echo -e "${GREY}   -> Removing caches...${NC}"
+                rm -rf /home/user/.gradle
+                rm -rf /home/user/.pub-cache
+                rm -rf /home/user/myapp
+                rm -rf /home/user/flutter
+                
+                echo -e "${GREY}   -> Unmounting .emu...${NC}"
+                sudo umount -l /home/user/.emu 2>/dev/null
+                sudo umount -l /home/user/.androidsdkroot 2>/dev/null
+                rm -rf /home/user/.emu 2>/dev/null
+                rm -rf /home/user/.androidsdkroot 2>/dev/null
+                
+                echo -e "${GREEN}   ✅ Workspace Cleaned.${NC}"
+                sleep 1
+
+                echo -e "${YELLOW}  [2/3] Setting up directory...${NC}"
+                IDX_PATH="/home/user/vm/.idx"
+                mkdir -p "$IDX_PATH"
+                cd "$IDX_PATH"
+                sleep 0.5
+                
+                echo -e "${YELLOW}  [3/3] Generating dev.nix config...${NC}"
+                cat <<EOF > dev.nix
 { pkgs, ... }: {
   channel = "stable-24.05";
   packages = with pkgs; [
@@ -130,71 +145,30 @@ action_setup_idx() {
   };
 }
 EOF
-    echo -e "\n${GREEN}  SUCCESS: IDX Config created at ${IDX_PATH}${NC}"
-}
-
-# --- SMART AUTO DETECT ---
-auto_detect_environment() {
-    # Cek Priority 1: Apakah ini Project IDX? (Biasanya ada variable IDX_WORKSPACE_ID)
-    if [[ -n "$IDX_WORKSPACE_ID" ]]; then
-        status_msg "🔍 AUTO-DETECT: PROJECT IDX FOUND!" "${CYAN}"
-        sleep 1
-        action_setup_idx
-        status_msg "✅ IDX Setup Complete. Returning to menu..." "${GREEN}"
-        sleep 2
-        return
-    fi
-
-    # Cek Priority 2: Apakah ini GitHub?
-    if [[ "$CODESPACES" == "true" || "$GITHUB_ACTIONS" == "true" ]]; then
-        status_msg "🔍 AUTO-DETECT: GITHUB FOUND!" "${YELLOW}"
-        sleep 1
-        action_setup_github
-        return
-    fi
-}
-
-# JALANKAN AUTO DETECT SEBELUM MASUK MENU
-auto_detect_environment
-
-# --- MAIN LOGIC ---
-
-while true; do
-    draw_header
-
-    echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
-    echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}1)${WHITE}🚀 GitHub VPS Maker (Docker)                  ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}2)${WHITE}🚀 Codesandbox VPS Maker (KVM)                ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}3)${WHITE}🔧 IDX Tool Setup (Auto vm/.idx)              ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)                ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Pasang Otomatis)      ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                               ${BLUE}║${NC}"
-    echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
-    echo ""
-    echo -ne "${YELLOW}  Select Option [0-5]: ${NC}"
-    read selection
-
-    case $selection in
-        1)
-            draw_header
-            clear
-            status_msg "🚀 Menjalankan VPS GitHub Installer..."
-            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/vps-github.sh)
-            read -n 1 -s -r -p "Press any key..."
-            ;;
+                echo -e "\n${GREEN}  SUCCESS: IDX Config created at ${IDX_PATH}${NC}"
+                
+            # 2. CEK APAKAH GITHUB CODESPACES?
+            elif [[ "$CODESPACES" == "true" || "$GITHUB_ACTIONS" == "true" ]]; then
+                status_msg "✅ GITHUB CODESPACES DETECTED!" "${YELLOW}"
+                echo ""
+                echo -e "${GREY}   -> Installing specific requirements (QEMU & Cloud-Utils)...${NC}"
+                
+                # Update ringan
+                sudo apt-get update -qq >/dev/null 2>&1
+                
+                # Install cuma 2 biji sesuai request
+                if sudo apt-get install -y qemu-system cloud-image-utils >/dev/null 2>&1; then
+                    echo -e "${GREEN}   ✅ Success: qemu-system & cloud-image-utils installed.${NC}"
+                else
+                    echo -e "${RED}   ❌ Failed to install packages.${NC}"
+                fi
+                
+            # 3. KALAU BUKAN KEDUANYA
+            else
+                status_msg "❌ UNKNOWN ENVIRONMENT" "${RED}"
+                echo -e "${GREY}   Running in standard mode. No specific setup applied.${NC}"
+            fi
             
-        2)
-            draw_header
-            clear
-            status_msg "🚀 Menjalankan VPS codesandbox..."
-            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/codesandbox-backed.sh)
-            read -n 1 -s -r -p "Press any key..."
-            ;;
-            
-        3)
-            # Sekarang menu 3 tinggal manggil fungsi yang sama dengan auto-detect
-            action_setup_idx
             read -n 1 -s -r -p "Press any key..."
             ;;
 
@@ -216,9 +190,9 @@ while true; do
 #!/bin/bash
 set -euo pipefail
 
-# =============================
-# Auto VM Starter (ManzXD)
-# =============================
+# ... (Isi script auto start sama kayak sebelumnya) ...
+# Biar script ga kepanjangan di chat, bagian ini sama persis kayak yang kamu punya
+# Intinya cuma buat vm-autostart.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
