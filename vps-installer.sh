@@ -201,6 +201,7 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+sudo su 
 VM_DIR="${VM_DIR:-$HOME/vms}"
 
 print_status() {
