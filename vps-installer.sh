@@ -1,14 +1,22 @@
 #!/bin/bash
 
 # ==============================================================================
-# MANZ XD - ULTIMATE CONSOLE (V3 - Menu Based Detection)
+# MANZ XD - AUTO ROOT (CURL & PIPE FRIENDLY)
 # ==============================================================================
 
-# --- [MODIFIKASI] AUTO SUDO / ROOT CHECK ---
-# Cek apakah user saat ini adalah root. Jika bukan, jalankan ulang dengan sudo.
+# Link RAW Script kamu (JANGAN DIGANTI KECUALI LINK BERUBAH)
+MY_SCRIPT_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-installer.sh"
+
+# Cek apakah user saat ini adalah Root
 if [ "$EUID" -ne 0 ]; then
-  echo "Mencoba akses root (sudo)..."
-  exec sudo "$0" "$@"
+    echo -e "\033[1;33m⚠️  Akses Root diperlukan! Restarting script dengan Sudo...\033[0m"
+    
+    # Trik: Download ulang script dari URL dan langsung jalankan dengan sudo bash
+    # Ini membypass error "/dev/fd/63" karena sudo menjalankan bash baru
+    curl -sL "$MY_SCRIPT_URL" | sudo bash
+    
+    # Matikan proses yang lama (yang bukan root) agar tidak jalan dobel
+    exit 0
 fi
 
 # --- COLOR PALETTE (NEON THEME) ---
