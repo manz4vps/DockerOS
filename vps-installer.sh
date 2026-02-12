@@ -39,7 +39,7 @@ status_msg() {
 
 while true; do
     draw_header
-
+         sudo su
     echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
     echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}  ║ ${GREEN}1)${WHITE}🚀 GitHub VPS Maker (Docker)                  ${BLUE}║${NC}"
