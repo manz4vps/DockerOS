@@ -4,6 +4,13 @@
 # MANZ XD - ULTIMATE CONSOLE (V3 - Menu Based Detection)
 # ==============================================================================
 
+# --- [MODIFIKASI] AUTO SUDO / ROOT CHECK ---
+# Cek apakah user saat ini adalah root. Jika bukan, jalankan ulang dengan sudo.
+if [ "$EUID" -ne 0 ]; then
+  echo "Mencoba akses root (sudo)..."
+  exec sudo "$0" "$@"
+fi
+
 # --- COLOR PALETTE (NEON THEME) ---
 CYAN='\033[1;36m'
 PURPLE='\033[1;35m'
@@ -19,7 +26,7 @@ NC='\033[0m' # No Color
 
 draw_logo() {
     echo -e "${BLUE}  ╔══════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}  ║${CYAN}        MANZ XD - ULTIMATE CONSOLE      ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║${CYAN}        MANZ XD - ULTIMATE CONSOLE       ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════╝${NC}"
 }
 
@@ -39,15 +46,15 @@ status_msg() {
 
 while true; do
     draw_header
-         sudo su
+    
     echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
     echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}1)${WHITE}🚀 GitHub VPS Maker (Docker)                  ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}2)${WHITE}🚀 Codesandbox VPS Maker (KVM)                ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}3)${WHITE}🔧 Setup Environment (IDX / GitHub)           ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)                ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Pasang Otomatis)      ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                               ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}1)${WHITE}🚀 GitHub VPS Maker (Docker)                   ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}2)${WHITE}🚀 Codesandbox VPS Maker (KVM)                 ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}3)${WHITE}🔧 Setup Environment (IDX / GitHub)            ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)                 ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Pasang Otomatis)       ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                                ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -ne "${YELLOW}  Select Option [0-5]: ${NC}"
@@ -102,8 +109,8 @@ while true; do
                 rm -rf /home/user/flutter
                 
                 echo -e "${GREY}   -> Unmounting .emu...${NC}"
-                sudo umount -l /home/user/.emu 2>/dev/null
-                sudo umount -l /home/user/.androidsdkroot 2>/dev/null
+                umount -l /home/user/.emu 2>/dev/null
+                umount -l /home/user/.androidsdkroot 2>/dev/null
                 rm -rf /home/user/.emu 2>/dev/null
                 rm -rf /home/user/.androidsdkroot 2>/dev/null
                 
@@ -154,10 +161,10 @@ EOF
                 echo -e "${GREY}   -> Installing specific requirements (QEMU & Cloud-Utils)...${NC}"
                 
                 # Update ringan
-                sudo apt-get update -qq >/dev/null 2>&1
+                apt-get update -qq >/dev/null 2>&1
                 
                 # Install cuma 2 biji sesuai request
-                if sudo apt-get install -y qemu-system cloud-image-utils >/dev/null 2>&1; then
+                if apt-get install -y qemu-system cloud-image-utils >/dev/null 2>&1; then
                     echo -e "${GREEN}   ✅ Success: qemu-system & cloud-image-utils installed.${NC}"
                 else
                     echo -e "${RED}   ❌ Failed to install packages.${NC}"
@@ -191,8 +198,6 @@ EOF
 set -euo pipefail
 
 # ... (Isi script auto start sama kayak sebelumnya) ...
-# Biar script ga kepanjangan di chat, bagian ini sama persis kayak yang kamu punya
-# Intinya cuma buat vm-autostart.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -201,7 +206,6 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-sudo su 
 VM_DIR="${VM_DIR:-$HOME/vms}"
 
 print_status() {
@@ -356,7 +360,7 @@ fi
 TARGET_VM="${vms[0]}"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║${CYAN}          AUTO VM STARTER (MANZ XD)                      ${BLUE}║${NC}"
+echo -e "${BLUE}║${CYAN}           AUTO VM STARTER (MANZ XD)                     ${BLUE}║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
 
 print_status "INFO" "🔎 Found ${vm_count} VMs."
@@ -367,8 +371,8 @@ EOF
             chmod +x "$HOME/vm-autostart.sh"
             sleep 1
 
-            # 2. Menambahkan trigger ke .bashrc
-            echo -e "${YELLOW}  [2/2] Registering to .bashrc...${NC}"
+            # 2. Menambahkan trigger ke .bashrc (DENGAN SUDO OTOMATIS)
+            echo -e "${YELLOW}  [2/2] Registering to .bashrc with SUDO...${NC}"
             
             if grep -q "IDX VM AUTOSTART" "$HOME/.bashrc"; then
                 echo -e "${RED}  Already installed in .bashrc! Skipping.${NC}"
@@ -379,7 +383,8 @@ EOF
 # IDX VM AUTOSTART (MANZ XD)
 # ==========================================
 if [ -f "$HOME/vm-autostart.sh" ]; then
-    (cd "$HOME" && bash ./vm-autostart.sh)
+    # Menggunakan sudo bash agar VM langsung jalan sebagai root
+    sudo bash "$HOME/vm-autostart.sh"
 fi
 EOF
                 echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
