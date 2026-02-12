@@ -1,37 +1,6 @@
 #!/bin/bash
 
 # ==============================================================================
-# MANZ XD - AUTO ROOT (METODE FILE TEMP - ANTI SPAM & ERROR)
-# ==============================================================================
-
-# URL Script asli kamu
-MY_SCRIPT_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-installer.sh"
-
-# Cek Root
-if [ "$EUID" -ne 0 ]; then
-    echo -e "\033[1;33m⚠️  Mendeteksi User Biasa. Memproses akses Root...\033[0m"
-    
-    # 1. Download script ke folder sementara (/tmp)
-    # Kita namakan file-nya acak biar ga bentrok
-    TEMP_FILE="/tmp/manz_installer_$(date +%s).sh"
-    
-    curl -sL "$MY_SCRIPT_URL" -o "$TEMP_FILE"
-    
-    # 2. Beri izin eksekusi
-    chmod +x "$TEMP_FILE"
-    
-    # 3. Jalankan file tersebut dengan SUDO
-    # Opsi -E berguna untuk menjaga environment variabel (opsional tapi bagus)
-    sudo -E "$TEMP_FILE"
-    
-    # 4. Hapus file sampah setelah selesai (Opsional, biar bersih)
-    rm -f "$TEMP_FILE"
-    
-    # 5. MATIKAN script awal agar tidak looping
-    exit 0
-fi
-
-# ==============================================================================
 # MANZ XD - ULTIMATE CONSOLE (V3 - Menu Based Detection)
 # ==============================================================================
 
