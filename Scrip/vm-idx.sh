@@ -19,8 +19,8 @@ NC='\033[0m' # No Color (Reset)
 display_header() {
     clear
     echo -e "${BLUE}  ╔══════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}  ║${CYAN}      VIRTUAL MACHINE MANAGER          ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║${YELLOW}          POWERED BY MANZ              ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║${CYAN}       VIRTUAL MACHINE MANAGER          ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║${YELLOW}           POWERED BY MANZ              ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════╝${NC}"
     echo
 }
@@ -841,12 +841,15 @@ trap cleanup EXIT
 # Check dependencies
 check_dependencies
 
-# Initialize paths
-VM_DIR="${VM_DIR:-$HOME/vms}"
+# --- AUTO DETECT WORKSPACE LOCATION ---
+if [ -d "/workspaces" ]; then
+    VM_DIR="/workspaces/vms"
+else
+    VM_DIR="${VM_DIR:-$HOME/vms}"
+fi
 mkdir -p "$VM_DIR"
 
 # Supported OS Configuration (Data Storage)
-# KUNCI (NAMA) SUDAH DISAMAKAN DENGAN MENU WARNA DI BAWAH AGAR TIDAK ERROR
 declare -A OS_OPTIONS=(
     ["Ubuntu 25.04  \033[1;33m|261MB\033[0m"]="ubuntu|plucky|https://cloud-images.ubuntu.com/minimal/daily/plucky/relese/plucky-minimal-cloudimg-amd64.img|ubuntu25|ubuntu|ubuntu"
     ["Ubuntu 24.04  \033[1;33m|248MB\033[0m"]="ubuntu|noble|https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img|ubuntu24|ubuntu|ubuntu"
@@ -860,7 +863,7 @@ declare -A OS_OPTIONS=(
     ["Rocky Linux 9  \033[1;33m|618MB\033[0m"]="rockylinux|9|https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2|rocky9|rocky|rocky"
 )
 
-# Defined Order for Menu Display (Agar urut sesuai request)
+# Defined Order for Menu Display
 OS_ORDER=(
     "Ubuntu 25.04  \033[1;33m|261MB\033[0m"
     "Ubuntu 24.04  \033[1;33m|248MB\033[0m"
