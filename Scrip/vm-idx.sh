@@ -1,4 +1,3 @@
-Nah skrng di scrip ini, ini kan ada file vms nya nah kalo di github file vms nya di taro di /workspaces soal nya itu tempat paling bagus kamu editin nih scrip nya jagan edit yang lain 
 #!/bin/bash
 set -euo pipefail
 
