@@ -1,23 +1,39 @@
 #!/bin/bash
 
 # ==============================================================================
-# MANZ XD - AUTO ROOT (CURL & PIPE FRIENDLY)
+# MANZ XD - AUTO ROOT (METODE FILE TEMP - ANTI SPAM & ERROR)
 # ==============================================================================
 
-# Link RAW Script kamu (JANGAN DIGANTI KECUALI LINK BERUBAH)
+# URL Script asli kamu
 MY_SCRIPT_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-installer.sh"
 
-# Cek apakah user saat ini adalah Root
+# Cek Root
 if [ "$EUID" -ne 0 ]; then
-    echo -e "\033[1;33m⚠️  Akses Root diperlukan! Restarting script dengan Sudo...\033[0m"
+    echo -e "\033[1;33m⚠️  Mendeteksi User Biasa. Memproses akses Root...\033[0m"
     
-    # Trik: Download ulang script dari URL dan langsung jalankan dengan sudo bash
-    # Ini membypass error "/dev/fd/63" karena sudo menjalankan bash baru
-    curl -sL "$MY_SCRIPT_URL" | sudo bash
+    # 1. Download script ke folder sementara (/tmp)
+    # Kita namakan file-nya acak biar ga bentrok
+    TEMP_FILE="/tmp/manz_installer_$(date +%s).sh"
     
-    # Matikan proses yang lama (yang bukan root) agar tidak jalan dobel
+    curl -sL "$MY_SCRIPT_URL" -o "$TEMP_FILE"
+    
+    # 2. Beri izin eksekusi
+    chmod +x "$TEMP_FILE"
+    
+    # 3. Jalankan file tersebut dengan SUDO
+    # Opsi -E berguna untuk menjaga environment variabel (opsional tapi bagus)
+    sudo -E "$TEMP_FILE"
+    
+    # 4. Hapus file sampah setelah selesai (Opsional, biar bersih)
+    rm -f "$TEMP_FILE"
+    
+    # 5. MATIKAN script awal agar tidak looping
     exit 0
 fi
+
+# ==============================================================================
+# MANZ XD - ULTIMATE CONSOLE (V3 - Menu Based Detection)
+# ==============================================================================
 
 # --- COLOR PALETTE (NEON THEME) ---
 CYAN='\033[1;36m'
@@ -117,8 +133,8 @@ while true; do
                 rm -rf /home/user/flutter
                 
                 echo -e "${GREY}   -> Unmounting .emu...${NC}"
-                umount -l /home/user/.emu 2>/dev/null
-                umount -l /home/user/.androidsdkroot 2>/dev/null
+                sudo umount -l /home/user/.emu 2>/dev/null
+                sudo umount -l /home/user/.androidsdkroot 2>/dev/null
                 rm -rf /home/user/.emu 2>/dev/null
                 rm -rf /home/user/.androidsdkroot 2>/dev/null
                 
@@ -169,10 +185,10 @@ EOF
                 echo -e "${GREY}   -> Installing specific requirements (QEMU & Cloud-Utils)...${NC}"
                 
                 # Update ringan
-                apt-get update -qq >/dev/null 2>&1
+                sudo apt-get update -qq >/dev/null 2>&1
                 
                 # Install cuma 2 biji sesuai request
-                if apt-get install -y qemu-system cloud-image-utils >/dev/null 2>&1; then
+                if sudo apt-get install -y qemu-system cloud-image-utils >/dev/null 2>&1; then
                     echo -e "${GREEN}   ✅ Success: qemu-system & cloud-image-utils installed.${NC}"
                 else
                     echo -e "${RED}   ❌ Failed to install packages.${NC}"
@@ -206,6 +222,8 @@ EOF
 set -euo pipefail
 
 # ... (Isi script auto start sama kayak sebelumnya) ...
+# Biar script ga kepanjangan di chat, bagian ini sama persis kayak yang kamu punya
+# Intinya cuma buat vm-autostart.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -379,8 +397,8 @@ EOF
             chmod +x "$HOME/vm-autostart.sh"
             sleep 1
 
-            # 2. Menambahkan trigger ke .bashrc (DENGAN SUDO OTOMATIS)
-            echo -e "${YELLOW}  [2/2] Registering to .bashrc with SUDO...${NC}"
+            # 2. Menambahkan trigger ke .bashrc
+            echo -e "${YELLOW}  [2/2] Registering to .bashrc...${NC}"
             
             if grep -q "IDX VM AUTOSTART" "$HOME/.bashrc"; then
                 echo -e "${RED}  Already installed in .bashrc! Skipping.${NC}"
@@ -391,8 +409,7 @@ EOF
 # IDX VM AUTOSTART (MANZ XD)
 # ==========================================
 if [ -f "$HOME/vm-autostart.sh" ]; then
-    # Menggunakan sudo bash agar VM langsung jalan sebagai root
-    sudo bash "$HOME/vm-autostart.sh"
+    (cd "$HOME" && bash ./vm-autostart.sh)
 fi
 EOF
                 echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
