@@ -31,7 +31,7 @@ function rakitYsdragon() {
         execSync('curl -L -A "Mozilla/5.0" -s -o ysdragon.zip "https://github.com/ysdragon/Pterodactyl-VPS-Egg/archive/refs/heads/main.zip"');
         
         console.log("\x1b[33m[EKSTRAK]\x1b[0m Membongkar file (Menggunakan Smart Unzip)...");
-        // 🌟 FITUR UTAMA V42: SMART EXTRACTOR (PYTHON BACKUP) 🌟
+        // 🌟 FITUR UTAMA V42: SMART EXTRACTOR (PYTHON BACKUP) 
         try {
             // Coba cara normal (unzip)
             execSync('unzip -o -q ysdragon.zip');
