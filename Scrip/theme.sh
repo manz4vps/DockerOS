@@ -44,8 +44,9 @@ pasang_tema() {
         echo -e "${TEBAL}PILIH TEMA:${RESET}"
         echo -e " [1] Nebula Theme"
         echo -e " [2] Euphoria Theme (via Blueprint)"
-        echo -e " [3] Stellar Theme"
-        echo -e " [4] NookTheme"
+        echo -e " [3] Darkenate Theme"
+        echo -e " [4] Stellar Theme"
+        echo -e " [5] NookTheme"
         echo -e " [0] Keluar"
         echo -e "${CYAN}------------------------------------------${RESET}"
         read -p "Masukkan Pilihan [0-4]: " t
