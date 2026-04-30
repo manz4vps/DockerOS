@@ -77,10 +77,33 @@ pasang_tema() {
                 fi
                 read -p "Tekan Enter untuk kembali..."
                 ;;
-            3)  jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme-stellar.sh"
+            3) 
+                # Cek Blueprint dulu
+                if ! command -v blueprint &> /dev/null; then
+                    echo -e "\n${RED}[ERROR] Blueprint tidak terinstall!${RESET}"
+                    echo "Tema Darkenate membutuhkan 'blueprint' framework."
+                    read -p "Tekan Enter kembali..."
+                    continue
+                fi
+
+                echo -e "\n${YELLOW}🔄 Menginstall Darkena5e Theme...${RESET}"
+                cd /var/www/pterodactyl || return
+                
+                # Download & Install
+                if curl -fsSLO "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/darkenate.blueprint"; then
+                    blueprint -i darkenate.blueprint
+                    rm -f darkenate.blueprint # Hapus file mentahan setelah install
+                    echo -e "${GREEN}✅ Darkenate Theme berhasil diinstall.${RESET}"
+                else
+                    echo -e "${RED}❌ Gagal download file blueprint.${RESET}"
+                fi
                 read -p "Tekan Enter untuk kembali..."
                 ;;
-            4)
+            4)  
+                jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme-stellar.sh"
+                read -p "Tekan Enter untuk kembali..."
+                ;;
+            5)
                 jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/NookTheme.sh"
                 read -p "Tekan Enter untuk kembali..."
                 ;;
