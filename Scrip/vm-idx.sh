@@ -869,7 +869,7 @@ OS_ORDER=(
     "Ubuntu 20.04  \033[1;33m|252MB\033[0m"
     "Debian 13  \033[1;33m|322MB\033[0m"
     "Debian 12  \033[1;33m|333MB\033[0m"
-    "Debian 11  \033[1;33m|251MB\033[0m"
+    "Debian 11  \033[1;33m|272MB\033[0m"
     "CentOS Stream 9  \033[1;33m|1.4GB\033[0m"
     "Fedora 43  \033[1;33m|556MB\033[0m"
     "AlmaLinux 9  \033[1;33m|514MB\033[0m"
