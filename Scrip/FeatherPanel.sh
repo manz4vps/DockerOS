@@ -66,14 +66,14 @@ cd /var/www/featherpanel || exit
 cat > docker-compose.yml <<EOF
 services:
   mysql:
-    image: mariadb:12.1
+    image: mariadb:latest
     container_name: featherpanel_mysql
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: \${MARIADB_ROOT_PASSWORD:-featherpanel_root}
-      MARIADB_DATABASE: \${MARIADB_DATABASE:-featherpanel}
-      MARIADB_USER: \${MARIADB_USER:-featherpanel}
-      MARIADB_PASSWORD: \${MARIADB_PASSWORD:-featherpanel_password}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-featherpanel_root}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-featherpanel}
+      MARIADB_USER: ${MARIADB_USER:-featherpanel}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-featherpanel_password}
       MARIADB_AUTO_UPGRADE: "1"
     volumes:
       - mariadb_data:/var/lib/mysql
@@ -81,38 +81,51 @@ services:
     networks:
       - featherpanel_network
     healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-pfeatherpanel_root"]
+      test:
+        [
+          "CMD",
+          "mariadb-admin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-pfeatherpanel_root",
+        ]
       timeout: 20s
       retries: 10
 
   redis:
-    image: redis:8.4-alpine
+    image: redis:latest
     container_name: featherpanel_redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass \${REDIS_PASSWORD:-featherpanel_redis}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-featherpanel_redis}
     volumes:
       - redis_data:/data
     networks:
       - featherpanel_network
+    depends_on:
+      mysql:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       timeout: 20s
       retries: 10
 
   backend:
-    # MENGGUNAKAN IMAGE PRIBADI KAMU
-    image: manz4vps/panel-backend:private
+    image: ghcr.io/mythicalltd/featherpanel-backend:latest
     container_name: featherpanel_backend
     restart: unless-stopped
     environment:
       - DATABASE_HOST=mysql
       - DATABASE_PORT=3306
-      - DATABASE_DATABASE=\${MARIADB_DATABASE:-featherpanel}
-      - DATABASE_USER=\${MARIADB_USER:-featherpanel}
-      - DATABASE_PASSWORD=\${MARIADB_PASSWORD:-featherpanel_password}
+      - DATABASE_DATABASE=${MARIADB_DATABASE:-featherpanel}
+      - DATABASE_USER=${MARIADB_USER:-featherpanel}
+      - DATABASE_PASSWORD=${MARIADB_PASSWORD:-featherpanel_password}
       - DATABASE_ENCRYPTION=xchacha20
       - REDIS_HOST=redis
-      - REDIS_PASSWORD=\${REDIS_PASSWORD:-featherpanel_redis}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-featherpanel_redis}
+      - TRUST_PROXY_HEADERS=true
     depends_on:
       mysql:
         condition: service_healthy
@@ -130,8 +143,7 @@ services:
       - featherpanel_network
 
   frontendv2:
-    # MENGGUNAKAN IMAGE PRIBADI KAMU
-    image: manz4vps/panel-frontend:private
+    image: ghcr.io/mythicalltd/featherpanel-frontendv2:latest
     container_name: featherpanel_frontendv2
     restart: unless-stopped
     environment:
@@ -145,12 +157,49 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80",
+        ]
       timeout: 20s
       retries: 10
     ports:
-      # PORT 4831 (PENTING BIAR NGINX JALAN)
-      - "4831:80"
+      - "${FEATHERPANEL_PANEL_PORT:-4831}:80"
+    networks:
+      - featherpanel_network
+
+  async-runner:
+    image: ghcr.io/mythicalltd/featherpanel-async-runner:latest
+    container_name: featherpanel_async_runner
+    restart: unless-stopped
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
+      - net.ipv6.conf.lo.disable_ipv6=1
+    environment:
+      - RUST_LOG=info
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=${MARIADB_DATABASE:-featherpanel}
+      - DB_USER=${MARIADB_USER:-featherpanel}
+      - DB_PASS=${MARIADB_PASSWORD:-featherpanel_password}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-featherpanel_redis}@redis:6379
+    volumes:
+      - featherpanel_config:/app/config:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      frontendv2:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
     networks:
       - featherpanel_network
 
