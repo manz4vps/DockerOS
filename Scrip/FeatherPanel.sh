@@ -57,12 +57,11 @@ if ! command -v docker &> /dev/null; then
     systemctl enable --now docker
 fi
 
-# 3. MENULIS FILE CONFIG (ANTI-DEV UPDATE)
+# 3. MENULIS FILE CONFIG (MENGGUNAKAN IMAGE OFFICIAL)
 echo -e "${CYAN}[INFO]${NC} Menulis konfigurasi panel pribadi..."
 mkdir -p /var/www/featherpanel
 cd /var/www/featherpanel || exit
 
-# KITA TULIS LANGSUNG ISINYA DI SINI (Pake Image manz4vps)
 cat > docker-compose.yml <<EOF
 services:
   mysql:
@@ -100,8 +99,8 @@ services:
       retries: 10
 
   backend:
-    # MENGGUNAKAN IMAGE PRIBADI KAMU
-    image: manz4vps/panel-backend:private
+    # IMAGE OFFICIAL BIAR BISA UPDATE
+    image: ghcr.io/mythicalltd/featherpanel-backend:latest
     container_name: featherpanel_backend
     restart: unless-stopped
     environment:
@@ -130,8 +129,8 @@ services:
       - featherpanel_network
 
   frontendv2:
-    # MENGGUNAKAN IMAGE PRIBADI KAMU
-    image: manz4vps/panel-frontend:private
+    # IMAGE OFFICIAL BIAR BISA UPDATE
+    image: ghcr.io/mythicalltd/featherpanel-frontend:latest
     container_name: featherpanel_frontendv2
     restart: unless-stopped
     environment:
@@ -176,6 +175,9 @@ echo -e "${CYAN}[INFO]${NC} Menjalankan Panel (Stable Version)..."
 docker compose down >/dev/null 2>&1
 docker compose up -d
 touch /var/www/featherpanel/.installed
+
+# JALANKAN FIX DATABASE
+docker exec -it featherpanel_backend php artisan migrate --force
 
 # 5. SETUP SSL & NGINX
 echo -e "${CYAN}[INFO]${NC} Menyiapkan Nginx HTTPS..."
