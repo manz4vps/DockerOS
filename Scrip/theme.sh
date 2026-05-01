@@ -105,6 +105,10 @@ pasang_tema() {
                 read -p "Tekan Enter untuk kembali..."
                 ;;
             5)
+                jalankan_script "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/theme-arix-v1.3.1.sh"
+                read -p "Tekan Enter untuk kembali..."
+                ;;
+            6)
                 jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/NookTheme.sh"
                 read -p "Tekan Enter untuk kembali..."
                 ;;
