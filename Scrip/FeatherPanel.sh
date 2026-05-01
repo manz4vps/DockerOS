@@ -57,11 +57,12 @@ if ! command -v docker &> /dev/null; then
     systemctl enable --now docker
 fi
 
-# 3. MENULIS FILE CONFIG (MENGGUNAKAN IMAGE OFFICIAL)
+# 3. MENULIS FILE CONFIG (ANTI-DEV UPDATE)
 echo -e "${CYAN}[INFO]${NC} Menulis konfigurasi panel pribadi..."
 mkdir -p /var/www/featherpanel
 cd /var/www/featherpanel || exit
 
+# KITA TULIS LANGSUNG ISINYA DI SINI (Pake Image manz4vps)
 cat > docker-compose.yml <<EOF
 services:
   mysql:
@@ -99,8 +100,8 @@ services:
       retries: 10
 
   backend:
-    # IMAGE OFFICIAL BIAR BISA UPDATE
-    image: ghcr.io/mythicalltd/featherpanel-backend:latest
+    # MENGGUNAKAN IMAGE PRIBADI KAMU
+    image: manz4vps/panel-backend:private
     container_name: featherpanel_backend
     restart: unless-stopped
     environment:
@@ -129,8 +130,8 @@ services:
       - featherpanel_network
 
   frontendv2:
-    # IMAGE OFFICIAL BIAR BISA UPDATE
-    image: ghcr.io/mythicalltd/featherpanel-frontend:latest
+    # MENGGUNAKAN IMAGE PRIBADI KAMU
+    image: manz4vps/panel-frontend:private
     container_name: featherpanel_frontendv2
     restart: unless-stopped
     environment:
@@ -176,9 +177,6 @@ docker compose down >/dev/null 2>&1
 docker compose up -d
 touch /var/www/featherpanel/.installed
 
-# JALANKAN FIX DATABASE
-docker exec -it featherpanel_backend php artisan migrate --force
-
 # 5. SETUP SSL & NGINX
 echo -e "${CYAN}[INFO]${NC} Menyiapkan Nginx HTTPS..."
 mkdir -p /etc/nginx/ssl
@@ -193,16 +191,13 @@ server {
     server_name $PANEL_DOMAIN;
     return 301 https://\$server_name\$request_uri;
 }
-
 server {
     listen 443 ssl;
     server_name $PANEL_DOMAIN;
-
     ssl_certificate /etc/nginx/ssl/featherpanel.crt;
     ssl_certificate_key /etc/nginx/ssl/featherpanel.key;
     ssl_protocols TLSv1.2 TLSv1.3;
     client_max_body_size 100m;
-
     location / {
         # Proxy ke Port 4831
         proxy_pass http://127.0.0.1:4831;
