@@ -46,7 +46,8 @@ pasang_tema() {
         echo -e " [2] Euphoria Theme (via Blueprint)"
         echo -e " [3] Darkenate Theme"
         echo -e " [4] Stellar Theme"
-        echo -e " [5] NookTheme"
+        echo -e " [5] Arix Theme"
+        echo -e " [6] NookTheme"
         echo -e " [0] Keluar"
         echo -e "${CYAN}------------------------------------------${RESET}"
         read -p "Masukkan Pilihan [0-4]: " t
