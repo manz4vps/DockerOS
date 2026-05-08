@@ -849,12 +849,12 @@ mkdir -p "$VM_DIR"
 # KUNCI (NAMA) SUDAH DISAMAKAN DENGAN MENU WARNA DI BAWAH AGAR TIDAK ERROR
 declare -A OS_OPTIONS=(
     ["Ubuntu 26.04  \033[1;33m|408MB\033[0m"]="ubuntu|resolute|https://cloud-images.ubuntu.com/minimal/releases/resolute/release/ubuntu-26.04-minimal-cloudimg-amd64.img|ubuntu26|ubuntu|ubuntu"
-    ["Ubuntu 25.04  \033[1;33m|261MB\033[0m"]="ubuntu|plucky|https://cloud-images.ubuntu.com/minimal/daily/plucky/relese/plucky-minimal-cloudimg-amd64.img|ubuntu25|ubuntu|ubuntu"
+    ["Ubuntu 25.04  \033[1;33m|394MB\033[0m"]="ubuntu|plucky|https://cloud-images.ubuntu.com/minimal/daily/questing/current/questing-minimal-cloudimg-amd64.img|ubuntu25|ubuntu|ubuntu"
     ["Ubuntu 24.04  \033[1;33m|248MB\033[0m"]="ubuntu|noble|https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img|ubuntu24|ubuntu|ubuntu"
     ["Ubuntu 22.04  \033[1;33m|294MB\033[0m"]="ubuntu|jammy|https://cloud-images.ubuntu.com/minimal/releases/jammy/release/ubuntu-22.04-minimal-cloudimg-amd64.img|ubuntu22|ubuntu|ubuntu"
     ["Ubuntu 20.04  \033[1;33m|252MB\033[0m"]="ubuntu|focal|https://cloud-images.ubuntu.com/minimal/releases/focal/release/ubuntu-20.04-minimal-cloudimg-amd64.img|ubuntu20|ubuntu|ubuntu"
     ["Debian 13  \033[1;33m|322MB\033[0m"]="debian|trixie|https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-genericcloud-arm64-daily.qcow2|debian13|debian|debian"
-    ["Debian 12  \033[1;33m|333MB\033[0m"]="debian|bookworm|https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-genericcloud-amd64-daily.qcow2|debian|debian"
+    ["Debian 12  \033[1;33m|333MB\033[0m"]="debian|bookworm|https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-genericcloud-amd64-daily.qcow2|debian12|debian|debian"
     ["Debian 11  \033[1;33m|271MB\033[0m"]="debian|bullseye|https://cloud.debian.org/images/cloud/bullseye/daily/latest/debian-11-genericcloud-amd64-daily.qcow2|debian11|debian|debian"
     ["CentOS Stream 9  \033[1;33m|1.4GB\033[0m"]="centos|stream9|https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2|centos9|centos|centos"
     ["Fedora 43  \033[1;33m|556MB\033[0m"]="fedora|43|https://ftp.yz.yamagata-u.ac.jp/pub/linux/fedora-projects/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2|fedora43|fedora|fedora"
@@ -865,7 +865,7 @@ declare -A OS_OPTIONS=(
 # Defined Order for Menu Display (Agar urut sesuai request)
 OS_ORDER=(
     "Ubuntu 26.04  \033[1;33m|408MB\033[0m"
-    "Ubuntu 25.04  \033[1;33m|261MB\033[0m"
+    "Ubuntu 25.04  \033[1;33m|394MB\033[0m"
     "Ubuntu 24.04  \033[1;33m|248MB\033[0m"
     "Ubuntu 22.04  \033[1;33m|294MB\033[0m"
     "Ubuntu 20.04  \033[1;33m|252MB\033[0m"
