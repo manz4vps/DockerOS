@@ -138,6 +138,16 @@ install_addon_panel() {
                     install_direct "$LINK" "$FILE"
                     ;;
                 10)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/sagaserverpropertiesui.blueprint"
+                    FILE="sagaserverpropertiesui.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                11)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/recolor.blueprint"
+                    FILE="recolor.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                12)
                     echo -e "\n${YELLOW}🚀 GASKEUN INSTALL SEMUA...${RESET}"
                     
                     install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/mcplugins.blueprint" "mcplugins.blueprint"
@@ -148,8 +158,9 @@ install_addon_panel() {
                     install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/startupchanger.blueprint" "startupchanger.blueprint"
                     install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/subdomains.blueprint" "subdomains.blueprint"
                     install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint" "versionchanger.blueprint"
-                    # Tambahan parameter nama file yang tertinggal di script aslimu
                     install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/huxregister.blueprint" "huxregister.blueprint"
+                    install_direct "" "sagaserverpropertiesui.blueprint"
+                    install_direct "" "recolor.blueprint"
                     
                     echo -e "\n${GREEN}✅ SEMUA PROSES SELESAI!${RESET}"
                     ;;
