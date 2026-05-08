@@ -79,8 +79,10 @@ install_addon_panel() {
         echo -e "${CYAN}[7]${RESET} Subdomains"
         echo -e "${CYAN}[8]${RESET} Version Changer"
         echo -e "${CYAN}[9]${RESET} HuxRegister"
+        echo -e "${CYAN}[10]${RESET} ServerProperties (UI)"
+        echo -e "${CYAN}[11]${RESET} Recolor"
         echo -e "${CYAN}----------------------------------${RESET}"
-        echo -e "${GREEN}[10] 🔥 INSTALL SEMUA (ALL 9 ADDONS)${RESET}"
+        echo -e "${GREEN}[12] 🔥 INSTALL SEMUA (ALL 9 ADDONS)${RESET}"
         echo -e "${RED}[0] 🔙 KEMBALI${RESET}"
         echo ""
         
