@@ -17,7 +17,7 @@ RED='\033[0;31m'
 banner() {
     clear
     echo -e "${CYAN}==========================================${RESET}"
-    echo -e "${YELLOW}       AUTO INSTALLER ADDON PANEL       ${RESET}"
+    echo -e "${YELLOW}        AUTO INSTALLER ADDON PANEL        ${RESET}"
     echo -e "${CYAN}==========================================${RESET}"
     echo -e "         ${TEBAL}Created by ManzXD${RESET}"
     echo -e "${CYAN}==========================================${RESET}"
@@ -80,103 +80,95 @@ install_addon_panel() {
         echo -e "${CYAN}[8]${RESET} Version Changer"
         echo -e "${CYAN}[9]${RESET} HuxRegister"
         echo -e "${CYAN}----------------------------------${RESET}"
-        echo -e "${GREEN}[10] 🔥 INSTALL SEMUA (ALL 8 ADDONS)${RESET}"
+        echo -e "${GREEN}[10] 🔥 INSTALL SEMUA (ALL 9 ADDONS)${RESET}"
         echo -e "${RED}[0] 🔙 KEMBALI${RESET}"
         echo ""
-        read -p "Masukkan Pilihan [0-9]: " opt
+        
+        # TIPS CARA PAKAI BARU
+        echo -e "${YELLOW}Tips: Bisa pilih banyak sekaligus, pisahkan dengan spasi.${RESET}"
+        echo -e "${YELLOW}Contoh: 1 4 5${RESET}"
+        read -p "Masukkan Pilihan: " opts
 
-        case $opt in
-            1)
-                # ISI LINK MC PLUGINS DISINI
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/mcplugins.blueprint"
-                FILE="mcplugins.blueprint"
-                install_direct "$LINK" "$FILE"
-                read -p "Tekan Enter untuk lanjut..."
-                ;;
-            2)
-                # SUDAH DIISI SESUAI REQUEST
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/sagaminecraftplayermanager.blueprint"
-                FILE="sagaminecraftplayermanager.blueprint"
-                install_direct "$LINK" "$FILE"
-                read -p "Tekan Enter untuk lanjut..."
-                ;;
-            3)
-                # ISI LINK LOADER DISINI
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/loader.blueprint"
-                FILE="loader.blueprint"
-                install_direct "$LINK" "$FILE"
-                read -p "Tekan Enter untuk lanjut..."
-                ;;
-            4)
-                # ISI LINK SERVER BACKGROUNDS DISINI
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/serverbackgrounds.blueprint"
-                FILE="serverbackgrounds.blueprint"
-                install_direct "$LINK" "$FILE"
-                read -p "Tekan Enter untuk lanjut..."
-                ;;
-            5)
-                # ISI LINK SIMPLE FAVICONS DISINI
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/simplefavicons.blueprint"
-                FILE="simplefavicons.blueprint"
-                install_direct "$LINK" "$FILE"
-                read -p "Tekan Enter untuk lanjut..."
-                ;;
-            6)
-                # ISI LINK STARTUP CHANGER DISINI
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/startupchanger.blueprint"
-                FILE="startupchanger.blueprint"
-                install_direct "$LINK" "$FILE"
-                read -p "Tekan Enter untuk lanjut..."
-                ;;
-            7)
-                # ISI LINK SUBDOMAINS DISINI
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/subdomains.blueprint"
-                FILE="subdomains.blueprint"
-                install_direct "$LINK" "$FILE"
-                read -p "Tekan Enter untuk lanjut..."
-                ;;
-            8)
-                # ISI LINK VERSION CHANGER DISINI
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint"
-                FILE="versionchanger.blueprint"
-                install_direct "$LINK" "$FILE"
-                read -p "Tekan Enter untuk lanjut..."
-                ;;
-            9)
-                # ISI LINK VERSION CHANGER DISINI
-                LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/huxregister.blueprint"
-                FILE="huxregister.blueprint"
-                install_direct "$LINK" "$FILE"
-                read -p "Tekan Enter untuk lanjut..."
-                ;;
-            10)
-                echo -e "\n${YELLOW}🚀 GASKEUN INSTALL SEMUA...${RESET}"
-                
-                # Masukkan semua link lagi disini untuk fitur Install All
-                # Contoh format: install_direct "LINKNYA" "NAMANYA"
-                
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/mcplugins.blueprint" "mcplugins.blueprint"
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/minecraftplayermanager.blueprint" "sagaminecraftplayermanager.blueprint"
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/loader.blueprint" "loader.blueprint"
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/serverbackgrounds.blueprint" "serverbackgrounds.blueprint"
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/simplefavicons.blueprint" "simplefavicons.blueprint"
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/startupchanger.blueprint" "startupchanger.blueprint"
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/subdomains.blueprint" "subdomains.blueprint"
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint" "versionchanger.blueprint"
-                install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/huxregister.blueprint"
-                
-                echo -e "\n${GREEN}✅ SEMUA PROSES SELESAI!${RESET}"
-                read -p "Tekan Enter untuk kembali..."
-                ;;
-            0)
-                echo -e "${GREEN}Oke, kembali...${RESET}"
-                break
-                ;;
-            *)
-                echo -e "${RED}Pilihan tidak valid!${RESET}"
-                sleep 0.5
-                ;;
-        esac
+        # Menggunakan perulangan (looping) agar bisa memproses lebih dari 1 pilihan
+        for opt in $opts; do
+            case $opt in
+                1)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/mcplugins.blueprint"
+                    FILE="mcplugins.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                2)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/sagaminecraftplayermanager.blueprint"
+                    FILE="sagaminecraftplayermanager.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                3)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/loader.blueprint"
+                    FILE="loader.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                4)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/serverbackgrounds.blueprint"
+                    FILE="serverbackgrounds.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                5)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/simplefavicons.blueprint"
+                    FILE="simplefavicons.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                6)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/startupchanger.blueprint"
+                    FILE="startupchanger.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                7)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/subdomains.blueprint"
+                    FILE="subdomains.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                8)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint"
+                    FILE="versionchanger.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                9)
+                    LINK="https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/huxregister.blueprint"
+                    FILE="huxregister.blueprint"
+                    install_direct "$LINK" "$FILE"
+                    ;;
+                10)
+                    echo -e "\n${YELLOW}🚀 GASKEUN INSTALL SEMUA...${RESET}"
+                    
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/mcplugins.blueprint" "mcplugins.blueprint"
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/sagaminecraftplayermanager.blueprint" "sagaminecraftplayermanager.blueprint"
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/loader.blueprint" "loader.blueprint"
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/serverbackgrounds.blueprint" "serverbackgrounds.blueprint"
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/simplefavicons.blueprint" "simplefavicons.blueprint"
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/startupchanger.blueprint" "startupchanger.blueprint"
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/subdomains.blueprint" "subdomains.blueprint"
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint" "versionchanger.blueprint"
+                    # Tambahan parameter nama file yang tertinggal di script aslimu
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/huxregister.blueprint" "huxregister.blueprint"
+                    
+                    echo -e "\n${GREEN}✅ SEMUA PROSES SELESAI!${RESET}"
+                    ;;
+                0)
+                    echo -e "${GREEN}Oke, kembali...${RESET}"
+                    break 2 # Keluar dari for loop dan while loop sekaligus
+                    ;;
+                *)
+                    echo -e "${RED}Pilihan [$opt] tidak valid! Dilewati...${RESET}"
+                    sleep 1
+                    ;;
+            esac
+        done
+        
+        # Minta Enter di akhir aja setelah semua addon yang dipilih beres diinstall
+        if [[ "$opts" != "0" ]]; then
+            echo ""
+            read -p "Tekan Enter untuk lanjut/kembali ke menu..."
+        fi
     done
 }
 
