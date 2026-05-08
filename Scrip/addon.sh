@@ -159,8 +159,8 @@ install_addon_panel() {
                     install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/subdomains.blueprint" "subdomains.blueprint"
                     install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/versionchanger.blueprint" "versionchanger.blueprint"
                     install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/huxregister.blueprint" "huxregister.blueprint"
-                    install_direct "" "sagaserverpropertiesui.blueprint"
-                    install_direct "" "recolor.blueprint"
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/sagaserverpropertiesui.blueprint" "sagaserverpropertiesui.blueprint"
+                    install_direct "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/recolor.blueprint" "recolor.blueprint"
                     
                     echo -e "\n${GREEN}✅ SEMUA PROSES SELESAI!${RESET}"
                     ;;
