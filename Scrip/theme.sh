@@ -46,7 +46,7 @@ pasang_tema() {
         echo -e " [2] Euphoria Theme (via Blueprint)"
         echo -e " [3] Darkenate Theme"
         echo -e " [4] Stellar Theme"
-        echo -e " [5] Arix Theme"
+        echo -e " [5] Other Theme"
         echo -e " [6] NookTheme"
         echo -e " [0] Keluar"
         echo -e "${CYAN}------------------------------------------${RESET}"
@@ -106,7 +106,7 @@ pasang_tema() {
                 read -p "Tekan Enter untuk kembali..."
                 ;;
             5)
-                jalankan_script "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/theme-arix-v1.3.1.sh"
+                jalankan_script "https://github.com/manz4vps/addon-blueprint/raw/refs/heads/main/tema/install-tema.sh"
                 read -p "Tekan Enter untuk kembali..."
                 ;;
             6)
