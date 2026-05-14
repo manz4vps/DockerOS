@@ -1,101 +1,82 @@
 #!/bin/bash
+
 # ==================================================
-# STELLAR THEME AUTO INSTALLER (MANZ-FIXED)
-# Based on User Experience (Node 24 + Bug Fixes)
+# AUTO INSTALLER ARIX THEME v1.3.1 - MANZ4VPS
 # ==================================================
 
-# ---------------- CEK ROOT ----------------
-if [ "$EUID" -ne 0 ]; then
-  echo -e "\e[1;31mSTOP! Harus Run as Root (sudo -i)\e[0m"
-  exit 1
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[1;36m'
+RESET='\033[0m'
+BOLD='\033[1m'
+
+PTERO_DIR="/var/www/pterodactyl"
+
+# Cek Akses Root
+if [[ $EUID -ne 0 ]]; then
+   echo -e "${RED}Script ini harus dijalankan sebagai root (gunakan sudo -i).${RESET}" 
+   exit 1
 fi
 
-# ---------------- WARNA & UI ----------------
-MERAH="\033[31m"
-HIJAU="\033[32m"
-KUNING="\033[33m"
-BIRU="\033[34m"
-RESET="\033[0m"
+# Cek Folder Pterodactyl
+if [ ! -d "$PTERO_DIR" ]; then
+    echo -e "${RED}Folder Pterodactyl ($PTERO_DIR) tidak ditemukan.${RESET}"
+    exit 1
+fi
 
-banner(){
 clear
-echo -e "${BIRU}=============================================${RESET}"
-echo -e "${HIJAU}      STELLAR THEME INSTALLER | BY MANZXD    ${RESET}"
-echo -e "${BIRU}=============================================${RESET}"
-echo -e "${KUNING}⚡ Fitur: Auto Build, Bug Fix, Anti Error 500${RESET}"
-sleep 2
-}
+echo -e "${CYAN}======================================================${RESET}"
+echo -e "${GREEN}${BOLD}     AUTO INSTALLER ARIX THEME v1.3.1 | BY MANZXD    ${RESET}"
+echo -e "${CYAN}======================================================${RESET}"
+echo -e "${YELLOW}Pastikan panel sudah di-rescue/default sebelum lanjut!${RESET}\n"
 
-step(){ echo -e "\n${BIRU}➜ $1${RESET}"; }
+cd "$PTERO_DIR" || exit
 
-# ---------------- MULAI ----------------
-banner
+echo -e "${CYAN}[1/6] Mendownload file Arix v1.3.1 dari GitHub...${RESET}"
+DOWNLOAD_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/main/Scrip/arix-v1.3.1.zip"
+wget -O arix-v1.3.1.zip "$DOWNLOAD_URL"
 
-# 1. DOWNLOAD & EKSTRAK TEMA
-step "Mendownload & Mengekstrak Tema..."
-cd /var/www/
-# Hapus file lama kalo ada biar bersih
-rm -f arix-v1.3.1.zip
-# Download file dari link kamu
-wget -O arix-v1.3.1.zip "https://github.com/manz4vps/DockerOS/raw/refs/heads/main/Scrip/arix-v1.3.1.zip"
+if [ ! -f "arix-v1.3.1.zip" ]; then
+    echo -e "${RED}❌ Gagal mendownload arix-v1.3.1.zip! Cek koneksi atau link repo.${RESET}"
+    exit 1
+fi
 
-# Unzip (Otomatis Timpa/Overwrite tanpa tanya 'All')
-echo -e "${KUNING}Mengekstrak file...${RESET}"
+echo -e "\n${CYAN}[2/6] Mengekstrak dan menyusun struktur folder...${RESET}"
+apt-get install -y unzip
 unzip -o arix-v1.3.1.zip
 
-# 2. INSTALL NODEJS & YARN
-step "Menginstall NodeJS v24 & Yarn..."
-cd /var/www/pterodactyl
+if [ -d "pterodactyl" ]; then
+    echo -e "${YELLOW}Memindahkan file dari dalam folder pterodactyl...${RESET}"
+    cp -r pterodactyl/* ./
+fi
 
-# Cek curl
+rm -rf pterodactyl unlocked-docs-page readme.html readme.md readme.txt arix-v1.3.1.zip
+
+echo -e "\n${CYAN}[3/6] Memastikan NodeJS & Yarn terinstall (Persiapan Build)...${RESET}"
 apt-get install -y curl
-
-# Ambil NodeJS versi 24 (Sesuai request kamu)
-curl -sL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
+npm i -g yarn
+yarn install
 
-# Install Yarn
-npm install -g yarn
+echo -e "\n${CYAN}[4/6] Menjalankan Auto-Installer bawaan Arix...${RESET}"
+echo -e "${YELLOW}⚠️ PERHATIAN: Jika saat proses ini Arix meminta input (seperti Yes/No), silakan ketik dan tekan Enter. ⚠️${RESET}"
+# Mencegah error OpenSSL saat build di background
+export NODE_OPTIONS=--openssl-legacy-provider 
+php artisan arix
 
-# 3. PERSIAPAN BUILD (FIX BUG & DEPENDENCIES)
-step "Memperbaiki Bug Codingan & Install Library..."
-
-# Install React Feather
-yarn add react-feather
-
-# JURUS SAKTI: Fix bug 'null' pada VariableBox.tsx SEBELUM Build
-# Biar pas build nanti gak merah-merah errornya
-echo -e "${KUNING}Memperbaiki bug VariableBox.tsx...${RESET}"
-sed -i 's/defaultValue={variable.serverValue}/defaultValue={variable.serverValue || ""}/g' resources/scripts/components/server/startup/VariableBox.tsx
-
-# 4. PROSES BUILD
-step "Membangun Aset (Build Production)..."
-echo -e "${KUNING}Proses ini agak lama, tunggu saja...${RESET}"
-
-# Aktifkan Legacy Provider biar NodeJS baru mau jalan
-export NODE_OPTIONS=--openssl-legacy-provider
-
-# Jalankan Build
-yarn build:production
-
-# 5. FINALISASI (DATABASE & PERMISSION)
-step "Membersihkan Error 500 & Fix Database..."
-
-# Update Database (PENTING)
+echo -e "\n${CYAN}[5/6] Memastikan database & cache sinkron...${RESET}"
 php artisan migrate --force
+php artisan optimize:clear
+php artisan optimize
 
-# Bersihkan Cache Tampilan
-php artisan view:clear
-php artisan config:clear
+echo -e "\n${CYAN}[6/6] Memperbaiki perizinan file (Fix Error 500 Nginx/Apache)...${RESET}"
+chown -R www-data:www-data "$PTERO_DIR"
+chmod -R 755 "$PTERO_DIR"/storage/* "$PTERO_DIR"/bootstrap/cache
 
-# Fix Izin File (Permission) biar Nginx gak ngamuk
-chown -R www-data:www-data /var/www/pterodactyl/*
-chmod -R 755 storage/* bootstrap/cache/
-
-# ---------------- SELESAI ----------------
-echo -e "\n${HIJAU}=============================================${RESET}"
-echo -e "${HIJAU}✅ TEMA BERHASIL TERPASANG!${RESET}"
-echo -e "${HIJAU}=============================================${RESET}"
-echo -e "Silakan cek Panel Pterodactyl kamu."
-echo -e "🎉Terimakash Sudah menggunakan scrip ini!!."
-echo -e "${BIRU}=============================================${RESET}"
+echo -e "\n${GREEN}======================================================${RESET}"
+echo -e "${GREEN}${BOLD}✅ INSTALASI TEMA ARIX v1.3.1 SELESAI!${RESET}"
+echo -e "${GREEN}======================================================${RESET}"
+echo -e "Silakan refresh website panel Pterodactyl kamu bro."
+echo -e "Have a good day! 🚀\n"
