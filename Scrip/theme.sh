@@ -47,7 +47,8 @@ pasang_tema() {
         echo -e " [3] Darkenate Theme"
         echo -e " [4] Stellar Theme"
         echo -e " [5] Other Theme"
-        echo -e " [6] NookTheme"
+        echo -e " [6] Nook Theme"
+        echo -e " [6] Arix Theme"
         echo -e " [0] Keluar"
         echo -e "${CYAN}------------------------------------------${RESET}"
         read -p "Masukkan Pilihan [0-4]: " t
@@ -111,6 +112,10 @@ pasang_tema() {
                 ;;
             6)
                 jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/NookTheme.sh"
+                read -p "Tekan Enter untuk kembali..."
+                ;;
+            7)  
+                jalankan_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme-arix-v1.3.1.sh"
                 read -p "Tekan Enter untuk kembali..."
                 ;;
             0)
