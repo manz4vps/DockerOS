@@ -48,7 +48,7 @@ pasang_tema() {
         echo -e " [4] Stellar Theme"
         echo -e " [5] Other Theme"
         echo -e " [6] Nook Theme"
-        echo -e " [6] Arix Theme"
+        echo -e " [7] Arix Theme"
         echo -e " [0] Keluar"
         echo -e "${CYAN}------------------------------------------${RESET}"
         read -p "Masukkan Pilihan [0-4]: " t
