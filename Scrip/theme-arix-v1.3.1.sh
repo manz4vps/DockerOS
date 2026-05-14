@@ -35,7 +35,7 @@ cd "$PTERO_DIR" || exit
 
 echo -e "${CYAN}[1/6] Mendownload file Arix v1.3.1 dari GitHub...${RESET}"
 DOWNLOAD_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/main/Scrip/arix-v1.3.1.zip"
-wget -O arix-v1.3.1.zip "$DOWNLOAD_URL"
+wget -qO arix-v1.3.1.zip "$DOWNLOAD_URL"
 
 if [ ! -f "arix-v1.3.1.zip" ]; then
     echo -e "${RED}❌ Gagal mendownload arix-v1.3.1.zip! Cek koneksi atau link repo.${RESET}"
@@ -43,31 +43,31 @@ if [ ! -f "arix-v1.3.1.zip" ]; then
 fi
 
 echo -e "\n${CYAN}[2/6] Mengekstrak dan menyusun struktur folder...${RESET}"
-apt-get install -y unzip
-unzip -o arix-v1.3.1.zip
+apt-get install -y unzip > /dev/null 2>&1
+unzip -qo arix-v1.3.1.zip
 
 if [ -d "pterodactyl" ]; then
-    echo -e "${YELLOW}Memindahkan file dari dalam folder pterodactyl...${RESET}"
     cp -r pterodactyl/* ./
 fi
 
 rm -rf pterodactyl unlocked-docs-page readme.html readme.md readme.txt arix-v1.3.1.zip
 
-echo -e "\n${CYAN}[3/6] Memastikan NodeJS & Yarn terinstall (Persiapan Build)...${RESET}"
-apt-get install -y curl
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs
-npm i -g yarn
-yarn install
+echo -e "\n${CYAN}[3/6] Memastikan NodeJS & Yarn terinstall...${RESET}"
+apt-get install -y curl > /dev/null 2>&1
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash - > /dev/null 2>&1
+apt-get install -y nodejs > /dev/null 2>&1
+npm i -g yarn > /dev/null 2>&1
+yarn install > /dev/null 2>&1
 
-echo -e "\n${CYAN}[4/6] Menjalankan Auto-Installer bawaan Arix...${RESET}"
-echo -e "${YELLOW}⚠️ PERHATIAN: Jika saat proses ini Arix meminta input (seperti Yes/No), silakan ketik dan tekan Enter. ⚠️${RESET}"
-# Mencegah error OpenSSL saat build di background
+echo -e "\n${CYAN}[4/6] Menjalankan Instalasi & Build Arix (PROSES LAMA)...${RESET}"
+echo -e "${YELLOW}⚠️ Jangan tutup terminal, tunggu sampai proses selesai! ⚠️${RESET}"
 export NODE_OPTIONS=--openssl-legacy-provider 
-php artisan arix
+# INI YANG BENER: langsung eksekusi install biar auto build
+php artisan arix install --no-interaction
 
 echo -e "\n${CYAN}[5/6] Memastikan database & cache sinkron...${RESET}"
 php artisan migrate --force
+php artisan view:clear
 php artisan optimize:clear
 php artisan optimize
 
