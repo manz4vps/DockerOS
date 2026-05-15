@@ -248,6 +248,8 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
+sed -i 's/php-fpm.sock/php8.3-fpm.sock/g' /etc/nginx/sites-available/pterodactyl.conf
+systemctl restart nginx
 systemctl enable --now redis-server
 systemctl enable --now pteroq.service
 ok "Queue running"
