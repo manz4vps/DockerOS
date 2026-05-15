@@ -63,7 +63,7 @@ echo -e "\n${CYAN}[4/6] Menjalankan Instalasi & Build Arix (PROSES LAMA)...${RES
 echo -e "${YELLOW}⚠️ Jangan tutup terminal, tunggu sampai proses selesai! ⚠️${RESET}"
 export NODE_OPTIONS=--openssl-legacy-provider 
 # INI YANG BENER: langsung eksekusi install biar auto build
-php artisan arix install --no-interaction
+echo -e "yes\n0" | php artisan arix install
 
 echo -e "\n${CYAN}[5/6] Memastikan database & cache sinkron...${RESET}"
 php artisan migrate --force
