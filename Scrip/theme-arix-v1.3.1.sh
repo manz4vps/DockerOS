@@ -66,6 +66,7 @@ export NODE_OPTIONS=--openssl-legacy-provider
 echo -e "yes\n0" | php artisan arix install
 
 echo -e "\n${CYAN}[5/6] Memastikan database & cache sinkron...${RESET}"
+yarn build:production
 php artisan migrate --force
 php artisan view:clear
 php artisan optimize:clear
