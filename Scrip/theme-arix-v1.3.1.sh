@@ -72,8 +72,8 @@ php artisan optimize:clear
 php artisan optimize
 
 echo -e "\n${CYAN}[6/6] Memperbaiki perizinan file (Fix Error 500 Nginx/Apache)...${RESET}"
-chown -R www-data:www-data "$PTERO_DIR"
-chmod -R 755 "$PTERO_DIR"/storage/* "$PTERO_DIR"/bootstrap/cache
+chown -R www-data:www-data /var/www/pterodactyl
+chmod -R 755 storage bootstrap/cache
 
 echo -e "\n${GREEN}======================================================${RESET}"
 echo -e "${GREEN}${BOLD}✅ INSTALASI TEMA ARIX v1.3.1 SELESAI!${RESET}"
