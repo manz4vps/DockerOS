@@ -2,8 +2,8 @@
 
 ############################################################
 #                                                          #
-#                 HOPINGBOYZ PROOT SYSTEM                  #
-#                   Ubuntu 22.04 LTS VM                    #
+#                 MANZ4VPS PROOT SYSTEM                    #
+#                   Ubuntu 20.04 LTS VM                    #
 #                                                          #
 #             Fast • Stable • Optimized • Modern             #
 #                                                          #
@@ -68,28 +68,19 @@ clear
 echo -e "${MAGENTA}"
 
 cat << "EOF"
-
-██╗  ██╗ ██████╗ ██████╗ ██╗███╗   ██╗ ██████╗ 
-██║  ██║██╔═══██╗██╔══██╗██║████╗  ██║██╔════╝ 
-███████║██║   ██║██████╔╝██║██╔██╗ ██║██║  ███╗
-██╔══██║██║   ██║██╔═══╝ ██║██║╚██╗██║██║   ██║
-██║  ██║╚██████╔╝██║     ██║██║ ╚████║╚██████╔╝
-╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
-
-██████╗  ██████╗ ██╗   ██╗███████╗
-██╔══██╗██╔═══██╗╚██╗ ██╔╝╚══███╔╝
-██████╔╝██║   ██║ ╚████╔╝   ███╔╝ 
-██╔══██╗██║   ██║  ╚██╔╝   ███╔╝  
-██████╔╝╚██████╔╝   ██║   ███████╗
-╚═════╝  ╚═════╝    ╚═╝   ╚══════╝
-
+███╗   ███╗ █████╗ ███╗   ██╗███████╗██╗  ██╗██╗   ██╗██████╗ ███████╗
+████╗ ████║██╔══██╗████╗  ██║╚══███╔╝██║  ██║██║   ██║██╔══██╗██╔════╝
+██╔████╔██║███████║██╔██╗ ██║  ███╔╝ ███████║██║   ██║██████╔╝███████╗
+██║╚██╔╝██║██╔══██║██║╚██╗██║ ███╔╝  ╚════██║╚██╗ ██╔╝██╔═══╝ ╚════██║
+██║ ╚═╝ ██║██║  ██║██║ ╚████║███████╗     ██║ ╚████╔╝ ██║     ███████║
+╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝     ╚═╝  ╚═══╝  ╚═╝     ╚══════╝
 EOF
 
 echo -e "${RESET}"
 
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${GREEN}          Ubuntu 22.04 LTS Proot VM${RESET}"
-echo -e "${YELLOW}             Powered By HOPINGBOYZ${RESET}"
+echo -e "${GREEN}          Ubuntu 20.04 LTS Proot VM${RESET}"
+echo -e "${YELLOW}              Powered By manz4vps${RESET}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo ""
@@ -242,7 +233,7 @@ echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 
 echo ""
 echo "======================================"
-echo "      HOPINGBOYZ UBUNTU READY"
+echo "       MANZ4VPS UBUNTU READY"
 echo " Node.js 20 & Library telah terinstall!"
 echo "======================================"
 echo ""
@@ -282,7 +273,7 @@ RAM_USED=$(free -m | awk '/Mem:/ {print $3}')
 RAM_FREE=$(free -m | awk '/Mem:/ {print $4}')
 
 # CPU INFO
-CPU_MODEL=$(grep -m 1 "model name" /proc/cpuinfo | cut -d ':' -f2 | sed 's/^[ \t]*//')
+CPU_MODEL=$(grep -m 1 "model name" /proc/procinfo 2>/dev/null || grep -m 1 "model name" /proc/cpuinfo | cut -d ':' -f2 | sed 's/^[ \t]*//')
 CPU_CORES=$(nproc)
 
 # DISK INFO
@@ -311,7 +302,7 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 
 echo ""
 
-echo -e "${YELLOW}OS:${RESET} Ubuntu 22.04 LTS"
+echo -e "${YELLOW}OS:${RESET} Ubuntu 20.04 LTS"
 echo -e "${YELLOW}Architecture:${RESET} $ARCH"
 echo -e "${YELLOW}Kernel:${RESET} $KERNEL_VER"
 echo -e "${YELLOW}Hostname:${RESET} $HOST_NAME"
@@ -352,7 +343,7 @@ echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
 echo ""
-echo -e "${MAGENTA}[*] Launching HOPINGBOYZ Ubuntu VM...${RESET}"
+echo -e "${MAGENTA}[*] Launching manz4vps Ubuntu VM...${RESET}"
 echo -e "${YELLOW}[!] NOTE: Jangan lupa jalankan './setup.sh' setelah login!${RESET}"
 echo ""
 }
