@@ -47,6 +47,7 @@ while true; do
     echo -e "${BLUE}  ║ ${GREEN}3)${WHITE}🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}6)${WHITE}}🚀 freeroot auto installer (Not KVM)        ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                              ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
@@ -366,6 +367,13 @@ EOF
 
             echo -e "\n${GREEN}  SUCCESS: Auto-Start System Installed!${NC}"
             echo -e "${WHITE}  Please restart your terminal to test.${NC}"
+            read -n 1 -s -r -p "Press any key..."
+            ;;
+
+        6)
+            draw_header
+            status_msg "LAUNCHING IDX VPS SCRIPT..."
+            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/freeroot.sh)
             read -n 1 -s -r -p "Press any key..."
             ;;
 
