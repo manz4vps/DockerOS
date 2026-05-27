@@ -87,32 +87,13 @@ echo ""
 }
 
 ############################
-# INSTALL DEPENDENCIES
+# PREPARE ENVIRONMENT
 ############################
 
 install_dependencies() {
-
-echo -e "${CYAN}[*] Checking dependencies...${RESET}"
-
-if ! command -v wget >/dev/null 2>&1; then
-
-    echo -e "${YELLOW}[*] Installing required packages...${RESET}"
-
-    if command -v apt >/dev/null 2>&1; then
-        apt update -y
-        apt install wget curl tar xz-utils proot git -y
-
-    elif command -v apk >/dev/null 2>&1; then
-        apk add wget curl tar xz proot git
-
-    elif command -v yum >/dev/null 2>&1; then
-        yum install wget curl tar xz proot git -y
-
-    else
-        echo -e "${RED}[ERROR] Unsupported package manager.${RESET}"
-        exit 1
-    fi
-fi
+# Karena berjalan di Replit, fungsi package manager (apt/apk/yum) ditiadakan.
+# Script langsung mengandalkan utilitas wget bawaan environment Replit.
+echo -e "${CYAN}[*] Initializing installation environment...${RESET}"
 }
 
 ############################
