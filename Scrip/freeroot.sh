@@ -203,10 +203,11 @@ software-properties-common \
 zip \
 unzip \
 screen \
-tmux
+tmux \
+python3
 
 # ====================================================
-# CUSTOM SCRIPT INJECTIONS (LATEST NVM & NODE 20)
+# CUSTOM SCRIPT INJECTIONS (NVM, NODE 20, SYSTEMCTL)
 # ====================================================
 
 echo "[*] Menginstall library grafis Linux..."
@@ -221,6 +222,19 @@ nvm install 20
 nvm use 20
 nvm alias default 20
 
+echo "[*] Memasang systemctl replacement untuk container..."
+cd /usr/bin/
+# Backup systemctl asli jika ada (2>/dev/null menyembunyikan error jika file belum ada)
+mv systemctl systemctl.bak 2>/dev/null || true
+# Download script pengganti langsung dari Github
+wget https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl3.py
+# Ubah nama scriptnya menjadi 'systemctl'
+mv systemctl3.py systemctl
+# Beri izin agar scriptnya bisa dieksekusi sebagai program
+chmod +x systemctl
+# Kembali ke direktori root
+cd /root
+
 # ====================================================
 
 echo "root:root" | chpasswd
@@ -234,7 +248,7 @@ echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 echo ""
 echo "======================================"
 echo "       MANZ4VPS UBUNTU READY"
-echo " Node.js 20 & Library telah terinstall!"
+echo " Node.js, Library & Systemctl Terpasang!"
 echo "======================================"
 echo ""
 
