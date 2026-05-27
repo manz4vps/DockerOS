@@ -185,6 +185,7 @@ zip \
 unzip \
 screen \
 tmux \
+openjdk-21-jre openjdk-21-jdk \
 python3
 
 # ====================================================
