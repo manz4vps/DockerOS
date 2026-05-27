@@ -47,7 +47,7 @@ while true; do
     echo -e "${BLUE}  ║ ${GREEN}3)${WHITE}🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}6)${WHITE}}🚀 freeroot auto installer (Not KVM)        ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}6)${WHITE}🚀 freeroot auto installer (Not KVM)         ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                              ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
