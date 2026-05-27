@@ -42,16 +42,17 @@ while true; do
 
     echo -e "${CYAN}  [ MENU SELECTION ]${NC}"
     echo -e "${BLUE}  ╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}1)${WHITE}🚀 GitHub VPS Maker (Docker)                 ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}1)${WHITE}🚀 GitHub VPS Maker (Docker)                  ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}2)${WHITE}🚀 Codesandbox VPS Maker (KVM)               ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}3)${WHITE}🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)               ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)                ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}6)${WHITE}🚀 freeroot auto installer (Not KVM)         ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                              ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}7)${WHITE}⚙️  Setup Replit Auto Start (Freeroot)        ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                               ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -ne "${YELLOW}  Select Option [0-5]: ${NC}"
+    echo -ne "${YELLOW}  Select Option [0-7]: ${NC}"
     read selection
 
     case $selection in
@@ -336,7 +337,7 @@ fi
 TARGET_VM="${vms[0]}"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║${CYAN}           AUTO VM STARTER (MANZ XD)                     ${BLUE}║${NC}"
+echo -e "${BLUE}║${CYAN}            AUTO VM STARTER (MANZ XD)                      ${BLUE}║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
 
 print_status "INFO" "🔎 Found ${vm_count} VMs."
@@ -374,6 +375,31 @@ EOF
             draw_header
             status_msg "LAUNCHING IDX VPS SCRIPT..."
             bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/freeroot.sh)
+            read -n 1 -s -r -p "Press any key..."
+            ;;
+
+        7)
+            draw_header
+            status_msg "SETTING UP REPLIT AUTO-START FREEROOT..." "${CYAN}"
+            echo ""
+            
+            # 1. Membuat direktori target config di workspace replit
+            echo -e "${YELLOW}  [1/2] Creating configuration directory...${NC}"
+            REPLIT_CONFIG="/home/runner/workspace/.config"
+            mkdir -p "$REPLIT_CONFIG"
+            sleep 0.5
+            
+            # 2. Menyuntikkan perintah freeroot ke file bashrc di folder target
+            echo -e "${YELLOW}  [2/2] Injecting script payload into bashrc...${NC}"
+            cat << 'EOF' > "$REPLIT_CONFIG/bashrc"
+# ====================================================================
+# AUTO RUN FREEROOT OS BY MANZ4VPS
+# ====================================================================
+bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/freeroot.sh)
+EOF
+            
+            echo -e "\n${GREEN}  ✅ SUCCESS: Replit Auto-Start Configured!${NC}"
+            echo -e "${WHITE}  Payload saved to: $REPLIT_CONFIG/bashrc${NC}"
             read -n 1 -s -r -p "Press any key..."
             ;;
 
