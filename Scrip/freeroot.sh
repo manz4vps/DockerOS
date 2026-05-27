@@ -3,9 +3,9 @@
 ############################################################
 #                                                          #
 #                 MANZ4VPS PROOT SYSTEM                    #
-#                   Ubuntu 20.04 LTS VM                    #
+#                  Ubuntu 20.04 LTS VM                     #
 #                                                          #
-#             Fast • Stable • Optimized • Modern             #
+#             Fast • Stable • Optimized • Modern           #
 #                                                          #
 ############################################################
 
@@ -91,8 +91,6 @@ echo ""
 ############################
 
 install_dependencies() {
-# Karena berjalan di Replit, fungsi package manager (apt/apk/yum) ditiadakan.
-# Script langsung mengandalkan utilitas wget bawaan environment Replit.
 echo -e "${CYAN}[*] Initializing installation environment...${RESET}"
 }
 
@@ -106,12 +104,12 @@ UBUNTU_URL="https://cdimage.ubuntu.com/ubuntu-base/releases/20.04/release/ubuntu
 
 echo -e "${CYAN}[*] Downloading Ubuntu 20.04 RootFS...${RESET}"
 
-wget \
---tries="$MAX_RETRIES" \
---timeout="$TIMEOUT" \
---show-progress \
---no-hsts \
--O /tmp/rootfs.tar.gz \
+# Hapus -# agar menggunakan default progress meter (tabel info detail kecepatan & ukuran)
+curl \
+--retry "$MAX_RETRIES" \
+--max-time "$TIMEOUT" \
+-L \
+-o /tmp/rootfs.tar.gz \
 "$UBUNTU_URL"
 
 if [ ! -f /tmp/rootfs.tar.gz ]; then
@@ -141,12 +139,11 @@ mkdir -p "$ROOTFS_DIR/usr/local/bin"
 
 echo -e "${CYAN}[*] Downloading PRoot binary...${RESET}"
 
-wget \
---tries="$MAX_RETRIES" \
---timeout="$TIMEOUT" \
---show-progress \
---no-hsts \
--O "$ROOTFS_DIR/usr/local/bin/proot" \
+curl \
+--retry "$MAX_RETRIES" \
+--max-time "$TIMEOUT" \
+-L \
+-o "$ROOTFS_DIR/usr/local/bin/proot" \
 "https://proot.gitlab.io/proot/bin/proot"
 
 chmod +x "$ROOTFS_DIR/usr/local/bin/proot"
@@ -205,15 +202,13 @@ nvm alias default 20
 
 echo "[*] Memasang systemctl replacement untuk container..."
 cd /usr/bin/
-# Backup systemctl asli jika ada (2>/dev/null menyembunyikan error jika file belum ada)
+# Backup systemctl asli jika ada
 mv systemctl systemctl.bak 2>/dev/null || true
-# Download script pengganti langsung dari Github
-wget https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl3.py
+# Gunakan -L untuk redirect, output ke file
+curl -LO https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl3.py
 # Ubah nama scriptnya menjadi 'systemctl'
 mv systemctl3.py systemctl
-# Beri izin agar scriptnya bisa dieksekusi sebagai program
 chmod +x systemctl
-# Kembali ke direktori root
 cd /root
 
 # ====================================================
@@ -228,7 +223,7 @@ echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 
 echo ""
 echo "======================================"
-echo "       MANZ4VPS UBUNTU READY"
+echo "        MANZ4VPS UBUNTU READY"
 echo " Node.js, Library & Systemctl Terpasang!"
 echo "======================================"
 echo ""
