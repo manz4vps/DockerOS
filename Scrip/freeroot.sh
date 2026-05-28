@@ -190,7 +190,7 @@ python3
 
 echo "[*] Menginstall library grafis Linux..."
 apt-get update
-apt-get install libxext6 libxrender1 libxtst6 libxi6 -y
+apt-get install libxext6 libxrender1 libxtst6 libxi6 libx11-6 -y
 
 echo "[*] Menginstall LATEST NVM dan Node.js 20..."
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
