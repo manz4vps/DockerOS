@@ -139,6 +139,12 @@ main() {
     setup_links
 
     echo "✔ Completed for $OS $VERSION_ID"
+    
+    echo ""
+    echo "========================================="
+    echo "🚀 Memulai eksekusi VPS KVM Setup..."
+    echo "========================================="
+    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/vps-any-kvm.sh)
 }
 
 main "$@"
