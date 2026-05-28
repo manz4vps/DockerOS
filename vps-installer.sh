@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 
 draw_logo() {
     echo -e "${BLUE}  ╔══════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}  ║${CYAN}        MANZ XD - ULTIMATE CONSOLE       ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║${CYAN}         MANZ XD - ULTIMATE CONSOLE       ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════╝${NC}"
 }
 
@@ -46,7 +46,7 @@ while true; do
     echo -e "${BLUE}  ║ ${GREEN}2)${WHITE}🚀 Codesandbox VPS Maker (KVM)               ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}3)${WHITE}🔧 IDX Tool Setup (Auto vm/.idx)             ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}4)${WHITE}⚡ IDX VPS Maker (Auto Script)                ${BLUE}║${NC}"
-    echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Pasang Otomatis)     ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Deteksi KVM)         ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}6)${WHITE}🚀 freeroot auto installer (Not KVM)         ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}7)${WHITE}⚙️  Setup Replit Auto Start (Freeroot)        ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                               ${BLUE}║${NC}"
@@ -167,7 +167,7 @@ EOF
             echo ""
 
             # 1. Membuat file vm-autostart.sh
-            echo -e "${YELLOW}  [1/2] Creating vm-autostart.sh...${NC}"
+            echo -e "${YELLOW}  [1/2] Creating vm-autostart.sh (Auto KVM Detector)...${NC}"
             cat <<'EOF' > "$HOME/vm-autostart.sh"
 #!/bin/bash
 set -euo pipefail
@@ -282,12 +282,21 @@ start_vm() {
         print_status "INFO" "🚀 Starting VM: $vm_name"
         print_status "INFO" "🔌 SSH: ssh -p $SSH_PORT $USERNAME@localhost"
         
-        local qemu_cmd=(
-            qemu-system-x86_64
-            -enable-kvm
+        # --- DETEKSI DUKUNGAN HARDWARE KVM ---
+        local qemu_cmd=(qemu-system-x86_64)
+
+        if [ -e /dev/kvm ] && [ -r /dev/kvm ] && [ -w /dev/kvm ]; then
+            print_status "SUCCESS" "🔒 KVM Akselerasi didukung! Menggunakan mode hardware."
+            qemu_cmd+=(-enable-kvm -cpu host)
+        else
+            print_status "WARN" "⚠️  KVM Tidak Terdeteksi/Tidak Diizinkan. Berjalan dalam mode emulasi software."
+            qemu_cmd+=(-cpu max)
+        fi
+
+        # --- ARTIFAK UTAMA VM ---
+        qemu_cmd+=(
             -m "$MEMORY"
             -smp "$CPUS"
-            -cpu host
             -drive "file=$IMG_FILE,format=qcow2,if=virtio"
             -drive "file=$SEED_FILE,format=raw,if=virtio"
             -boot order=c
@@ -366,7 +375,7 @@ EOF
                 echo -e "${GREEN}  Autostart Added to .bashrc!${NC}"
             fi
 
-            echo -e "\n${GREEN}  SUCCESS: Auto-Start System Installed!${NC}"
+            echo -e "\n${GREEN}  SUCCESS: Auto-Start System Installed dengan Fitur Cek KVM!${NC}"
             echo -e "${WHITE}  Please restart your terminal to test.${NC}"
             read -n 1 -s -r -p "Press any key..."
             ;;
