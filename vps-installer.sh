@@ -68,7 +68,7 @@ while true; do
             draw_header
             clear
             status_msg "🚀 Menjalankan VPS codesandbox..."
-            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/codesandbox-backed.sh)
+            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/vps-any-kvm.sh)
             read -n 1 -s -r -p "Press any key..."
             ;;
             
