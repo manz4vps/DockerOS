@@ -49,6 +49,7 @@ while true; do
     echo -e "${BLUE}  ║ ${GREEN}5)${WHITE}🤖 Setup Auto-Start VM (Deteksi KVM)          ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}6)${WHITE}🚀 freeroot auto installer (Not KVM)          ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}7)${WHITE}⚙️ Setup Replit Auto Start (Freeroot)         ${BLUE}║${NC}"
+    echo -e "${BLUE}  ║ ${GREEN}8)${WHITE}👾 Install Panel on replit                    ${BLUE}║${NC}"
     echo -e "${BLUE}  ║ ${GREEN}0)${WHITE}❌ Exit Console                               ${BLUE}║${NC}"
     echo -e "${BLUE}  ╚══════════════════════════════════════════════════╝${NC}"
     echo ""
@@ -411,7 +412,13 @@ EOF
             echo -e "${WHITE}  Payload saved to: $REPLIT_CONFIG/bashrc${NC}"
             read -n 1 -s -r -p "Press any key..."
             ;;
-
+        8)
+            draw_header
+            status_msg "LAUNCHING IDX VPS SCRIPT..."
+            bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/setup-repl.sh)
+            read -n 1 -s -r -p "Press any key..."
+            ;;
+            
         0)
             clear
             echo -e "${RED}EXITING...${NC}"
