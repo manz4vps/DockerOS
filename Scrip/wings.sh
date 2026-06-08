@@ -26,7 +26,7 @@ fi
 sudo mkdir -p /etc/pterodactyl
 ARCH=$(uname -m)
 if [ "$ARCH" == "x86_64" ]; then ARCH="amd64"; else ARCH="arm64"; fi
-curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_$ARCH"
+curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/download/v1.11.11/wings_linux_$ARCH"
 sudo chmod u+x /usr/local/bin/wings
 
 # ------------------------
