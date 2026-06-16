@@ -55,7 +55,7 @@ https://github.com/manz4vps/vm
 ### 2️⃣ Install OS  (POPULAR 🔥)
 Gunakan command ini untuk meinstall OS VPS kamu (Ubuntu/Debian):
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/PilihOS-vps.sh)
+bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/vps-installer.sh)
 ```
 
 ### 3️⃣ Auto Install Panel
