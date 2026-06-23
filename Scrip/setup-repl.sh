@@ -8,53 +8,44 @@ echo ""
 # ── Secret key PlayIt (sudah di-claim, langsung pakai) ──
 PLAYIT_SECRET_KEY="5c91211aa5efd464f13a527f52143b8916e634c4e15b3acf4db9cb0c31bf6b57"
 
-# ── 1. Git Clone ──────────────────────────
-echo "[1/7] Cloning repo..."
-REPO_URL="https://github.com/manz4vps/Panel-By-Manz4Vps.git"
-TMP_DIR="/tmp/panel-setup"
+# ── 1. Download File Zip ──────────────────
+echo "[1/7] Mendownload panel.zip..."
 
-rm -rf "$TMP_DIR"
-git clone "$REPO_URL" "$TMP_DIR"
+# GANTI URL DI BAWAH dengan link RAW github kamu yang mengarah langsung ke panel.zip
+ZIP_URL="https://github.com/manz4vps/Panel-By-Manz4Vps/raw/refs/heads/main/panel.zip"
+
+curl -L -o panel.zip "$ZIP_URL"
 if [ $? -ne 0 ]; then
-  echo "ERROR: Gagal clone repo!"
+  echo "ERROR: Gagal mendownload panel.zip!"
   exit 1
 fi
-echo "OK Repo berhasil di-clone."
+echo "OK panel.zip berhasil didownload."
 echo ""
 
-# ── 2. Copy files ke workspace ────────────
-echo "[2/7] Menyalin file ke workspace..."
+# ── 2. Ekstrak File Zip ───────────────────
+echo "[2/7] Mengekstrak file ke workspace..."
 
-# File wajib - jika tidak ada, exit
+# Mengekstrak zip dan menimpa file jika sudah ada (-o)
+unzip -o panel.zip
+if [ $? -ne 0 ]; then
+  echo "ERROR: Gagal mengekstrak panel.zip! Pastikan file zip tidak korup."
+  exit 1
+fi
+
+# Menghapus file zip agar workspace bersih
+rm panel.zip
+
+# Verifikasi: Cek apakah file wajib ada setelah diekstrak
 for FILE in index.js package.json cloudflare.cjs; do
-  if [ -f "$TMP_DIR/$FILE" ]; then
-    cp "$TMP_DIR/$FILE" .
-    echo "  OK $FILE disalin."
+  if [ -f "$FILE" ]; then
+    echo "  OK $FILE tersedia."
   else
-    echo "ERROR: File $FILE tidak ditemukan di repo!"
-    rm -rf "$TMP_DIR"
+    echo "ERROR: File $FILE tidak ditemukan setelah diekstrak! Pastikan letaknya tidak di dalam sub-folder saat kamu membuat panel.zip."
     exit 1
   fi
 done
 
-# .env - opsional (biasanya di-gitignore)
-if [ -f "$TMP_DIR/.env" ]; then
-  cp "$TMP_DIR/.env" .
-  echo "  OK .env disalin."
-else
-  echo "  SKIP .env tidak ada di repo, akan dibuat otomatis."
-fi
-
-# public - opsional
-if [ -d "$TMP_DIR/public" ]; then
-  cp -r "$TMP_DIR/public" .
-  echo "  OK folder public disalin."
-else
-  echo "  SKIP folder public tidak ada di repo."
-fi
-
-rm -rf "$TMP_DIR"
-echo "OK File berhasil disalin."
+echo "OK File berhasil diekstrak dan siap."
 echo ""
 
 # ── 3. Patch port 443 → 5000 ──────────────
