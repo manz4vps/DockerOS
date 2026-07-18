@@ -8,7 +8,6 @@ echo ""
 # ── 1. Download File Zip ──────────────────
 echo "[1/5] Mendownload panel.zip..."
 
-# GANTI URL DI BAWAH dengan link RAW github kamu yang mengarah langsung ke panel.zip
 ZIP_URL="https://github.com/manz4vps/Panel-By-Manz4Vps/raw/refs/heads/main/panel.zip"
 
 curl -L -o panel.zip "$ZIP_URL"
@@ -22,18 +21,16 @@ echo ""
 # ── 2. Ekstrak File Zip ───────────────────
 echo "[2/5] Mengekstrak file ke workspace..."
 
-# Mengekstrak zip dan menimpa file jika sudah ada (-o)
 unzip -o panel.zip
 if [ $? -ne 0 ]; then
   echo "ERROR: Gagal mengekstrak panel.zip! Pastikan file zip tidak korup."
   exit 1
 fi
 
-# Menghapus file zip agar workspace bersih
 rm panel.zip
 
 # Verifikasi: Cek apakah file wajib ada setelah diekstrak
-for FILE in index.js package.json cloudflare.cjs; do
+for FILE in index.js package.json; do
   if [ -f "$FILE" ]; then
     echo "  OK $FILE tersedia."
   else
@@ -48,7 +45,6 @@ echo ""
 # ── 3. Install Node.js + npm packages ─────
 echo "[3/5] Menginstall npm packages..."
 
-# Cek apakah node/npm sudah ada
 if ! command -v npm &> /dev/null; then
   echo "  npm tidak ditemukan, mendownload Node.js binary langsung..."
   NODE_VERSION="20.18.0"
@@ -91,7 +87,6 @@ echo ""
 # ── 4. Setup replit.nix & .replit ─────────
 echo "[4/5] Menulis konfigurasi Replit..."
 
-# replit.nix
 if cat > replit.nix << 'EOF'
 {pkgs}: {
   deps = [
@@ -109,7 +104,6 @@ else
   echo "  SKIP replit.nix (diblokir Replit, tidak masalah)."
 fi
 
-# .replit
 if cat > .replit << 'EOF'
 modules = ["nodejs-20"]
 
