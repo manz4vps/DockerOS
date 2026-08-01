@@ -424,7 +424,7 @@ EOF
             status_msg "LAUNCHING GITUUB SCRIP..."
             bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/Github.sh)
             read -n 1 -r -p " Press any key..."
-            ;;;
+            ;;
             
         0)
             clear
