@@ -133,7 +133,7 @@ services:
       - 3389:3389/tcp
       - 3389:3389/udp
     volumes:
-      - ./shared_data:/shared
+      - ./shared_data:/storage
     stop_grace_period: 2m
 EOL
 
