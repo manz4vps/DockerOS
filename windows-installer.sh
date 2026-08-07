@@ -47,7 +47,7 @@ if [ "$SISTEM" == "2" ]; then
 fi
 
 # =========================================================
-# MENU 1: WINDOWS (DOCKER OS) - DENGAN VB-CABLE
+# MENU 1: WINDOWS (DOCKER OS) - FULL + VB-CABLE
 # =========================================================
 
 if [ "$SISTEM" == "1" ]; then
@@ -56,9 +56,22 @@ if [ "$SISTEM" == "1" ]; then
     echo " Value  | Version                       | Size"
     echo "--------------------------------------"
     echo " 11     | Windows 11 Pro               | 5.4 GB"
+    echo " 11l    | Windows 11 LTSC              | 4.2 GB"
+    echo " 11e    | Windows 11 Enterprise        | 5.8 GB"
+    echo " 10     | Windows 10 Pro               | 5.7 GB"
     echo " 10l    | Windows 10 LTSC              | 4.6 GB"
+    echo " 10e    | Windows 10 Enterprise        | 5.2 GB"
+    echo " 8e     | Windows 8.1 Enterprise       | 3.7 GB"
+    echo " 7e     | Windows 7 Enterprise         | 3.0 GB"
+    echo " ve     | Windows Vista Enterprise     | 3.0 GB"
+    echo " xp     | Windows XP Professional      | 0.6 GB"
+    echo " 2025   | Windows Server 2025          | 5.0 GB"
     echo " 2022   | Windows Server 2022          | 4.7 GB"
-    echo " (dan versi lainnya sama seperti sebelumnya...)"
+    echo " 2019   | Windows Server 2019          | 5.3 GB"
+    echo " 2016   | Windows Server 2016          | 6.5 GB"
+    echo " 2012   | Windows Server 2012          | 4.3 GB"
+    echo " 2008   | Windows Server 2008          | 3.0 GB"
+    echo " 2003   | Windows Server 2003          | 0.6 GB"
     echo
 
     read -p "Masukkan value versi (default: 10l): " VERSION  
