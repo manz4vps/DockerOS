@@ -218,10 +218,20 @@ if [ "$SISTEM" == "5" ]; then
         continue  
     fi  
 
-    echo "Menghapus container & file $FILE..."  
-    sudo docker-compose -f "$FILE" down  
+    echo "Menghapus container & volume $FILE..."
+    # Tambahan -v untuk menghapus volume/disk yang terpakai
+    sudo docker-compose -f "$FILE" down -v  
+
+    echo "Menghapus image Windows dari Docker..."
+    # Menghapus image agar tidak makan penyimpanan
+    sudo docker rmi manz4vps/windows -f 2>/dev/null
+
+    echo "Membersihkan sisa-sisa cache sistem..."
+    # Prune untuk menghapus semua unused containers, networks, images, dan volumes
+    sudo docker system prune -a -f --volumes
+
     rm -f "$FILE"  
-    echo "Selesai dihapus."  
+    echo "Selesai! Windows dan semua berkas disk-nya sudah dihapus bersih."  
     read -p "Tekan Enter untuk kembali ke menu..."
 fi
 
