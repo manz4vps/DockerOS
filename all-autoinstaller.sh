@@ -70,7 +70,8 @@ menu_wings() {
         echo -e "${KUNING}          🪶  MENU INSTALLER WINGS           ${RESET}"
         echo -e "${CYAN}=============================================${RESET}"
         echo -e " ${TEBAL}1)${RESET}🦇 Wings Pterodactyl (Original)"
-        echo -e " ${TEBAL}2)${RESET}🕊️  Wings Feather (FeatherPanel)"
+        echo -e " ${TEBAL}2)${RESET}⚡ Wings Pterodactyl (org-Update)"
+        echo -e " ${TEBAL}3)${RESET}🕊️  Wings Feather (FeatherPanel)"
         echo -e "${CYAN}---------------------------------------------${RESET}"
         echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
         echo -e "${CYAN}=============================================${RESET}"
@@ -81,7 +82,8 @@ menu_wings() {
 
         case $sub_opt in
             1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/wings.sh" ;;
-            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/FeatherWings.sh" ;;
+            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/wings-update.sh" ;;
+            3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/FeatherWings.sh" ;;
             0) return ;;
             "") ;; 
             *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
