@@ -132,27 +132,49 @@ update_panel() {
         return
     fi
 
+    cd /var/www/pterodactyl || return
+
     status_msg "INFO" "Putting panel into Maintenance Mode..."
-    cd /var/www/pterodactyl
     php artisan down
-    cd /var/www/pterodactyl
+
     status_msg "INFO" "Downloading latest release..."
-    curl -Lo panel.tar.gz https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz | tar -xzv
-    
+    if ! curl -L https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz | tar -xzv; then
+        status_msg "ERR" "Failed to download/extract latest release."
+        php artisan up
+        pause
+        return
+    fi
+
     status_msg "INFO" "Setting permissions..."
-    chmod -R 755 storage/* bootstrap/cache
-    
+    chmod -R 755 storage/* bootstrap/cache/
+
     status_msg "INFO" "Updating Composer dependencies..."
-    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
-    
-    status_msg "INFO" "Clearing cache and database migration..."
+    if ! COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader; then
+        status_msg "ERR" "Composer update failed."
+        php artisan up
+        pause
+        return
+    fi
+
+    status_msg "INFO" "Clearing cache..."
     php artisan view:clear
     php artisan config:clear
-    php artisan migrate --seed --force
+
+    status_msg "INFO" "Running database migrations..."
+    if ! php artisan migrate --seed --force; then
+        status_msg "ERR" "Database migration failed."
+        php artisan up
+        pause
+        return
+    fi
+
+    status_msg "INFO" "Setting ownership..."
     chown -R www-data:www-data /var/www/pterodactyl/*
-    
+
     status_msg "INFO" "Restarting Queue Workers..."
     php artisan queue:restart
+
+    status_msg "INFO" "Exiting Maintenance Mode..."
     php artisan up
 
     echo ""
