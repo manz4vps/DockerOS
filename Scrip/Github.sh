@@ -67,6 +67,7 @@ RUN apt-get update && \\
     unzip \\
     openssh-client \\
     git \\
+    sudo \\
     wget \\
     curl \\
     lsof \\
