@@ -57,53 +57,140 @@ check_dependencies() {
 }
 
 choose_version() {
+    local api="https://api.github.com/repos/pterodactyl/wings/releases?per_page=100"
+    local releases_file
+    local page=0
+    local page_size=10
+    local total
+    local choice
+    local selected
+    local start
+    local end
+    local i
+
+    releases_file="$(mktemp)"
+
     draw_header
-    echo -e "${BOLD}PILIH VERSI WINGS${RESET}"
-    echo
-    echo "  1. v1.11.11 (versi default dari script lama)"
-    echo "  2. Masukkan versi secara manual"
-    echo "  3. Lihat release terbaru dari GitHub"
-    echo "  0. Batal"
-    echo
+    info "Mengambil daftar versi Wings dari GitHub..."
 
-    read -r -p "Pilihan [1-3, 0]: " choice
-
-    case "$choice" in
-        1)
-            WINGS_VERSION="v1.11.11"
-            ;;
-        2)
-            read -r -p "Masukkan versi (contoh: v1.11.11): " WINGS_VERSION
-            ;;
-        3)
-            info "Mengambil daftar release dari GitHub..."
-            echo
-            if ! curl -fsSL "$RELEASE_API" |
-                grep -oE '"tag_name":[[:space:]]*"[^"]+"' |
-                head -n 10 |
-                cut -d '"' -f 4; then
-                error "Gagal mengambil release. Coba lagi nanti."
-                exit 1
-            fi
-            echo
-            read -r -p "Masukkan tag versi yang ingin dipasang (contoh: v1.11.11): " WINGS_VERSION
-            ;;
-        0)
-            info "Instalasi dibatalkan."
-            exit 0
-            ;;
-        *)
-            error "Pilihan tidak valid."
-            exit 1
-            ;;
-    esac
-
-    if [[ ! "$WINGS_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
-        error "Format versi tidak valid. Contoh: v1.11.11"
-        exit 1
+    if ! curl -fsSL "$api" -o "$releases_file"; then
+        rm -f "$releases_file"
+        error "Gagal mengambil daftar versi dari GitHub."
+        return 1
     fi
 
-    success "Versi yang dipilih: $WINGS_VERSION"
+    # Pastikan respons API berisi daftar release.
+    if ! grep -q '"tag_name"' "$releases_file"; then
+        rm -f "$releases_file"
+        error "Daftar release kosong atau respons GitHub tidak valid."
+        return 1
+    fi
+
+    # Ambil tag release dan simpan dalam array.
+    mapfile -t WINGS_RELEASES < <(
+        grep -oE '"tag_name":[[:space:]]*"[^"]+"' "$releases_file" |
+        sed -E 's/.*"([^"]+)"$/\1/'
+    )
+
+    rm -f "$releases_file"
+
+    total=${#WINGS_RELEASES[@]}
+
+    if (( total == 0 )); then
+        error "Tidak ada versi Wings yang ditemukan."
+        return 1
+    fi
+
+    while true; do
+        draw_header
+
+        echo -e "${BOLD}PILIH VERSI WINGS${RESET}"
+        echo -e "${YELLOW}Release tersedia: ${total}${RESET}"
+        echo
+
+        start=$((page * page_size))
+        end=$((start + page_size))
+
+        if (( end > total )); then
+            end=$total
+        fi
+
+        for ((i=start; i<end; i++)); do
+            printf "  ${GREEN}[%2d]${RESET} %s\n" \
+                "$((i - start + 1))" "${WINGS_RELEASES[$i]}"
+        done
+
+        echo
+        echo "  [N] Halaman berikutnya"
+        if (( page > 0 )); then
+            echo "  [P] Halaman sebelumnya"
+        fi
+        echo "  [M] Masukkan versi manual"
+        echo "  [0] Batal"
+        echo
+
+        read -r -p "Pilih nomor versi: " choice
+
+        case "$choice" in
+            [Nn])
+                if (( end < total )); then
+                    page=$((page + 1))
+                else
+                    warning "Kamu sudah berada di halaman terakhir."
+                    sleep 1
+                fi
+                ;;
+
+            [Pp])
+                if (( page > 0 )); then
+                    page=$((page - 1))
+                else
+                    warning "Ini halaman pertama."
+                    sleep 1
+                fi
+                ;;
+
+            [Mm])
+                read -r -p "Masukkan tag versi (contoh: v1.11.11): " selected
+
+                if [[ "$selected" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
+                    WINGS_VERSION="$selected"
+                    break
+                else
+                    error "Format versi tidak valid."
+                    sleep 1
+                fi
+                ;;
+
+            0)
+                info "Pemilihan versi dibatalkan."
+                return 1
+                ;;
+
+            *)
+                if [[ "$choice" =~ ^[0-9]+$ ]] &&
+                   (( choice >= 1 && choice <= end - start )); then
+
+                    WINGS_VERSION="${WINGS_RELEASES[$((start + choice - 1))]}"
+                    break
+                else
+                    error "Pilihan tidak valid."
+                    sleep 1
+                fi
+                ;;
+        esac
+    done
+
+    echo
+    success "Versi terpilih: ${WINGS_VERSION}"
+    echo
+
+    read -r -p "Lanjut install Wings ${WINGS_VERSION}? [y/N]: " confirm
+
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        info "Instalasi dibatalkan."
+        return 1
+    fi
 }
 
 install_docker() {
