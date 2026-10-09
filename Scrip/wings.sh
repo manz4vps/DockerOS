@@ -1,39 +1,208 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-echo "[*] Starting Pterodactyl Wings setup..."
+# ============================================================
+#  PTERODACTYL WINGS INSTALLER
+#  Version Selector | Docker | Systemd | Optional Configuration
+# ============================================================
 
-# ------------------------
-# 1. Docker install (stable)
-# ------------------------
-echo "[*] Installing Docker..."
-curl -sSL https://get.docker.com/ | CHANNEL=stable bash
-sudo systemctl enable --now docker
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+RESET='\033[0m'
 
-# ------------------------
-# 2. Update GRUB
-# ------------------------
-GRUB_FILE="/etc/default/grub"
-if [ -f "$GRUB_FILE" ]; then
-    echo "[*] Updating GRUB_CMDLINE_LINUX_DEFAULT..."
-    sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="swapaccount=1"/' $GRUB_FILE
-    sudo update-grub
-fi
+RELEASE_API="https://api.github.com/repos/pterodactyl/wings/releases"
+INSTALL_PATH="/usr/local/bin/wings"
+CONFIG_DIR="/etc/pterodactyl"
+SERVICE_FILE="/etc/systemd/system/wings.service"
 
-# ------------------------
-# 3. Wings install
-# ------------------------
-sudo mkdir -p /etc/pterodactyl
-ARCH=$(uname -m)
-if [ "$ARCH" == "x86_64" ]; then ARCH="amd64"; else ARCH="arm64"; fi
-curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/download/v1.11.11/wings_linux_$ARCH"
-sudo chmod u+x /usr/local/bin/wings
+draw_header() {
+    clear
+    echo -e "${CYAN}${BOLD}"
+    echo "╔══════════════════════════════════════════════════════╗"
+    echo "║          PTERODACTYL WINGS INSTALLER                ║"
+    echo "║             VERSION SELECTOR                        ║"
+    echo "║                  BY MANZ XD                         ║"
+    echo "╚══════════════════════════════════════════════════════╝"
+    echo -e "${RESET}"
+}
 
-# ------------------------
-# 4. Wings service
-# ------------------------
-WINGS_SERVICE_FILE="/etc/systemd/system/wings.service"
-sudo tee $WINGS_SERVICE_FILE > /dev/null <<EOF
+pause_screen() {
+    echo
+    read -r -p "Tekan Enter untuk melanjutkan..."
+}
+
+info()    { echo -e "${CYAN}[INFO]${RESET} $*"; }
+success() { echo -e "${GREEN}[OK]${RESET} $*"; }
+warning() { echo -e "${YELLOW}[WARN]${RESET} $*"; }
+error()   { echo -e "${RED}[ERROR]${RESET} $*" >&2; }
+
+require_root() {
+    if [[ "${EUID}" -ne 0 ]]; then
+        error "Jalankan script sebagai root: sudo bash wings-installer.sh"
+        exit 1
+    fi
+}
+
+check_dependencies() {
+    for cmd in curl systemctl; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            error "Perintah '$cmd' belum tersedia."
+            exit 1
+        fi
+    done
+}
+
+choose_version() {
+    draw_header
+    echo -e "${BOLD}PILIH VERSI WINGS${RESET}"
+    echo
+    echo "  1. v1.11.11 (versi default dari script lama)"
+    echo "  2. Masukkan versi secara manual"
+    echo "  3. Lihat release terbaru dari GitHub"
+    echo "  0. Batal"
+    echo
+
+    read -r -p "Pilihan [1-3, 0]: " choice
+
+    case "$choice" in
+        1)
+            WINGS_VERSION="v1.11.11"
+            ;;
+        2)
+            read -r -p "Masukkan versi (contoh: v1.11.11): " WINGS_VERSION
+            ;;
+        3)
+            info "Mengambil daftar release dari GitHub..."
+            echo
+            if ! curl -fsSL "$RELEASE_API" |
+                grep -oE '"tag_name":[[:space:]]*"[^"]+"' |
+                head -n 10 |
+                cut -d '"' -f 4; then
+                error "Gagal mengambil release. Coba lagi nanti."
+                exit 1
+            fi
+            echo
+            read -r -p "Masukkan tag versi yang ingin dipasang (contoh: v1.11.11): " WINGS_VERSION
+            ;;
+        0)
+            info "Instalasi dibatalkan."
+            exit 0
+            ;;
+        *)
+            error "Pilihan tidak valid."
+            exit 1
+            ;;
+    esac
+
+    if [[ ! "$WINGS_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
+        error "Format versi tidak valid. Contoh: v1.11.11"
+        exit 1
+    fi
+
+    success "Versi yang dipilih: $WINGS_VERSION"
+}
+
+install_docker() {
+    echo
+    info "Memeriksa Docker..."
+
+    if command -v docker >/dev/null 2>&1; then
+        success "Docker sudah terpasang."
+    else
+        warning "Docker belum ditemukan."
+        read -r -p "Instal Docker stable sekarang? [y/N]: " install_choice
+
+        if [[ "$install_choice" =~ ^[Yy]$ ]]; then
+            curl -fsSL https://get.docker.com/ -o /tmp/install-docker.sh
+            sh /tmp/install-docker.sh
+            rm -f /tmp/install-docker.sh
+        else
+            error "Docker diperlukan untuk instalasi ini."
+            exit 1
+        fi
+    fi
+
+    systemctl enable --now docker
+    success "Docker aktif."
+}
+
+update_grub_optional() {
+    echo
+    warning "Pengaturan GRUB dapat memengaruhi proses boot sistem."
+    read -r -p "Terapkan swapaccount=1 pada GRUB seperti script lama? [y/N]: " grub_choice
+
+    if [[ ! "$grub_choice" =~ ^[Yy]$ ]]; then
+        info "Pengaturan GRUB dilewati."
+        return
+    fi
+
+    if [[ -f /etc/default/grub ]] && command -v update-grub >/dev/null 2>&1; then
+        cp /etc/default/grub "/etc/default/grub.backup.$(date +%Y%m%d%H%M%S)"
+
+        if grep -q '^GRUB_CMDLINE_LINUX_DEFAULT=' /etc/default/grub; then
+            sed -i \
+                's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="swapaccount=1"/' \
+                /etc/default/grub
+        else
+            echo 'GRUB_CMDLINE_LINUX_DEFAULT="swapaccount=1"' >> /etc/default/grub
+        fi
+
+        update-grub
+        success "GRUB diperbarui. Perubahan kernel berlaku setelah reboot."
+    else
+        warning "File GRUB atau perintah update-grub tidak ditemukan; dilewati."
+    fi
+}
+
+download_wings() {
+    local arch
+    local url
+    local temp_file
+
+    case "$(uname -m)" in
+        x86_64|amd64)
+            arch="amd64"
+            ;;
+        aarch64|arm64)
+            arch="arm64"
+            ;;
+        *)
+            error "Arsitektur tidak didukung: $(uname -m)"
+            exit 1
+            ;;
+    esac
+
+    url="https://github.com/pterodactyl/wings/releases/download/${WINGS_VERSION}/wings_linux_${arch}"
+    temp_file="$(mktemp)"
+
+    echo
+    info "Mengunduh Wings ${WINGS_VERSION} untuk ${arch}..."
+
+    if ! curl -fL --retry 3 "$url" -o "$temp_file"; then
+        rm -f "$temp_file"
+        error "Download gagal. Periksa versi dan arsitektur yang dipilih."
+        exit 1
+    fi
+
+    chmod 0755 "$temp_file"
+    install -m 0755 "$temp_file" "$INSTALL_PATH"
+    rm -f "$temp_file"
+
+    if ! "$INSTALL_PATH" version; then
+        warning "Binary terpasang, tetapi perintah pemeriksaan versi gagal."
+    fi
+
+    success "Wings berhasil diunduh ke $INSTALL_PATH"
+}
+
+install_service() {
+    mkdir -p "$CONFIG_DIR"
+
+    cat > "$SERVICE_FILE" <<'SERVICE'
 [Unit]
 Description=Pterodactyl Wings Daemon
 After=docker.service
@@ -44,59 +213,88 @@ PartOf=docker.service
 User=root
 WorkingDirectory=/etc/pterodactyl
 LimitNOFILE=4096
-PIDFile=/var/run/wings/daemon.pid
 ExecStart=/usr/local/bin/wings
 Restart=on-failure
-StartLimitInterval=180
-StartLimitBurst=30
 RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
-EOF
-sudo systemctl daemon-reload
-sudo systemctl enable --now wings
+SERVICE
 
-# ------------------------
-# 5. SSL Certificate
-# ------------------------
-sudo mkdir -p /etc/certs/wing
-cd /etc/certs/wing || exit
-sudo openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
--subj "/C=NA/ST=NA/L=NA/O=NA/CN=Generic SSL Certificate" \
--keyout privkey.pem -out fullchain.pem
+    systemctl daemon-reload
+    systemctl enable wings
 
-# ------------------------
-# 6. 'wing' helper command
-# ------------------------
-sudo tee /usr/local/bin/wing > /dev/null <<'EOF'
-#!/bin/bash
-echo "[!] To start Wings, run manually:"
-echo "    sudo systemctl start wings"
-echo "[!] Make sure Node port 8080 → 443 is mapped."
-EOF
-sudo chmod +x /usr/local/bin/wing
+    success "Service Wings dibuat dan diaktifkan saat boot."
+    warning "Wings belum dijalankan sampai konfigurasi tersedia."
+}
 
-echo "[!] Setup complete! Wings is installed."
-echo "[!] To run auto-configuration, you will be prompted next."
-echo ""
+create_helper() {
+    cat > /usr/local/bin/wing <<'HELPER'
+#!/usr/bin/env bash
+set -e
 
-# ------------------------
-# 7. Optional Auto-configure Wings
-# ------------------------
-read -p "Do you want to auto-configure Wings now? (y/n): " AUTO_CONFIG
+case "${1:-status}" in
+    start)
+        sudo systemctl start wings
+        ;;
+    stop)
+        sudo systemctl stop wings
+        ;;
+    restart)
+        sudo systemctl restart wings
+        ;;
+    status)
+        sudo systemctl status wings --no-pager
+        ;;
+    logs)
+        sudo journalctl -u wings -n 100 --no-pager
+        ;;
+    *)
+        echo "Penggunaan: wing {start|stop|restart|status|logs}"
+        exit 1
+        ;;
+esac
+HELPER
 
-if [[ "$AUTO_CONFIG" =~ ^[Yy]$ ]]; then
-    clear
-    echo "🔧 Auto-configuring Wings..."
-    read -p "Enter UUID: " UUID
-    read -p "Enter Token ID: " TOKEN_ID
-    read -p "Enter Token: " TOKEN
-    read -p "Enter FQDN: " FQDN
-    read -p "Enter Panel URL (remote): " REMOTE
+    chmod 0755 /usr/local/bin/wing
+    success "Perintah bantuan 'wing' tersedia."
+}
 
-    mkdir -p /etc/pterodactyl
-    tee /etc/pterodactyl/config.yml > /dev/null <<CFG
+configure_wings() {
+    echo
+    read -r -p "Mau mengisi konfigurasi Wings sekarang? [y/N]: " auto_config
+
+    if [[ ! "$auto_config" =~ ^[Yy]$ ]]; then
+        warning "Konfigurasi dilewati."
+        echo "Setelah konfigurasi dari Panel disimpan ke $CONFIG_DIR/config.yml,"
+        echo "jalankan: systemctl enable --now wings"
+        return
+    fi
+
+    echo
+    warning "Nilai konfigurasi sebaiknya disalin dari halaman Node di Panel."
+    warning "Jangan membagikan token atau isi config.yml kepada orang lain."
+    echo
+
+    read -r -p "UUID Node: " UUID
+    read -r -p "Token ID: " TOKEN_ID
+    read -r -s -p "Token: " TOKEN
+    echo
+    read -r -p "FQDN Node: " FQDN
+    read -r -p "URL Panel (contoh: https://panel.example.com): " REMOTE
+
+    if [[ -z "$UUID" || -z "$TOKEN_ID" || -z "$TOKEN" || -z "$FQDN" || -z "$REMOTE" ]]; then
+        error "Ada kolom yang kosong. Konfigurasi dibatalkan."
+        return 1
+    fi
+
+    if [[ -f "$CONFIG_DIR/config.yml" ]]; then
+        cp "$CONFIG_DIR/config.yml" \
+            "$CONFIG_DIR/config.yml.backup.$(date +%Y%m%d%H%M%S)"
+        warning "Konfigurasi lama dicadangkan."
+    fi
+
+    cat > "$CONFIG_DIR/config.yml" <<CFG
 debug: false
 uuid: ${UUID}
 token_id: ${TOKEN_ID}
@@ -117,11 +315,57 @@ allowed_mounts: []
 remote: '${REMOTE}'
 CFG
 
-    echo "✅ Config saved to /etc/pterodactyl/config.yml"
-    echo "🚀 Starting Wings service..."
-    sudo systemctl enable --now wings 
-    echo "✅ Wings started successfully!"
-else
-    echo "[!] Skipping auto-configuration. To start Wings manually, run:"
-    echo "    sudo systemctl start wings"
-fi
+    chmod 0600 "$CONFIG_DIR/config.yml"
+    success "Konfigurasi disimpan ke $CONFIG_DIR/config.yml"
+
+    echo
+    warning "Konfigurasi ini mengasumsikan TLS ditangani di luar Wings."
+    warning "Pastikan alamat, port, sertifikat, dan pengaturan Node cocok dengan Panel."
+    read -r -p "Jalankan service Wings sekarang? [y/N]: " start_choice
+
+    if [[ "$start_choice" =~ ^[Yy]$ ]]; then
+        systemctl enable --now wings
+        systemctl --no-pager --full status wings || true
+    else
+        info "Belum dijalankan. Jalankan: systemctl start wings"
+    fi
+}
+
+main() {
+    require_root
+    check_dependencies
+    choose_version
+
+    echo
+    warning "Installer akan memasang atau mengganti binary Wings."
+    warning "Pastikan versi yang dipilih cocok dengan Panel dan OS kamu."
+    read -r -p "Lanjutkan instalasi versi ${WINGS_VERSION}? [y/N]: " confirm
+
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        info "Instalasi dibatalkan."
+        exit 0
+    fi
+
+    install_docker
+    update_grub_optional
+    download_wings
+    install_service
+    create_helper
+    configure_wings
+
+    echo
+    echo -e "${GREEN}${BOLD}╔══════════════════════════════════════════════════════╗"
+    echo "║                INSTALLER SELESAI                    ║"
+    echo -e "╚══════════════════════════════════════════════════════╝${RESET}"
+    echo
+    echo "Versi dipilih : $WINGS_VERSION"
+    echo "Binary        : $INSTALL_PATH"
+    echo "Konfigurasi   : $CONFIG_DIR/config.yml"
+    echo "Service       : wings"
+    echo
+    echo "Cek status    : wing status"
+    echo "Lihat log     : wing logs"
+    echo
+}
+
+main "$@"
