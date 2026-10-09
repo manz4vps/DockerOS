@@ -83,7 +83,7 @@ install_ptero() {
 
     sleep 1
 
-    bash <(curl -fsSL https://raw.githubusercontent.com/nobita329/Nobita-Cloud/refs/heads/main/panel/pterodactyl/install.sh)
+    bash <(curl -fsSL https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-panel.sh)
 
     echo ""
     status_msg "INFO" "Installation script finished. Check its output for errors."
