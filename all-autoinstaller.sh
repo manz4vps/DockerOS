@@ -1,206 +1,352 @@
-#!/bin/bash  
+#!/usr/bin/env bash
 
-# === KONFIGURASI WARNA ===
-MERAH="\033[31m"
-HIJAU="\033[32m"
-KUNING="\033[33m"
-BIRU="\033[36m"
-UNGU="\033[35m"
-CYAN="\033[1;36m"
-PUTIH="\033[37m"
-RESET="\033[0m"
-TEBAL="\033[1m"
+# ============================================================
+#  MANZXD • DOCKER OS CONTROL CENTER
+#  Premium CLI UI | Bash Edition
+# ============================================================
 
-# Trap CTRL+C
-trap 'echo -e "\n${MERAH}Exiting...${RESET}"; exit 0' SIGINT
+APP_NAME="MANZXD DOCKER OS"
+APP_VERSION="3.0"
 
-# Banner ManzXD
-banner() {
-    clear
-    echo -e "${CYAN}=============================================${RESET}"
-    echo -e "${UNGU}   __  __                   __  __  ____  ${RESET}"
-    echo -e "${UNGU}  |  \/  | __ _ _ __  ____ \ \/ / |  _ \ ${RESET}"
-    echo -e "${UNGU}  | |\/| |/ _\` | '_ \|_  /  \  /  | | | |${RESET}"
-    echo -e "${UNGU}  | |  | | (_| | | | |/ /   /  \  | |_| |${RESET}"
-    echo -e "${UNGU}  |_|  |_|\__,_|_| |_/___| /_/\_\ |____/ ${RESET}"
-    echo -e "${CYAN}=============================================${RESET}"
-    echo -e "${PUTIH}       DOCKER OS INSTALLER | BY MANZXD     ${RESET}"
-    echo -e "${CYAN}=============================================${RESET}"
+# ---------- COLORS ----------
+if [[ -t 1 ]]; then
+    RESET='\033[0m'
+    BOLD='\033[1m'
+    DIM='\033[2m'
+    CYAN='\033[1;36m'
+    BLUE='\033[1;34m'
+    PURPLE='\033[1;35m'
+    GREEN='\033[1;32m'
+    RED='\033[1;31m'
+    YELLOW='\033[1;33m'
+    WHITE='\033[1;37m'
+    GREY='\033[0;90m'
+else
+    RESET='' BOLD='' DIM=''
+    CYAN='' BLUE='' PURPLE=''
+    GREEN='' RED='' YELLOW=''
+    WHITE='' GREY=''
+fi
+
+# ---------- BASIC UTILITIES ----------
+trap 'printf "\n%b\n" "${YELLOW}  [!] Console dihentikan.${RESET}"; exit 130' INT
+
+pause() {
+    echo
+    read -r -n 1 -s -p "  Tekan tombol apa saja untuk kembali..."
+    echo
 }
 
-# Cek curl
-cek_curl() {
-    if ! command -v curl &>/dev/null; then
-        echo -ne "${KUNING}⚙️  Sedang menginstall curl...${RESET}"
-        if [ -f /etc/debian_version ]; then
-            apt-get update -qq && apt-get install -y curl -qq > /dev/null 2>&1
-        elif [ -f /etc/redhat-release ]; then
-            yum install -y curl > /dev/null 2>&1
-        fi
-        echo -e " ${HIJAU}[OK]${RESET}"
-    fi
+line() {
+    printf '%b\n' "${BLUE}  ────────────────────────────────────────────────────────${RESET}"
 }
 
-# Fungsi Jalankan
-jalankan() {
-    local url=$1
-    cek_curl
-    echo -e "\n${HIJAU}🚀 Menjalankan script...${RESET}"
-    sleep 1
-    
-    # Cek link hidup/mati
-    if curl --output /dev/null --silent --head --fail "$url"; then
-        bash <(curl -fsSL "$url")
-    else
-        echo -e "${MERAH}❌ Gagal: Link script mati/tidak ditemukan!${RESET}"
-        echo -e "${KUNING}URL: $url${RESET}"
-    fi
+message() {
+    local type="$1"
+    shift
 
-    echo -e "\n${CYAN}---------------------------------------------${RESET}"
-    # Pake -r biar enter gak jadi masalah
-    read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali..."
-}
-
-# === SUB-MENU WINGS (BARU) ===
-menu_wings() {
-    local sub_opt
-    while true; do
-        clear
-        echo -e "${CYAN}=============================================${RESET}"
-        echo -e "${KUNING}          🪶  MENU INSTALLER WINGS           ${RESET}"
-        echo -e "${CYAN}=============================================${RESET}"
-        echo -e " ${TEBAL}1)${RESET}🦇 Wings Pterodactyl (Original)"
-        echo -e " ${TEBAL}2)${RESET}⚡ Wings Pterodactyl (org-Update)"
-        echo -e " ${TEBAL}3)${RESET}🕊️  Wings Feather (FeatherPanel)"
-        echo -e "${CYAN}---------------------------------------------${RESET}"
-        echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
-        echo -e "${CYAN}=============================================${RESET}"
-        
-        echo -ne "${TEBAL}Pilih [0-2]: ${RESET}"
-        read -r sub_opt
-        sub_opt=$(echo "$sub_opt" | tr -d '[:space:]')
-
-        case $sub_opt in
-            1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/wings.sh" ;;
-            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/wings-update.sh" ;;
-            3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/FeatherWings.sh" ;;
-            0) return ;;
-            "") ;; 
-            *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
-        esac
-    done
-}
-
-# === SUB-MENU CONNECTION ===
-menu_connection() {
-    local sub_opt
-    while true; do
-        clear
-        echo -e "${CYAN}=============================================${RESET}"
-        echo -e "${KUNING}          🌐 MENU KONEKSI & TUNNEL           ${RESET}"
-        echo -e "${CYAN}=============================================${RESET}"
-        echo -e " ${TEBAL}1)${RESET}⚒️  Install Localtonet"
-        echo -e " ${TEBAL}2)${RESET}🔨  Install Tailscale"
-        echo -e " ${TEBAL}3)${RESET}🔨  Tailscale (IP Public)"
-        echo -e " ${TEBAL}4)${RESET}⚒️  Install MineCube (IP Minecraft)"
-        echo -e " ${TEBAL}5)${RESET}🛠️  Install Playit.gg"
-        echo -e " ${TEBAL}6)${RESET}🖥️  Playit Run 24/7"
-        echo -e "${CYAN}---------------------------------------------${RESET}"
-        echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
-        echo -e "${CYAN}=============================================${RESET}"
-        
-        echo -ne "${TEBAL}Pilih [0-6]: ${RESET}"
-        read -r sub_opt
-        # Bersihin input dari spasi/enter nyangkut
-        sub_opt=$(echo "$sub_opt" | tr -d '[:space:]')
-
-        case $sub_opt in
-            1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-localtonet.sh" ;;
-            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-tailscale.sh" ;;
-            3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/tailscale-port.sh" ;;
-            4) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/minekub-ip.sh" ;;
-            5) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playitInstaller.sh" ;;
-            6) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playit24-7" ;;
-            0) return ;;
-            "") ;; # Kalo kosong doang (enter), abaikan biar gak muncul error merah
-            *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
-        esac
-    done
-}
-
-# === SUB-MENU CLOUDFLARE ===
-menu_cloudflare() {
-    local sub_opt
-    while true; do
-        clear
-        echo -e "${CYAN}=============================================${RESET}"
-        echo -e "${KUNING}            ☁️  MENU CLOUDFLARE               ${RESET}"
-        echo -e "${CYAN}=============================================${RESET}"
-        echo -e " ${TEBAL}1)${RESET}☁️  Cloudflare Raw Script (Manual)"
-        echo -e " ${TEBAL}2)${RESET}🔒  Cloudflared Tunnel (Token)"
-        echo -e "${CYAN}---------------------------------------------${RESET}"
-        echo -e " ${TEBAL}0)${RESET}🔙 Kembali ke Menu Utama"
-        echo -e "${CYAN}=============================================${RESET}"
-        
-        echo -ne "${TEBAL}Pilih [0-2]: ${RESET}"
-        read -r sub_opt
-        # Bersihin input dari spasi/enter nyangkut
-        sub_opt=$(echo "$sub_opt" | tr -d '[:space:]')
-
-        case $sub_opt in
-            1) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/cloudflare.sh" ;;
-            2) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/token-cloudflare.sh" ;;
-            0) return ;;
-            "") ;; # Kalo kosong abaikan
-            *) echo -e "${MERAH}Pilihan salah.${RESET}"; sleep 1 ;;
-        esac
-    done
-}
-
-# === MAIN MENU ===
-while true; do
-    banner
-    echo -e " ${TEBAL}1)${RESET}  Panel Pterodactyl"
-    echo -e " ${TEBAL}2)${RESET}  Install Wings (Ptero/Feather) ▶"
-    echo -e " ${TEBAL}3)${RESET}  SSH (connect)"
-    echo -e " ${TEBAL}4)${RESET}  Connection Tools (Playit/MineCube) ▶"
-    echo -e " ${TEBAL}5)${RESET}  Blueprint Framework"
-    echo -e " ${TEBAL}6)${RESET}  Install Cloudflare ▶"
-    echo -e " ${TEBAL}7)${RESET}  Pasang Tema (Theme)"
-    echo -e " ${TEBAL}8)${RESET}  Install Addon"
-    echo -e " ${TEBAL}9)${RESET}  Install SSHX (Remote)"
-    echo -e " ${TEBAL}10)${RESET} Install CtrlPanel (Biling)"
-    echo -e " ${TEBAL}11)${RESET} Install Code-Sever"
-    
-    echo -e "${CYAN}---------------------------------------------${RESET}"
-    echo -e " ${TEBAL}0)${RESET}🚪 KELUAR"
-    echo -e "${CYAN}=============================================${RESET}"
-    
-    echo -ne "${TEBAL}Masukkan pilihan [0-9]: ${RESET}"
-    read -r pilihan
-    
-    pilihan=$(echo "$pilihan" | tr -d '[:space:]')
-
-    case $pilihan in
-        1) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/panel.sh" ;;
-        2) menu_wings ;; # Masuk ke Sub-Menu Wings
-        3) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/ssh.sh" ;;
-        4) menu_connection ;;  # Masuk ke Sub-Menu Connection
-        5) jalankan "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/blueprint.sh" ;;
-        6) menu_cloudflare ;;  # Masuk ke Sub-Menu Cloudflare
-        7) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme.sh" ;;
-        8) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/addon.sh" ;;
-        9) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/sshx.sh" ;;
-        10) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/CtrlPanel.sh" ;;
-        11) jalankan "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/code-server.sh" ;;
-        0) 
-            echo -e "\n${HIJAU}Terimakasih Telah Menggunakan Script Ini!${RESET}"
-            exit 0 
-            ;;
-        "") 
-            # Kalo kosong (cuma kepencet enter), jangan ngapa2in, jangan error
-            ;;
-        *) 
-            echo -e "${MERAH}[!] Pilihan tidak valid.${RESET}"; sleep 1 ;;
+    case "$type" in
+        OK)   printf '  %b\n' "${GREEN}[OK]${RESET} $*" ;;
+        INFO) printf '  %b\n' "${CYAN}[INFO]${RESET} $*" ;;
+        WARN) printf '  %b\n' "${YELLOW}[WARN]${RESET} $*" ;;
+        ERR)  printf '  %b\n' "${RED}[ERROR]${RESET} $*" ;;
     esac
-done
+}
+
+get_width() {
+    local width
+    width=$(tput cols 2>/dev/null || echo 80)
+
+    if (( width > 100 )); then
+        width=100
+    elif (( width < 60 )); then
+        width=60
+    fi
+
+    printf '%s' "$width"
+}
+
+draw_header() {
+    clear 2>/dev/null || true
+
+    printf '\n'
+    printf '%b\n' "${CYAN}  ╭────────────────────────────────────────────────────────╮${RESET}"
+    printf '%b\n' "${CYAN}  │${PURPLE}${BOLD}             MANZXD DOCKER OS CONTROL CENTER             ${RESET}${CYAN}│${RESET}"
+    printf '%b\n' "${CYAN}  │${GREY}                  PREMIUM CLI EDITION                  ${RESET}${CYAN}│${RESET}"
+    printf '%b\n' "${CYAN}  ╰────────────────────────────────────────────────────────╯${RESET}"
+
+    printf '  %b\n' "${GREY}USER: $(whoami 2>/dev/null || echo unknown)  |  TIME: $(date '+%H:%M:%S')  |  VERSION: ${APP_VERSION}${RESET}"
+    echo
+}
+
+draw_section() {
+    printf '\n%b\n' "${PURPLE}${BOLD}  ◆ $1${RESET}"
+    line
+}
+
+draw_item() {
+    printf '  %b%-4s%b %s\n' "${GREEN}${BOLD}" "$1" "${RESET}" "$2"
+}
+
+prompt_choice() {
+    printf '\n'
+    printf '  %b' "${CYAN}${BOLD}  MANZXD ${RESET}${GREY}»${RESET} "
+    read -r REPLY
+    REPLY="${REPLY//[[:space:]]/}"
+}
+
+check_curl() {
+    if command -v curl >/dev/null 2>&1; then
+        return 0
+    fi
+
+    message WARN "curl belum tersedia."
+
+    if [[ $EUID -ne 0 ]]; then
+        message ERR "Jalankan sebagai root untuk memasang curl."
+        return 1
+    fi
+
+    if [[ -f /etc/debian_version ]] && command -v apt-get >/dev/null 2>&1; then
+        apt-get update -qq &&
+            apt-get install -y curl -qq
+    elif [[ -f /etc/redhat-release ]] && command -v yum >/dev/null 2>&1; then
+        yum install -y curl
+    else
+        message ERR "Package manager tidak dikenali."
+        return 1
+    fi
+
+    command -v curl >/dev/null 2>&1
+}
+
+run_script() {
+    local url="$1"
+    local file
+    local status
+
+    if [[ -z "$url" ]]; then
+        message ERR "URL kosong."
+        pause
+        return 1
+    fi
+
+    if ! check_curl; then
+        pause
+        return 1
+    fi
+
+    draw_header
+    draw_section "SCRIPT EXECUTION"
+    message INFO "Mengunduh script dari sumber yang dikonfigurasi."
+    printf '  %b%s%b\n' "$GREY" "$url" "$RESET"
+    echo
+
+    file=$(mktemp "${TMPDIR:-/tmp}/manzxd.XXXXXX") || {
+        message ERR "Gagal membuat file sementara."
+        pause
+        return 1
+    }
+
+    if ! curl --fail --location --silent --show-error \
+        --connect-timeout 15 \
+        --max-time 180 \
+        --output "$file" "$url"; then
+        message ERR "Download gagal."
+        rm -f "$file"
+        pause
+        return 1
+    fi
+
+    if [[ ! -s "$file" ]]; then
+        message ERR "File hasil download kosong."
+        rm -f "$file"
+        pause
+        return 1
+    fi
+
+    # Script remote dijalankan tanpa sandbox.
+    # Pastikan sumbernya dipercaya sebelum menjalankan.
+    echo
+    message INFO "Menjalankan script..."
+    line
+
+    bash "$file"
+    status=$?
+
+    rm -f "$file"
+
+    echo
+    if (( status == 0 )); then
+        message OK "Proses selesai."
+    else
+        message ERR "Proses selesai dengan kode $status."
+    fi
+
+    pause
+}
+
+# ---------- SUBMENUS ----------
+submenu() {
+    local title="$1"
+    shift
+
+    local -a labels=()
+    local -a urls=()
+    local i choice
+
+    while (( $# >= 2 )); do
+        labels+=("$1")
+        urls+=("$2")
+        shift 2
+    done
+
+    while true; do
+        draw_header
+        draw_section "$title"
+
+        for i in "${!labels[@]}"; do
+            printf '  %b[%02d]%b %s\n' \
+                "$GREEN" "$((i + 1))" "$RESET" "${labels[$i]}"
+        done
+
+        line
+        draw_item "00" "Kembali ke menu utama"
+        prompt_choice
+        choice="$REPLY"
+
+        case "$choice" in
+            0|00)
+                return
+                ;;
+            '' )
+                ;;
+            *[!0-9]*)
+                message ERR "Pilihan tidak valid."
+                sleep 1
+                ;;
+            *)
+                if (( choice >= 1 && choice <= ${#labels[@]} )); then
+                    run_script "${urls[$((choice - 1))]}"
+                else
+                    message ERR "Nomor menu tidak tersedia."
+                    sleep 1
+                fi
+                ;;
+        esac
+    done
+}
+
+menu_wings() {
+    submenu "WINGS INSTALLER" \
+        "Wings Pterodactyl Original" \
+        "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/wings.sh" \
+        "Wings Pterodactyl Update" \
+        "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/wings-update.sh" \
+        "Wings FeatherPanel" \
+        "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/FeatherWings.sh"
+}
+
+menu_connection() {
+    submenu "CONNECTION & TUNNEL" \
+        "Install Localtonet" \
+        "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-localtonet.sh" \
+        "Install Tailscale" \
+        "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-tailscale.sh" \
+        "Tailscale Public IP" \
+        "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/tailscale-port.sh" \
+        "Install MineCube" \
+        "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/minekub-ip.sh" \
+        "Install Playit.gg" \
+        "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playitInstaller.sh" \
+        "Playit 24/7" \
+        "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playit24-7"
+}
+
+menu_cloudflare() {
+    submenu "CLOUDFLARE TOOLS" \
+        "Cloudflare Raw Script" \
+        "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/cloudflare.sh" \
+        "Cloudflared Tunnel Token" \
+        "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/token-cloudflare.sh"
+}
+
+# ---------- MAIN MENU ----------
+main_menu() {
+    local choice
+
+    while true; do
+        draw_header
+
+        draw_section "INSTALLATION"
+        draw_item "01" "Panel Pterodactyl"
+        draw_item "02" "Wings Installer                  [SUBMENU]"
+        draw_item "03" "SSH Connect"
+        draw_item "04" "Connection & Tunnel Tools        [SUBMENU]"
+        draw_item "05" "Blueprint Framework"
+        draw_item "06" "Cloudflare Tools                 [SUBMENU]"
+
+        draw_section "CUSTOMIZATION & ADDONS"
+        draw_item "07" "Pasang Tema"
+        draw_item "08" "Install Addon"
+        draw_item "09" "Install SSHX"
+        draw_item "10" "Install CtrlPanel"
+        draw_item "11" "Install Code-Server"
+
+        draw_section "SYSTEM"
+        draw_item "00" "Keluar dari console"
+
+        prompt_choice
+        choice="$REPLY"
+
+        case "$choice" in
+            1|01)
+                run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/panel.sh"
+                ;;
+            2|02)
+                menu_wings
+                ;;
+            3|03)
+                run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/ssh.sh"
+                ;;
+            4|04)
+                menu_connection
+                ;;
+            5|05)
+                run_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/blueprint.sh"
+                ;;
+            6|06)
+                menu_cloudflare
+                ;;
+            7|07)
+                run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme.sh"
+                ;;
+            8|08)
+                run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/addon.sh"
+                ;;
+            9|09)
+                run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/sshx.sh"
+                ;;
+            10)
+                run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/CtrlPanel.sh"
+                ;;
+            11)
+                run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/code-server.sh"
+                ;;
+            0|00)
+                draw_header
+                message OK "Terima kasih sudah menggunakan ManzXD."
+                echo
+                exit 0
+                ;;
+            '')
+                ;;
+            *)
+                message ERR "Pilihan tidak valid."
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+main_menu
