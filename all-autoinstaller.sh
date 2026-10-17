@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # ============================================================
-#  MANZXD • DOCKER OS CONTROL CENTER
-#  Premium CLI UI | Bash Edition
+#  MANZXD - DOCKER OS CONTROL CENTER
+#  Premium CLI Edition
 # ============================================================
 
 APP_NAME="MANZXD DOCKER OS"
-APP_VERSION="3.0"
+APP_VERSION="3.1"
 
 # ---------- COLORS ----------
 if [[ -t 1 ]]; then
@@ -24,13 +24,12 @@ if [[ -t 1 ]]; then
 else
     RESET='' BOLD='' DIM=''
     CYAN='' BLUE='' PURPLE=''
-    GREEN='' RED='' YELLOW=''
-    WHITE='' GREY=''
+    GREEN='' RED='' YELLOW='' WHITE='' GREY=''
 fi
 
-# ---------- BASIC UTILITIES ----------
-trap 'printf "\n%b\n" "${YELLOW}  [!] Console dihentikan.${RESET}"; exit 130' INT
+trap 'printf "\n%b\n" "${YELLOW}[!] Console dihentikan.${RESET}"; exit 130' INT
 
+# ---------- BASIC UTILITIES ----------
 pause() {
     echo
     read -r -n 1 -s -p "  Tekan tombol apa saja untuk kembali..."
@@ -53,19 +52,6 @@ message() {
     esac
 }
 
-get_width() {
-    local width
-    width=$(tput cols 2>/dev/null || echo 80)
-
-    if (( width > 100 )); then
-        width=100
-    elif (( width < 60 )); then
-        width=60
-    fi
-
-    printf '%s' "$width"
-}
-
 draw_header() {
     clear 2>/dev/null || true
 
@@ -85,25 +71,24 @@ draw_section() {
 }
 
 draw_item() {
-    printf '  %b%-4s%b %s\n' "${GREEN}${BOLD}" "$1" "${RESET}" "$2"
+    printf '  %b[%s]%b %s\n' "${GREEN}${BOLD}" "$1" "${RESET}" "$2"
 }
 
 prompt_choice() {
     printf '\n'
-    printf '  %b' "${CYAN}${BOLD}  MANZXD ${RESET}${GREY}»${RESET} "
+    printf '  %b' "${CYAN}${BOLD}MANZXD ${RESET}${GREY}» ${RESET}"
     read -r REPLY
     REPLY="${REPLY//[[:space:]]/}"
 }
 
+# ---------- DEPENDENCIES ----------
 check_curl() {
-    if command -v curl >/dev/null 2>&1; then
-        return 0
-    fi
+    command -v curl >/dev/null 2>&1 && return 0
 
     message WARN "curl belum tersedia."
 
     if [[ $EUID -ne 0 ]]; then
-        message ERR "Jalankan sebagai root untuk memasang curl."
+        message ERR "Jalankan console sebagai root untuk memasang curl."
         return 1
     fi
 
@@ -120,13 +105,14 @@ check_curl() {
     command -v curl >/dev/null 2>&1
 }
 
+# ---------- SCRIPT RUNNER ----------
 run_script() {
     local url="$1"
     local file
     local status
 
     if [[ -z "$url" ]]; then
-        message ERR "URL kosong."
+        message ERR "URL tidak tersedia."
         pause
         return 1
     fi
@@ -136,41 +122,31 @@ run_script() {
         return 1
     fi
 
-    draw_header
-    draw_section "SCRIPT EXECUTION"
-    message INFO "Mengunduh script dari sumber yang dikonfigurasi."
-    printf '  %b%s%b\n' "$GREY" "$url" "$RESET"
-    echo
-
     file=$(mktemp "${TMPDIR:-/tmp}/manzxd.XXXXXX") || {
-        message ERR "Gagal membuat file sementara."
+        message ERR "Gagal mempersiapkan proses."
         pause
         return 1
     }
 
+    # Download tanpa menampilkan URL atau pesan proses.
     if ! curl --fail --location --silent --show-error \
         --connect-timeout 15 \
         --max-time 180 \
         --output "$file" "$url"; then
-        message ERR "Download gagal."
+        message ERR "Proses gagal. Periksa koneksi atau sumber script."
         rm -f "$file"
         pause
         return 1
     fi
 
     if [[ ! -s "$file" ]]; then
-        message ERR "File hasil download kosong."
+        message ERR "File script kosong."
         rm -f "$file"
         pause
         return 1
     fi
 
-    # Script remote dijalankan tanpa sandbox.
-    # Pastikan sumbernya dipercaya sebelum menjalankan.
-    echo
-    message INFO "Menjalankan script..."
-    line
-
+    # Eksekusi script yang dipilih.
     bash "$file"
     status=$?
 
@@ -180,7 +156,7 @@ run_script() {
     if (( status == 0 )); then
         message OK "Proses selesai."
     else
-        message ERR "Proses selesai dengan kode $status."
+        message ERR "Proses gagal dengan kode $status."
     fi
 
     pause
@@ -206,20 +182,20 @@ submenu() {
         draw_section "$title"
 
         for i in "${!labels[@]}"; do
-            printf '  %b[%02d]%b %s\n' \
-                "$GREEN" "$((i + 1))" "$RESET" "${labels[$i]}"
+            draw_item "$((i + 1))" "${labels[$i]}"
         done
 
         line
-        draw_item "00" "Kembali ke menu utama"
+        draw_item "0" "Kembali ke menu utama"
+
         prompt_choice
         choice="$REPLY"
 
         case "$choice" in
-            0|00)
+            0)
                 return
                 ;;
-            '' )
+            '')
                 ;;
             *[!0-9]*)
                 message ERR "Pilihan tidak valid."
@@ -237,6 +213,7 @@ submenu() {
     done
 }
 
+# ---------- WINGS ----------
 menu_wings() {
     submenu "WINGS INSTALLER" \
         "Wings Pterodactyl Original" \
@@ -247,6 +224,7 @@ menu_wings() {
         "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/FeatherWings.sh"
 }
 
+# ---------- CONNECTION ----------
 menu_connection() {
     submenu "CONNECTION & TUNNEL" \
         "Install Localtonet" \
@@ -263,6 +241,7 @@ menu_connection() {
         "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/playit24-7"
 }
 
+# ---------- CLOUDFLARE ----------
 menu_cloudflare() {
     submenu "CLOUDFLARE TOOLS" \
         "Cloudflare Raw Script" \
@@ -279,52 +258,52 @@ main_menu() {
         draw_header
 
         draw_section "INSTALLATION"
-        draw_item "01" "Panel Pterodactyl"
-        draw_item "02" "Wings Installer                  [SUBMENU]"
-        draw_item "03" "SSH Connect"
-        draw_item "04" "Connection & Tunnel Tools        [SUBMENU]"
-        draw_item "05" "Blueprint Framework"
-        draw_item "06" "Cloudflare Tools                 [SUBMENU]"
+        draw_item "1" "Panel Pterodactyl"
+        draw_item "2" "Wings Installer                 [SUBMENU]"
+        draw_item "3" "SSH Connect"
+        draw_item "4" "Connection & Tunnel Tools       [SUBMENU]"
+        draw_item "5" "Blueprint Framework"
+        draw_item "6" "Cloudflare Tools                [SUBMENU]"
 
         draw_section "CUSTOMIZATION & ADDONS"
-        draw_item "07" "Pasang Tema"
-        draw_item "08" "Install Addon"
-        draw_item "09" "Install SSHX"
+        draw_item "7" "Pasang Tema"
+        draw_item "8" "Install Addon"
+        draw_item "9" "Install SSHX"
         draw_item "10" "Install CtrlPanel"
         draw_item "11" "Install Code-Server"
 
         draw_section "SYSTEM"
-        draw_item "00" "Keluar dari console"
+        draw_item "0" "Keluar dari console"
 
         prompt_choice
         choice="$REPLY"
 
         case "$choice" in
-            1|01)
+            1)
                 run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/panel.sh"
                 ;;
-            2|02)
+            2)
                 menu_wings
                 ;;
-            3|03)
+            3)
                 run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/ssh.sh"
                 ;;
-            4|04)
+            4)
                 menu_connection
                 ;;
-            5|05)
+            5)
                 run_script "https://raw.githubusercontent.com/buszz71/DockerOS/refs/heads/main/Scrip/blueprint.sh"
                 ;;
-            6|06)
+            6)
                 menu_cloudflare
                 ;;
-            7|07)
+            7)
                 run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/theme.sh"
                 ;;
-            8|08)
+            8)
                 run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/addon.sh"
                 ;;
-            9|09)
+            9)
                 run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/sshx.sh"
                 ;;
             10)
@@ -333,7 +312,7 @@ main_menu() {
             11)
                 run_script "https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/code-server.sh"
                 ;;
-            0|00)
+            0)
                 draw_header
                 message OK "Terima kasih sudah menggunakan ManzXD."
                 echo
