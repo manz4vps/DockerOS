@@ -94,8 +94,8 @@ while true; do
 
     draw_item 1 "GitHub VPS Maker (Docker)"
     draw_item 2 "VPS Maker (Non-KVM)"
-    draw_item 3 "IDX Tool Setup (Auto vm/.idx)"
-    draw_item 4 "IDX VPS Maker (Auto Script)"
+    draw_item 3 "Tool Setup (Auto vm/.idx)"
+    draw_item 4 "VPS Maker (Auto Script)"
 
     draw_section "AUTOMATION & ENVIRONMENT"
 
