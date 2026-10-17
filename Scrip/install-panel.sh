@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# --- SEMA NEON THEME ---
+# --- MANZVPS NEON THEME ---
 CYAN='\033[38;5;51m'
 PURPLE='\033[38;5;141m'
 GRAY='\033[38;5;242m'
@@ -17,30 +17,16 @@ PHP_VERSION="8.3"
 show_banner() {
     clear
     echo -e "${CYAN}"
-    cat << "EOF"
-               .                                      .o8                          .               oooo  
-             .o8                                     "888                        .o8               `888  
-oo.ooooo.  .o888oo  .ooooo.  oooo d8b  .ooooo.   .oooo888   .oooo.    .ooooo.  .o888oo oooo    ooo  888  
- 888' `88b   888   d88' `88b `888""8P d88' `88b d88' `888  `P  )88b  d88' `"Y8   888    `88.  .8'   888  
- 888   888   888   888ooo888  888     888   888 888   888   .oP"888  888         888     `88..8'    888  
- 888   888   888 . 888    .o  888     888   888 888   888  d8(  888  888   .o8   888 .    `888'     888  
- 888bod8P'   "888" `Y8bod8P' d888b    `Y8bod8P' `Y8bod88P" `Y888""8o `Y8bod8P'   "888"     .8'     o888o 
- 888                                                                                   .o..P'            
-o888o                                                                                  `Y8P'             
-                                                                                                         
-EOF
-    echo -e "           ${WHITE}PREMIUM PTERODACTYL INSTALLER${NC}"
-    echo -e "${HEADER_LINE}"
+    echo "========================================"
+    echo ""
+    echo "              ManzVMe"
+    echo ""
+    echo "       PANEL INSTALLER 🇵🇸🇮🇩"
+    echo "       LOCATION: SINGAPORE 🇸🇬"
+    echo ""
+    echo "========================================"
+    echo -e "${NC}"
 }
-
-ok() {
-    echo -e "  ${GREEN}[OK]${NC} $1"
-}
-
-step() {
-    echo -e "\n  ${PURPLE}::${NC} ${WHITE}$1${NC}"
-}
-
 # --- INPUT FUNCTION ---
 ask() {
     local label=$1
@@ -139,7 +125,7 @@ select_version() {
 show_banner
 
 # --- DATA COLLECTION ---
-ask "Panel Domain" "panel.nobita.indevs.in" DOMAIN
+ask "Panel Domain" "panel.manzvps.com" DOMAIN
 ask "Admin Email" "admin@gmail.com" EMAIL
 ask "Admin Username" "admin" USERNAME
 ask_timeout "Admin Password" "admin" PASSWORD
@@ -333,24 +319,23 @@ cd /var/www/pterodactyl
 # Update .env settings
 sed -i '/^APP_ENVIRONMENT_ONLY=/d' .env
 echo "APP_ENVIRONMENT_ONLY=false" >> .env
-sed -i '/RECAPTCHA_ENABLED=/d' .env
+sed -i '/^RECAPTCHA_ENABLED=/d' .env
 echo 'RECAPTCHA_ENABLED=false' >> .env
-sed -i '/APP_NAME=/d' .env
-echo 'APP_NAME="Nobita Cloud"' >> .env
+sed -i '/^APP_NAME=/d' .env
+echo 'APP_NAME="ManzVPS🇵🇸🇮🇩"' >> .env
+
 TIMEZONE=$(timedatectl show --property=Timezone --value 2>/dev/null || echo "UTC")
 sed -i "s|APP_TIMEZONE=.*|APP_TIMEZONE=${TIMEZONE}|g" .env
 
-# SMTP defaults (user should update these)
-sed -i "s|MAIL_MAILER=.*|MAIL_MAILER=smtp|g" .env
-sed -i "s|MAIL_HOST=.*|MAIL_HOST=smtp.zoho.in|g" .env
-sed -i "s|MAIL_PORT=.*|MAIL_PORT=587|g" .env
-sed -i "s|MAIL_USERNAME=.*|MAIL_USERNAME=free.mell@aiomarket.online|g" .env
-sed -i "s|MAIL_PASSWORD=.*|MAIL_PASSWORD=58@S5wZuWtpdDDX|g" .env
-sed -i "s|MAIL_ENCRYPTION=.*|MAIL_ENCRYPTION=tls|g" .env
-sed -i "s|MAIL_FROM_ADDRESS=.*|MAIL_FROM_ADDRESS=free.mell@aiomarket.online|g" .env
-sed -i 's|MAIL_FROM_NAME=.*|MAIL_FROM_NAME="Nobita Cloud"|g' .env
+# SMTP defaults (configure your own SMTP credentials separately)
+sed -i '/^MAIL_MAILER=/d' .env
+echo 'MAIL_MAILER=log' >> .env
 
-php artisan p:location:make --short=IN --long="India" 2>/dev/null || true
+sed -i '/^MAIL_FROM_NAME=/d' .env
+echo 'MAIL_FROM_NAME="ManzVPS🇵🇸🇮🇩"' >> .env
+
+# Singapore location
+php artisan p:location:make --short=SGP --long="Singapore" 2>/dev/null || true
 
 # --- Cache optimization ---
 php artisan view:clear
@@ -366,10 +351,11 @@ php artisan p:user:make -n --email="$EMAIL" --username="${USERNAME}" --password=
 # --- END REPORT ---
 clear
 echo -e "${HEADER_LINE}"
-echo -e "\n  ${CYAN}DEPLOYMENT COMPLETE${NC}"
+echo -e "\n  ${CYAN}MANZVPS DEPLOYMENT COMPLETE 🇵🇸🇮🇩${NC}"
 echo -e "  ${GRAY}Panel URL :${NC} ${WHITE}https://$DOMAIN${NC}"
 echo -e "  ${GRAY}Username  :${NC} ${WHITE}$USERNAME${NC}"
 echo -e "  ${GRAY}Password  :${NC} ${WHITE}$PASSWORD${NC}"
 echo -e "  ${GRAY}Email     :${NC} ${WHITE}$EMAIL${NC}"
-echo -e "\n  ${PURPLE}Enjoy your new Pterodactyl Panel!${NC}"
+echo -e "  ${GRAY}Location  :${NC} ${WHITE}Singapore (SGP) 🇸🇬${NC}"
+echo -e "\n  ${PURPLE}Welcome to ManzVPS!${NC}"
 echo -e "${HEADER_LINE}"
