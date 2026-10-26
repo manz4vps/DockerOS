@@ -2,8 +2,9 @@
 set -Eeuo pipefail
 
 # ============================================================
-#  PTERODACTYL WINGS INSTALLER
-#  Version Selector | Docker | Systemd | Optional Configuration
+# PTERODACTYL WINGS INSTALLER
+# MANZ XD
+# Automatic Docker + GRUB + Version Selector
 # ============================================================
 
 RED='\033[0;31m'
@@ -14,13 +15,30 @@ BLUE='\033[0;34m'
 BOLD='\033[1m'
 RESET='\033[0m'
 
-RELEASE_API="https://api.github.com/repos/pterodactyl/wings/releases"
+RELEASE_API="https://api.github.com/repos/pterodactyl/wings/releases?per_page=100"
 INSTALL_PATH="/usr/local/bin/wings"
 CONFIG_DIR="/etc/pterodactyl"
 SERVICE_FILE="/etc/systemd/system/wings.service"
 
+info() {
+    echo -e "${CYAN}[INFO]${RESET} $*"
+}
+
+success() {
+    echo -e "${GREEN}[OK]${RESET} $*"
+}
+
+warning() {
+    echo -e "${YELLOW}[WARN]${RESET} $*"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${RESET} $*" >&2
+}
+
 draw_header() {
-    clear
+    clear || true
+
     echo -e "${CYAN}${BOLD}"
     echo "╔══════════════════════════════════════════════════════╗"
     echo "║          PTERODACTYL WINGS INSTALLER                ║"
@@ -30,66 +48,82 @@ draw_header() {
     echo -e "${RESET}"
 }
 
-pause_screen() {
-    echo
-    read -r -p "Tekan Enter untuk melanjutkan..."
-}
-
-info()    { echo -e "${CYAN}[INFO]${RESET} $*"; }
-success() { echo -e "${GREEN}[OK]${RESET} $*"; }
-warning() { echo -e "${YELLOW}[WARN]${RESET} $*"; }
-error()   { echo -e "${RED}[ERROR]${RESET} $*" >&2; }
-
 require_root() {
     if [[ "${EUID}" -ne 0 ]]; then
-        error "Jalankan script sebagai root: sudo bash wings-installer.sh"
+        error "Jalankan script sebagai root."
+        echo "Contoh: sudo bash wings-installer.sh"
         exit 1
     fi
 }
 
 check_dependencies() {
-    for cmd in curl systemctl; do
+    for cmd in curl python3 systemctl; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
-            error "Perintah '$cmd' belum tersedia."
+            error "Perintah $cmd belum tersedia."
             exit 1
         fi
     done
 }
 
+# ============================================================
+# VERSION SELECTOR
+# ============================================================
+
 choose_version() {
-    local api="https://api.github.com/repos/pterodactyl/wings/releases?per_page=100"
     local releases_file
+    local choice
+    local selected
     local page=0
     local page_size=10
     local total
-    local choice
-    local selected
     local start
     local end
     local i
+    local confirm
 
     releases_file="$(mktemp)"
 
     draw_header
     info "Mengambil daftar versi Wings dari GitHub..."
 
-    if ! curl -fsSL "$api" -o "$releases_file"; then
+    if ! curl -fsSL \
+        --connect-timeout 10 \
+        --max-time 60 \
+        --retry 2 \
+        "$RELEASE_API" \
+        -o "$releases_file"; then
+
         rm -f "$releases_file"
-        error "Gagal mengambil daftar versi dari GitHub."
+
+        error "Gagal mengambil daftar versi Wings."
+        error "Periksa koneksi internet atau batas API GitHub."
         return 1
     fi
 
-    # Pastikan respons API berisi daftar release.
-    if ! grep -q '"tag_name"' "$releases_file"; then
-        rm -f "$releases_file"
-        error "Daftar release kosong atau respons GitHub tidak valid."
-        return 1
-    fi
-
-    # Ambil tag release dan simpan dalam array.
     mapfile -t WINGS_RELEASES < <(
-        grep -oE '"tag_name":[[:space:]]*"[^"]+"' "$releases_file" |
-        sed -E 's/.*"([^"]+)"$/\1/'
+        python3 - "$releases_file" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as f:
+        data = json.load(f)
+
+    if not isinstance(data, list):
+        sys.exit(1)
+
+    for release in data:
+        if release.get("draft", False):
+            continue
+
+        tag = release.get("tag_name", "")
+
+        if tag.startswith("v"):
+            print(tag)
+
+except Exception:
+    sys.exit(1)
+PY
     )
 
     rm -f "$releases_file"
@@ -122,14 +156,16 @@ choose_version() {
 
         echo
         echo "  [N] Halaman berikutnya"
+
         if (( page > 0 )); then
             echo "  [P] Halaman sebelumnya"
         fi
+
         echo "  [M] Masukkan versi manual"
         echo "  [0] Batal"
         echo
 
-        read -r -p "Pilih nomor versi: " choice
+        read -r -p "Pilih nomor versi: " choice || return 1
 
         case "$choice" in
             [Nn])
@@ -151,7 +187,9 @@ choose_version() {
                 ;;
 
             [Mm])
-                read -r -p "Masukkan tag versi (contoh: v1.11.11): " selected
+                read -r -p \
+                    "Masukkan tag versi (contoh: v1.13.4): " selected \
+                    || return 1
 
                 if [[ "$selected" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
                     WINGS_VERSION="$selected"
@@ -163,7 +201,7 @@ choose_version() {
                 ;;
 
             0)
-                info "Pemilihan versi dibatalkan."
+                info "Instalasi dibatalkan."
                 return 1
                 ;;
 
@@ -185,65 +223,163 @@ choose_version() {
     success "Versi terpilih: ${WINGS_VERSION}"
     echo
 
-    read -r -p "Lanjut install Wings ${WINGS_VERSION}? [y/N]: " confirm
+    read -r -p \
+        "Lanjut install Wings ${WINGS_VERSION}? [y/N]: " confirm \
+        || return 1
 
-    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-        info "Instalasi dibatalkan."
-        return 1
-    fi
+    case "${confirm,,}" in
+        y|yes)
+            success "Melanjutkan instalasi ${WINGS_VERSION}."
+            ;;
+        *)
+            info "Instalasi dibatalkan."
+            return 1
+            ;;
+    esac
 }
+
+# ============================================================
+# INSTALL DOCKER AUTOMATICALLY
+# ============================================================
 
 install_docker() {
     echo
     info "Memeriksa Docker..."
 
-    if command -v docker >/dev/null 2>&1; then
-        success "Docker sudah terpasang."
-    else
-        warning "Docker belum ditemukan."
-        read -r -p "Instal Docker stable sekarang? [y/N]: " install_choice
+    if ! command -v docker >/dev/null 2>&1; then
+        warning "Docker belum terpasang."
+        info "Menginstal Docker menggunakan installer resmi..."
 
-        if [[ "$install_choice" =~ ^[Yy]$ ]]; then
-            curl -fsSL https://get.docker.com/ -o /tmp/install-docker.sh
-            sh /tmp/install-docker.sh
-            rm -f /tmp/install-docker.sh
-        else
-            error "Docker diperlukan untuk instalasi ini."
+        local installer="/tmp/install-docker.sh"
+
+        if ! curl -fsSL \
+            --connect-timeout 10 \
+            --max-time 120 \
+            https://get.docker.com/ \
+            -o "$installer"; then
+
+            rm -f "$installer"
+            error "Gagal mengunduh installer Docker."
             exit 1
         fi
-    fi
 
-    systemctl enable --now docker
-    success "Docker aktif."
-}
-
-update_grub_optional() {
-    echo
-    warning "Pengaturan GRUB dapat memengaruhi proses boot sistem."
-    read -r -p "Terapkan swapaccount=1 pada GRUB seperti script lama? [y/N]: " grub_choice
-
-    if [[ ! "$grub_choice" =~ ^[Yy]$ ]]; then
-        info "Pengaturan GRUB dilewati."
-        return
-    fi
-
-    if [[ -f /etc/default/grub ]] && command -v update-grub >/dev/null 2>&1; then
-        cp /etc/default/grub "/etc/default/grub.backup.$(date +%Y%m%d%H%M%S)"
-
-        if grep -q '^GRUB_CMDLINE_LINUX_DEFAULT=' /etc/default/grub; then
-            sed -i \
-                's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="swapaccount=1"/' \
-                /etc/default/grub
-        else
-            echo 'GRUB_CMDLINE_LINUX_DEFAULT="swapaccount=1"' >> /etc/default/grub
+        if ! sh "$installer"; then
+            rm -f "$installer"
+            error "Instalasi Docker gagal."
+            exit 1
         fi
 
-        update-grub
-        success "GRUB diperbarui. Perubahan kernel berlaku setelah reboot."
+        rm -f "$installer"
     else
-        warning "File GRUB atau perintah update-grub tidak ditemukan; dilewati."
+        success "Docker sudah terpasang."
+    fi
+
+    if ! systemctl enable --now docker; then
+        error "Docker gagal diaktifkan."
+        systemctl status docker --no-pager || true
+        exit 1
+    fi
+
+    if ! docker info >/dev/null 2>&1; then
+        error "Docker belum siap digunakan."
+        systemctl status docker --no-pager || true
+        exit 1
+    fi
+
+    success "Docker aktif dan siap digunakan."
+}
+
+# ============================================================
+# GRUB AUTOMATICALLY
+# Preserve existing kernel parameters.
+# ============================================================
+
+update_grub_automatic() {
+    echo
+    info "Memeriksa pengaturan GRUB..."
+
+    if [[ ! -f /etc/default/grub ]]; then
+        warning "File /etc/default/grub tidak ditemukan. Dilewati."
+        return 0
+    fi
+
+    if ! command -v update-grub >/dev/null 2>&1; then
+        warning "Perintah update-grub tidak ditemukan. Dilewati."
+        return 0
+    fi
+
+    local current
+    local backup
+
+    current="$(
+        sed -n \
+            's/^GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)".*/\1/p' \
+            /etc/default/grub | head -n 1
+    )"
+
+    if [[ "$current" == *"swapaccount=1"* ]]; then
+        success "swapaccount=1 sudah tersedia di GRUB."
+        return 0
+    fi
+
+    backup="/etc/default/grub.backup.$(date +%Y%m%d%H%M%S)"
+
+    cp -a /etc/default/grub "$backup"
+
+    info "Backup GRUB: $backup"
+
+    if grep -q '^GRUB_CMDLINE_LINUX_DEFAULT=' /etc/default/grub; then
+        python3 - /etc/default/grub <<'PY'
+import re
+import sys
+
+path = sys.argv[1]
+
+with open(path, encoding="utf-8") as f:
+    text = f.read()
+
+pattern = r'^GRUB_CMDLINE_LINUX_DEFAULT="([^"]*)"'
+
+def update(match):
+    value = match.group(1).strip()
+    if "swapaccount=1" not in value.split():
+        value = (value + " swapaccount=1").strip()
+    return 'GRUB_CMDLINE_LINUX_DEFAULT="' + value + '"'
+
+updated, count = re.subn(
+    pattern,
+    update,
+    text,
+    count=1,
+    flags=re.MULTILINE
+)
+
+if count == 0:
+    print("Tidak dapat membaca parameter GRUB.", file=sys.stderr)
+    sys.exit(1)
+
+with open(path, "w", encoding="utf-8") as f:
+    f.write(updated)
+PY
+
+    else
+        echo 'GRUB_CMDLINE_LINUX_DEFAULT="swapaccount=1"' \
+            >> /etc/default/grub
+    fi
+
+    if update-grub; then
+        success "GRUB berhasil diperbarui."
+        warning "Perubahan kernel berlaku setelah reboot."
+    else
+        cp -a "$backup" /etc/default/grub
+        error "update-grub gagal. Konfigurasi GRUB dikembalikan."
+        return 1
     fi
 }
+
+# ============================================================
+# DOWNLOAD WINGS
+# ============================================================
 
 download_wings() {
     local arch
@@ -264,14 +400,23 @@ download_wings() {
     esac
 
     url="https://github.com/pterodactyl/wings/releases/download/${WINGS_VERSION}/wings_linux_${arch}"
+
     temp_file="$(mktemp)"
 
     echo
     info "Mengunduh Wings ${WINGS_VERSION} untuk ${arch}..."
 
-    if ! curl -fL --retry 3 "$url" -o "$temp_file"; then
+    if ! curl -fL \
+        --connect-timeout 10 \
+        --max-time 180 \
+        --retry 3 \
+        "$url" \
+        -o "$temp_file"; then
+
         rm -f "$temp_file"
-        error "Download gagal. Periksa versi dan arsitektur yang dipilih."
+
+        error "Download Wings gagal."
+        error "Periksa versi dan arsitektur yang dipilih."
         exit 1
     fi
 
@@ -280,11 +425,16 @@ download_wings() {
     rm -f "$temp_file"
 
     if ! "$INSTALL_PATH" version; then
-        warning "Binary terpasang, tetapi perintah pemeriksaan versi gagal."
+        error "Binary Wings tidak dapat dijalankan."
+        exit 1
     fi
 
-    success "Wings berhasil diunduh ke $INSTALL_PATH"
+    success "Wings berhasil dipasang di $INSTALL_PATH"
 }
+
+# ============================================================
+# SYSTEMD SERVICE
+# ============================================================
 
 install_service() {
     mkdir -p "$CONFIG_DIR"
@@ -294,7 +444,6 @@ install_service() {
 Description=Pterodactyl Wings Daemon
 After=docker.service
 Requires=docker.service
-PartOf=docker.service
 
 [Service]
 User=root
@@ -312,8 +461,12 @@ SERVICE
     systemctl enable wings
 
     success "Service Wings dibuat dan diaktifkan saat boot."
-    warning "Wings belum dijalankan sampai konfigurasi tersedia."
+    warning "Wings akan dijalankan setelah config.yml tersedia."
 }
+
+# ============================================================
+# HELPER COMMAND
+# ============================================================
 
 create_helper() {
     cat > /usr/local/bin/wing <<'HELPER'
@@ -322,19 +475,19 @@ set -e
 
 case "${1:-status}" in
     start)
-        sudo systemctl start wings
+        systemctl start wings
         ;;
     stop)
-        sudo systemctl stop wings
+        systemctl stop wings
         ;;
     restart)
-        sudo systemctl restart wings
+        systemctl restart wings
         ;;
     status)
-        sudo systemctl status wings --no-pager
+        systemctl status wings --no-pager
         ;;
     logs)
-        sudo journalctl -u wings -n 100 --no-pager
+        journalctl -u wings -n 100 --no-pager
         ;;
     *)
         echo "Penggunaan: wing {start|stop|restart|status|logs}"
@@ -344,114 +497,129 @@ esac
 HELPER
 
     chmod 0755 /usr/local/bin/wing
-    success "Perintah bantuan 'wing' tersedia."
+
+    success "Perintah bantuan wing tersedia."
 }
+
+# ============================================================
+# WINGS CONFIGURATION
+# ============================================================
 
 configure_wings() {
-    echo
-    read -r -p "Mau mengisi konfigurasi Wings sekarang? [y/N]: " auto_config
-
-    if [[ ! "$auto_config" =~ ^[Yy]$ ]]; then
-        warning "Konfigurasi dilewati."
-        echo "Setelah konfigurasi dari Panel disimpan ke $CONFIG_DIR/config.yml,"
-        echo "jalankan: systemctl enable --now wings"
-        return
-    fi
+    local manual_choice
 
     echo
-    warning "Nilai konfigurasi sebaiknya disalin dari halaman Node di Panel."
-    warning "Jangan membagikan token atau isi config.yml kepada orang lain."
+    echo "============================================================"
+    echo " KONFIGURASI WINGS"
+    echo "============================================================"
+    echo
+    echo "Konfigurasi Wings sebaiknya diambil dari halaman Node di Panel."
+    echo "Jangan membuat UUID, token, port, atau SSL secara sembarangan."
     echo
 
-    read -r -p "UUID Node: " UUID
-    read -r -p "Token ID: " TOKEN_ID
-    read -r -s -p "Token: " TOKEN
-    echo
-    read -r -p "FQDN Node: " FQDN
-    read -r -p "URL Panel (contoh: https://panel.example.com): " REMOTE
+    read -r -p \
+        "Mau konfigurasi Wings secara manual sekarang? [y/N]: " \
+        manual_choice || return 1
 
-    if [[ -z "$UUID" || -z "$TOKEN_ID" || -z "$TOKEN" || -z "$FQDN" || -z "$REMOTE" ]]; then
-        error "Ada kolom yang kosong. Konfigurasi dibatalkan."
-        return 1
-    fi
+    case "${manual_choice,,}" in
+        y|yes)
+            echo
+            info "Konfigurasi manual dipilih."
+            echo
+            echo "Langkah berikutnya:"
+            echo "1. Buka Panel Pterodactyl."
+            echo "2. Masuk ke Admin > Nodes."
+            echo "3. Pilih Node yang akan digunakan."
+            echo "4. Buka Configuration."
+            echo "5. Salin konfigurasi yang dibuat Panel."
+            echo "6. Simpan konfigurasi ke:"
+            echo "   $CONFIG_DIR/config.yml"
+            echo
+            warning "Jangan membagikan token atau config.yml kepada orang lain."
+            ;;
 
-    if [[ -f "$CONFIG_DIR/config.yml" ]]; then
-        cp "$CONFIG_DIR/config.yml" \
-            "$CONFIG_DIR/config.yml.backup.$(date +%Y%m%d%H%M%S)"
-        warning "Konfigurasi lama dicadangkan."
-    fi
+        n|no|"")
+            echo
+            info "Konfigurasi Wings dilewati."
+            echo
+            echo "Kamu bisa mengatur Node dari Panel nanti."
+            echo "Setelah mendapatkan konfigurasi yang benar, simpan ke:"
+            echo "  $CONFIG_DIR/config.yml"
+            ;;
 
-    cat > "$CONFIG_DIR/config.yml" <<CFG
-debug: false
-uuid: ${UUID}
-token_id: ${TOKEN_ID}
-token: ${TOKEN}
-api:
-  host: 0.0.0.0
-  port: 8080
-  ssl:
-    enabled: false
-    cert: /etc/letsencrypt/live/${FQDN}/fullchain.pem
-    key: /etc/letsencrypt/live/${FQDN}/privkey.pem
-  upload_limit: 1000
-system:
-  data: /var/lib/pterodactyl/volumes
-  sftp:
-    bind_port: 2022
-allowed_mounts: []
-remote: '${REMOTE}'
-CFG
-
-    chmod 0600 "$CONFIG_DIR/config.yml"
-    success "Konfigurasi disimpan ke $CONFIG_DIR/config.yml"
+        *)
+            warning "Pilihan tidak dikenali. Konfigurasi dilewati."
+            ;;
+    esac
 
     echo
-    warning "Konfigurasi ini mengasumsikan TLS ditangani di luar Wings."
-    warning "Pastikan alamat, port, sertifikat, dan pengaturan Node cocok dengan Panel."
-    read -r -p "Jalankan service Wings sekarang? [y/N]: " start_choice
 
-    if [[ "$start_choice" =~ ^[Yy]$ ]]; then
-        systemctl enable --now wings
-        systemctl --no-pager --full status wings || true
+    if [[ -s "$CONFIG_DIR/config.yml" ]]; then
+        success "config.yml ditemukan."
+
+        local start_choice
+
+        read -r -p \
+            "Jalankan Wings sekarang? [y/N]: " start_choice || return 1
+
+        case "${start_choice,,}" in
+            y|yes)
+                if systemctl restart wings; then
+                    sleep 2
+                    systemctl --no-pager --full status wings || true
+                else
+                    error "Wings gagal dijalankan."
+                    journalctl -u wings -n 50 --no-pager || true
+                fi
+                ;;
+            *)
+                info "Service belum dijalankan."
+                ;;
+        esac
     else
-        info "Belum dijalankan. Jalankan: systemctl start wings"
+        warning "config.yml belum tersedia."
+        info "Wings tidak dijalankan sampai konfigurasi yang benar tersedia."
     fi
 }
+
+# ============================================================
+# MAIN
+# ============================================================
 
 main() {
     require_root
     check_dependencies
-    choose_version
+
+    choose_version || exit 0
 
     echo
     warning "Installer akan memasang atau mengganti binary Wings."
     warning "Pastikan versi yang dipilih cocok dengan Panel dan OS kamu."
-    read -r -p "Lanjutkan instalasi versi ${WINGS_VERSION}? [y/N]: " confirm
-
-    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-        info "Instalasi dibatalkan."
-        exit 0
-    fi
+    echo
 
     install_docker
-    update_grub_optional
+    update_grub_automatic
     download_wings
     install_service
     create_helper
     configure_wings
 
     echo
-    echo -e "${GREEN}${BOLD}╔══════════════════════════════════════════════════════╗"
+    echo -e "${CYAN}${BOLD}"
+    echo "╔══════════════════════════════════════════════════════╗"
     echo "║                INSTALLER SELESAI                    ║"
-    echo -e "╚══════════════════════════════════════════════════════╝${RESET}"
+    echo "╚══════════════════════════════════════════════════════╝"
+    echo -e "${RESET}"
+
+    echo "Versi Wings  : $WINGS_VERSION"
+    echo "Binary       : $INSTALL_PATH"
+    echo "Konfigurasi  : $CONFIG_DIR/config.yml"
+    echo "Service      : wings"
     echo
-    echo "Versi dipilih : $WINGS_VERSION"
-    echo "Binary        : $INSTALL_PATH"
-    echo "Konfigurasi   : $CONFIG_DIR/config.yml"
-    echo "Service       : wings"
-    echo
-    echo "Cek status    : wing status"
-    echo "Lihat log     : wing logs"
+    echo "Cek status   : wing status"
+    echo "Lihat log    : wing logs"
+    echo "Mulai        : wing start"
+    echo "Restart      : wing restart"
     echo
 }
 
