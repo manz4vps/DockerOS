@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # --- MANZVPS NEON THEME ---
 CYAN='\033[38;5;51m'
@@ -67,31 +67,26 @@ ask_timeout() {
     fi
 }
 
-# --- FETCH GITHUB VERSIONS ---
+# --- FETCH GITHUB VERSIONS WITHOUT GITHUB API ---
 fetch_github_versions() {
     local repo="$1"
-    echo -e "  ${GRAY}Fetching releases from ${WHITE}${repo}${GRAY}...${NC}" >&2
+    local output
 
-    local json
-    json=$(curl -fsSL --connect-timeout 10 --max-time 30 \
-        "https://api.github.com/repos/${repo}/releases?per_page=20" 2>/dev/null) || {
-        echo -e "  ${RED}Failed to fetch releases from GitHub.${NC}" >&2
+    echo -e "  ${GRAY}Fetching stable tags from GitHub (no API)...${NC}" >&2
+
+    output=$(git ls-remote --tags --refs \
+        "https://github.com/${repo}.git" 2>/dev/null) || {
+        echo -e "  ${RED}Failed to fetch tags from GitHub. Check network access.${NC}" >&2
         return 1
     }
 
-    printf '%s' "$json" | python3 -c '
-import sys, json
-try:
-    data = json.load(sys.stdin)
-    for release in data:
-        if release.get("prerelease", False) or release.get("draft", False):
-            continue
-        tag = release.get("tag_name", "")
-        if tag.startswith("v"):
-            print(tag)
-except Exception:
-    sys.exit(1)
-' 2>/dev/null
+    # Keep stable tags only; exclude beta/pre-release suffixes.
+    printf '%s
+' "$output" |
+        awk '{sub("refs/tags/", "", $2); print $2}' |
+        grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' |
+        sort -Vr |
+        head -n 20
 }
 
 # --- VERSION SELECTOR: NO TIMEOUT ---
@@ -112,10 +107,9 @@ select_version() {
     done < <(fetch_github_versions "$repo")
 
     if [[ ${#tags[@]} -eq 0 ]]; then
-        echo -e "  ${YELLOW}No versions fetched. Please check your internet/GitHub access.${NC}"
-        echo -e "  ${YELLOW}Using the latest release download.${NC}"
-        printf -v "$var_name" '%s' "latest"
-        return 0
+        echo -e "  ${RED}No stable versions could be fetched from GitHub.${NC}"
+        echo -e "  ${YELLOW}Check GitHub access and try again. No installation will start.${NC}"
+        return 1
     fi
 
     for i in "${!tags[@]}"; do
