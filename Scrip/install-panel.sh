@@ -397,12 +397,15 @@ php artisan p:user:make -n --email="$EMAIL" --username="${USERNAME}" --password=
 
 # --- END REPORT ---
 clear
+
 echo -e "${HEADER_LINE}"
-echo -e "\n  ${CYAN}MANZVPS DEPLOYMENT COMPLETE 🇵🇸🇮🇩${NC}"
-echo -e "  ${GRAY}Panel URL :${NC} ${WHITE}https://${DOMAIN}${NC}"
-echo -e "  ${GRAY}Username  :${NC} ${WHITE}${USERNAME}${NC}"
-echo -e "  ${GRAY}Email     :${NC} ${WHITE}${EMAIL}${NC}"
-echo -e "  ${GRAY}Location  :${NC} ${WHITE}Singapore (SGP) 🇸🇬${NC}"
-echo -e "\n  ${PURPLE}Welcome to ManzVPS!${NC}"
+echo
+echo -e "${CYAN}MANZVPS DEPLOYMENT COMPLETE 🇵🇸🇮🇩${NC}"
+echo -e "${GRAY}Panel URL :${NC} ${WHITE}https://${DOMAIN}${NC}"
+echo -e "${GRAY}Username  :${NC} ${WHITE}${USERNAME}${NC}"
+echo -e "${GRAY}Email     :${NC} ${WHITE}${EMAIL}${NC}"
+echo -e "${GRAY}Location  :${NC} ${WHITE}Singapore (SGP) 🇸🇬${NC}"
+echo
+echo -e "${PURPLE}Welcome to ManzVPS!${NC}"
 echo -e "${HEADER_LINE}"
 echo -e "${GOLD}For security, the admin password is not printed. Keep it somewhere safe.${NC}"
