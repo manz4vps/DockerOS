@@ -1,115 +1,165 @@
 #!/bin/bash
+
 shopt -s nullglob
 
 # =========================================================
-# PROGRAM UTAMA
+# KONFIGURASI
+# =========================================================
+
+UBUNTU_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/ubuntu-desktop.sh"
+
+# Warna terminal
+RESET='\033[0m'
+BOLD='\033[1m'
+CYAN='\033[1;36m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+RED='\033[1;31m'
+WHITE='\033[1;37m'
+BLUE='\033[1;34m'
+
+# =========================================================
+# HEADER PANEL
+# =========================================================
+
+header() {
+    clear
+    echo -e "${CYAN}${BOLD}"
+    echo "╔══════════════════════════════════════════════╗"
+    echo "║                                              ║"
+    echo "║          MANZ4VPS VIRTUAL SYSTEM              ║"
+    echo "║             CONTROL PANEL                    ║"
+    echo "║                                              ║"
+    echo "╠══════════════════════════════════════════════╣"
+    echo "║          WINDOWS & UBUNTU MANAGER             ║"
+    echo "╚══════════════════════════════════════════════╝"
+    echo -e "${RESET}"
+}
+
+pause() {
+    echo
+    read -rp "Tekan ENTER untuk kembali ke menu..."
+}
+
+# =========================================================
+# MENU UTAMA
 # =========================================================
 
 while true; do
-clear
-echo "========================================="
-echo "          PANEL VIRTUAL SYSTEM (MANZ4VPS)"
-echo "========================================="
-echo "1. Jalankan Windows baru"
-echo "2. Jalankan Ubuntu Desktop (VNC)"
-echo "3. Lihat Windows aktif"
-echo "4. Masuk ke Windows"
-echo "5. Hapus Windows"
-echo "6. Keluar"
-echo "========================================="
-read -p "Masukkan pilihan (1-6): " SISTEM
 
-# =========================================================
-# MENU 2: UBUNTU DESKTOP VNC (CURL ONE-LINER)
-# =========================================================
+    header
 
-if [ "$SISTEM" == "2" ]; then
+    echo -e "${WHITE}${BOLD}  MENU UTAMA${RESET}"
     echo
-    echo "========================================="
-    echo "🚀 MENJALANKAN SCRIPT NO-VNC (MANZ4VPS)..."
-    echo "========================================="
-    
-    # 1. Pastikan Curl ada
-    if ! command -v curl &> /dev/null; then
-        echo "⚠️  Curl tidak ditemukan. Menginstall..."
-        sudo apt-get update >/dev/null
-        sudo apt-get install -y curl >/dev/null
+    echo -e "  ${GREEN}[1]${RESET} Jalankan Windows baru"
+    echo -e "  ${GREEN}[2]${RESET} Jalankan Ubuntu Desktop (VNC)"
+    echo -e "  ${GREEN}[3]${RESET} Lihat Windows aktif"
+    echo -e "  ${GREEN}[4]${RESET} Masuk ke Windows"
+    echo -e "  ${RED}[5]${RESET} Hapus Windows"
+    echo
+    echo -e "  ${YELLOW}[0]${RESET} Keluar"
+    echo
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+    read -rp "  Pilih menu [0-5]: " SISTEM
+
+    # =====================================================
+    # MENU 0: KELUAR
+    # =====================================================
+
+    if [[ "$SISTEM" == "0" ]]; then
+        clear
+        echo -e "${GREEN}${BOLD}"
+        echo "╔══════════════════════════════════════════════╗"
+        echo "║                                              ║"
+        echo "║       TERIMA KASIH TELAH MENGGUNAKAN         ║"
+        echo "║              MANZ4VPS PANEL                  ║"
+        echo "║                                              ║"
+        echo "╚══════════════════════════════════════════════╝"
+        echo -e "${RESET}"
+        exit 0
     fi
 
-    # 2. Eksekusi Langsung (One-Liner)
-    clear
-    bash <(curl -s https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-noVNC.sh)
+    # =====================================================
+    # MENU 1: WINDOWS
+    # =====================================================
 
-    # 3. Selesai
-    echo
-    read -p "Tekan Enter untuk kembali ke menu utama..."
-    continue
-fi
+    if [[ "$SISTEM" == "1" ]]; then
 
-# =========================================================
-# MENU 1: WINDOWS (DOCKER OS) - FULL + VB-CABLE
-# =========================================================
+        header
 
-if [ "$SISTEM" == "1" ]; then
-    echo
-    echo "Pilih versi Windows:"
-    echo " Value  | Version                       | Size"
-    echo "--------------------------------------"
-    echo " 11     | Windows 11 Pro               | 5.4 GB"
-    echo " 11l    | Windows 11 LTSC              | 4.2 GB"
-    echo " 11e    | Windows 11 Enterprise        | 5.8 GB"
-    echo " 10     | Windows 10 Pro               | 5.7 GB"
-    echo " 10l    | Windows 10 LTSC              | 4.6 GB"
-    echo " 10e    | Windows 10 Enterprise        | 5.2 GB"
-    echo " 8e     | Windows 8.1 Enterprise       | 3.7 GB"
-    echo " 7e     | Windows 7 Enterprise         | 3.0 GB"
-    echo " ve     | Windows Vista Enterprise     | 3.0 GB"
-    echo " xp     | Windows XP Professional      | 0.6 GB"
-    echo " 2025   | Windows Server 2025          | 5.0 GB"
-    echo " 2022   | Windows Server 2022          | 4.7 GB"
-    echo " 2019   | Windows Server 2019          | 5.3 GB"
-    echo " 2016   | Windows Server 2016          | 6.5 GB"
-    echo " 2012   | Windows Server 2012          | 4.3 GB"
-    echo " 2008   | Windows Server 2008          | 3.0 GB"
-    echo " 2003   | Windows Server 2003          | 0.6 GB"
-    echo
+        echo -e "${CYAN}${BOLD}  WINDOWS INSTALLATION${RESET}"
+        echo
+        echo "  Value  | Version"
+        echo "  ---------------------------------------"
+        echo "  11     | Windows 11 Pro"
+        echo "  11l    | Windows 11 LTSC"
+        echo "  11e    | Windows 11 Enterprise"
+        echo "  10     | Windows 10 Pro"
+        echo "  10l    | Windows 10 LTSC"
+        echo "  10e    | Windows 10 Enterprise"
+        echo "  8e     | Windows 8.1 Enterprise"
+        echo "  7e     | Windows 7 Enterprise"
+        echo "  ve     | Windows Vista Enterprise"
+        echo "  xp     | Windows XP Professional"
+        echo "  2025   | Windows Server 2025"
+        echo "  2022   | Windows Server 2022"
+        echo "  2019   | Windows Server 2019"
+        echo "  2016   | Windows Server 2016"
+        echo "  2012   | Windows Server 2012"
+        echo "  2008   | Windows Server 2008"
+        echo "  2003   | Windows Server 2003"
+        echo
 
-    read -p "Masukkan value versi (default: 10l): " VERSION  
-    VERSION=${VERSION:-10l}  
+        read -rp "Masukkan versi (default: 10l): " VERSION
+        VERSION=${VERSION:-10l}
 
-    read -p "Masukkan Username RDP (default: ManzXD): " USERNAME  
-    USERNAME=${USERNAME:-ManzXD}  
+        read -rp "Username RDP (default: ManzXD): " USERNAME
+        USERNAME=${USERNAME:-ManzXD}
 
-    read -p "Masukkan Password RDP (default: ManzXD): " PASSWORD  
-    PASSWORD=${PASSWORD:-ManzXD}  
+        read -rsp "Password RDP (default: ManzXD): " PASSWORD
+        PASSWORD=${PASSWORD:-ManzXD}
+        echo
 
-    read -p "Masukkan RAM (default: 4G): " RAM  
-    RAM=${RAM:-4G}  
+        read -rp "RAM (default: 4G): " RAM
+        RAM=${RAM:-4G}
 
-    read -p "Masukkan jumlah CPU (default: 2): " CPU  
-    CPU=${CPU:-2}  
+        read -rp "Jumlah CPU (default: 2): " CPU
+        CPU=${CPU:-2}
 
-    read -p "Masukkan Disk utama (default: 20G): " DISK1  
-    DISK1=${DISK1:-20G}  
+        read -rp "Disk utama (default: 20G): " DISK1
+        DISK1=${DISK1:-20G}
 
-    read -p "Masukkan Disk kedua (default: 20G): " DISK2  
-    DISK2=${DISK2:-20G}  
+        read -rp "Disk kedua (default: 20G): " DISK2
+        DISK2=${DISK2:-20G}
 
-    # --- FITUR BARU: DOWNLOAD VB-CABLE & BUAT SHARED FOLDER ---
-    echo "========================================="
-    echo "Mendownload VB-Cable agar tersedia di dalam Windows..."
-    mkdir -p ./shared_data
-    if [ ! -f "./shared_data/VBCABLE_Driver_Pack45.zip" ]; then
-        curl -L -o ./shared_data/VBCABLE_Driver_Pack45.zip https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip
-        echo "Download VB-Cable selesai!"
-    else
-        echo "File VB-Cable sudah ada, skip download."
-    fi
-    # ----------------------------------------------------------
+        # Download VB-CABLE
 
-    YAML_FILE="windows${VERSION}.yml"  
+        echo
+        echo -e "${YELLOW}Mempersiapkan shared folder...${RESET}"
 
-cat > $YAML_FILE <<EOL
+        mkdir -p ./shared_data
+
+        if [[ ! -f "./shared_data/VBCABLE_Driver_Pack45.zip" ]]; then
+
+            if ! curl -fL \
+                -o ./shared_data/VBCABLE_Driver_Pack45.zip \
+                https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip; then
+
+                echo -e "${RED}Download VB-CABLE gagal.${RESET}"
+                pause
+                continue
+            fi
+
+            echo -e "${GREEN}VB-CABLE berhasil didownload.${RESET}"
+
+        else
+            echo "VB-CABLE sudah tersedia, melewati download."
+        fi
+
+        YAML_FILE="windows${VERSION}.yml"
+
+        cat > "$YAML_FILE" <<EOL
 version: "3.3"
 services:
   windows:
@@ -137,126 +187,210 @@ services:
     stop_grace_period: 2m
 EOL
 
-    echo "========================================="  
-    echo "File $YAML_FILE berhasil dibuat."  
-    echo "Menjalankan docker-compose..."  
-    echo "========================================="  
-    sudo docker-compose -f $YAML_FILE up -d  
-    echo "Windows berjalan. Gunakan menu '4' untuk masuk ke windows."  
-    read -p "Tekan Enter untuk kembali ke menu..."
-fi
+        echo
+        echo -e "${GREEN}File $YAML_FILE berhasil dibuat.${RESET}"
+        echo -e "${YELLOW}Menjalankan Windows...${RESET}"
 
-# =========================================================
-# MENU 3: LIHAT WINDOWS AKTIF
-# =========================================================
+        sudo docker-compose -f "$YAML_FILE" up -d
 
-if [ "$SISTEM" == "3" ]; then
-    echo
-    echo "=== DAFTAR WINDOWS AKTIF ==="
-    sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-    echo "============================="
-    read -p "Tekan Enter untuk kembali ke menu..."
-fi
+        echo
+        echo -e "${GREEN}Windows berhasil dijalankan.${RESET}"
+        echo "Gunakan menu 4 untuk masuk ke Windows."
 
-# =========================================================
-# MENU 4: MASUK KE WINDOWS
-# =========================================================
-
-if [ "$SISTEM" == "4" ]; then
-    echo
-    FILES=(windows*.yml)
-    if [ ${#FILES[@]} -eq 0 ]; then
-        echo "Tidak ada file Windows ditemukan!"
-        read -p "Tekan Enter untuk kembali..."
+        pause
         continue
     fi
 
-    echo "=== PILIH FILE WINDOWS UNTUK MASUK ==="  
-    i=1  
-    for f in "${FILES[@]}"; do  
-        echo "$i) $f"  
-        ((i++))  
-    done  
-    echo "0) Kembali ke menu utama"  
-    echo "==============================="  
-    read -p "Pilih nomor file: " pilih  
+    # =====================================================
+    # MENU 2: UBUNTU DESKTOP
+    # =====================================================
 
-    if [ "$pilih" == "0" ]; then  
-        continue  
-    fi  
+    if [[ "$SISTEM" == "2" ]]; then
 
-    FILE=${FILES[$((pilih-1))]}  
-    if [ -z "$FILE" ]; then  
-        echo "Pilihan tidak valid."  
-        read -p "Tekan Enter untuk kembali..."  
-        continue  
-    fi  
+        header
 
-    echo "Menjalankan $FILE..."  
-    sudo docker-compose -f "$FILE" up -d  
-    sudo docker attach windows  
-    read -p "Tekan Enter untuk kembali ke menu..."
-fi
+        echo -e "${CYAN}${BOLD}  UBUNTU DESKTOP INSTALLER${RESET}"
+        echo
+        echo -e "${GREEN}Menghubungkan ke Ubuntu Desktop installer...${RESET}"
+        echo
 
-# =========================================================
-# MENU 5: HAPUS WINDOWS
-# =========================================================
+        if ! command -v curl >/dev/null 2>&1; then
+            echo -e "${YELLOW}Curl belum tersedia. Menginstall curl...${RESET}"
 
-if [ "$SISTEM" == "5" ]; then
-    echo
-    FILES=(windows*.yml)
-    if [ ${#FILES[@]} -eq 0 ]; then
-        echo "Tidak ada file Windows ditemukan!"
-        read -p "Tekan Enter untuk kembali..."
+            sudo apt-get update &&
+            sudo apt-get install -y curl
+
+            if ! command -v curl >/dev/null 2>&1; then
+                echo -e "${RED}Gagal memasang curl.${RESET}"
+                pause
+                continue
+            fi
+        fi
+
+        # Menjalankan installer Ubuntu dari GitHub RAW
+        bash <(curl -fsSL "$UBUNTU_URL")
+
+        echo
+        echo -e "${GREEN}Proses Ubuntu Desktop selesai.${RESET}"
+
+        pause
         continue
     fi
 
-    echo "=== PILIH FILE WINDOWS UNTUK DIHAPUS ==="  
-    i=1  
-    for f in "${FILES[@]}"; do  
-        echo "$i) $f"  
-        ((i++))  
-    done  
-    echo "0) Kembali ke menu utama"  
-    echo "==============================="  
-    read -p "Pilih nomor file: " pilih  
+    # =====================================================
+    # MENU 3: WINDOWS AKTIF
+    # =====================================================
 
-    if [ "$pilih" == "0" ]; then  
-        continue  
-    fi  
+    if [[ "$SISTEM" == "3" ]]; then
 
-    FILE=${FILES[$((pilih-1))]}  
-    if [ -z "$FILE" ]; then  
-        echo "Pilihan tidak valid."  
-        read -p "Tekan Enter untuk kembali..."  
-        continue  
-    fi  
+        header
 
-    echo "Menghapus container & volume $FILE..."
-    # Tambahan -v untuk menghapus volume/disk yang terpakai
-    sudo docker-compose -f "$FILE" down -v  
+        echo -e "${CYAN}${BOLD}  WINDOWS CONTAINER STATUS${RESET}"
+        echo
 
-    echo "Menghapus image Windows dari Docker..."
-    # Menghapus image agar tidak makan penyimpanan
-    sudo docker rmi manz4vps/windows -f 2>/dev/null
+        sudo docker ps \
+            --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
-    echo "Membersihkan sisa-sisa cache sistem..."
-    # Prune untuk menghapus semua unused containers, networks, images, dan volumes
-    sudo docker system prune -a -f --volumes
+        echo
+        echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
-    rm -f "$FILE"  
-    echo "Selesai! Windows dan semua berkas disk-nya sudah dihapus bersih."  
-    read -p "Tekan Enter untuk kembali ke menu..."
-fi
+        pause
+        continue
+    fi
 
-# =========================================================
-# MENU 6: KELUAR
-# =========================================================
+    # =====================================================
+    # MENU 4: MASUK WINDOWS
+    # =====================================================
 
-if [ "$SISTEM" == "6" ]; then
-    clear
-    echo "Terima kasih telah menggunakan panel ini!"
-    exit 0
-fi
+    if [[ "$SISTEM" == "4" ]]; then
+
+        header
+
+        FILES=(windows*.yml)
+
+        if [[ ${#FILES[@]} -eq 0 ]]; then
+            echo -e "${RED}Tidak ada file Windows ditemukan.${RESET}"
+            pause
+            continue
+        fi
+
+        echo -e "${CYAN}${BOLD}  PILIH WINDOWS${RESET}"
+        echo
+
+        i=1
+
+        for f in "${FILES[@]}"; do
+            echo "  [$i] $f"
+            ((i++))
+        done
+
+        echo
+        echo "  [0] Kembali"
+
+        echo
+        read -rp "Pilih nomor: " pilih
+
+        if [[ "$pilih" == "0" ]]; then
+            continue
+        fi
+
+        if ! [[ "$pilih" =~ ^[0-9]+$ ]] ||
+           (( pilih < 1 || pilih > ${#FILES[@]} )); then
+
+            echo -e "${RED}Pilihan tidak valid.${RESET}"
+            pause
+            continue
+        fi
+
+        FILE="${FILES[$((pilih-1))]}"
+
+        echo
+        echo -e "${YELLOW}Menjalankan $FILE...${RESET}"
+
+        sudo docker-compose -f "$FILE" up -d
+
+        sudo docker attach windows
+
+        pause
+        continue
+    fi
+
+    # =====================================================
+    # MENU 5: HAPUS WINDOWS
+    # =====================================================
+
+    if [[ "$SISTEM" == "5" ]]; then
+
+        header
+
+        FILES=(windows*.yml)
+
+        if [[ ${#FILES[@]} -eq 0 ]]; then
+            echo -e "${RED}Tidak ada file Windows ditemukan.${RESET}"
+            pause
+            continue
+        fi
+
+        echo -e "${RED}${BOLD}  HAPUS WINDOWS${RESET}"
+        echo
+
+        i=1
+
+        for f in "${FILES[@]}"; do
+            echo "  [$i] $f"
+            ((i++))
+        done
+
+        echo
+        echo "  [0] Kembali"
+
+        echo
+        read -rp "Pilih nomor: " pilih
+
+        if [[ "$pilih" == "0" ]]; then
+            continue
+        fi
+
+        if ! [[ "$pilih" =~ ^[0-9]+$ ]] ||
+           (( pilih < 1 || pilih > ${#FILES[@]} )); then
+
+            echo -e "${RED}Pilihan tidak valid.${RESET}"
+            pause
+            continue
+        fi
+
+        FILE="${FILES[$((pilih-1))]}"
+
+        echo
+        echo -e "${YELLOW}Menghapus container dan volume...${RESET}"
+
+        sudo docker-compose -f "$FILE" down -v
+
+        echo
+        echo -e "${YELLOW}Menghapus image Windows...${RESET}"
+
+        sudo docker rmi manz4vps/windows -f 2>/dev/null
+
+        echo
+        echo -e "${YELLOW}Membersihkan resource Docker yang tidak digunakan...${RESET}"
+
+        sudo docker system prune -a -f --volumes
+
+        rm -f "$FILE"
+
+        echo
+        echo -e "${GREEN}${BOLD}Windows berhasil dihapus.${RESET}"
+
+        pause
+        continue
+    fi
+
+    # =====================================================
+    # PILIHAN TIDAK VALID
+    # =====================================================
+
+    echo
+    echo -e "${RED}Pilihan tidak valid! Silakan pilih 0-5.${RESET}"
+    sleep 1
 
 done
