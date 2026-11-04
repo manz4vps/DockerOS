@@ -1,14 +1,17 @@
 #!/bin/bash
-
 shopt -s nullglob
 
 # =========================================================
-# KONFIGURASI
+# MANZ4VPS VIRTUAL SYSTEM PANEL
 # =========================================================
 
 UBUNTU_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/ubuntu-desktop.sh"
+LINUX_URL="https://raw.githubusercontent.com/manz4vps/DockerOS/refs/heads/main/Scrip/install-noVNC.sh"
 
-# Warna terminal
+# =========================================================
+# WARNA TERMINAL
+# =========================================================
+
 RESET='\033[0m'
 BOLD='\033[1m'
 CYAN='\033[1;36m'
@@ -19,19 +22,20 @@ WHITE='\033[1;37m'
 BLUE='\033[1;34m'
 
 # =========================================================
-# HEADER PANEL
+# HEADER
 # =========================================================
 
 header() {
     clear
+
     echo -e "${CYAN}${BOLD}"
     echo "╔══════════════════════════════════════════════╗"
     echo "║                                              ║"
     echo "║          MANZ4VPS VIRTUAL SYSTEM              ║"
-    echo "║             CONTROL PANEL                    ║"
+    echo "║              CONTROL PANEL                   ║"
     echo "║                                              ║"
     echo "╠══════════════════════════════════════════════╣"
-    echo "║          WINDOWS & UBUNTU MANAGER             ║"
+    echo "║           WINDOWS & LINUX MANAGER             ║"
     echo "╚══════════════════════════════════════════════╝"
     echo -e "${RESET}"
 }
@@ -39,6 +43,54 @@ header() {
 pause() {
     echo
     read -rp "Tekan ENTER untuk kembali ke menu..."
+}
+
+# =========================================================
+# CEK CURL
+# =========================================================
+
+check_curl() {
+    if ! command -v curl >/dev/null 2>&1; then
+        echo -e "${YELLOW}Curl tidak ditemukan. Menginstall...${RESET}"
+
+        sudo apt-get update &&
+        sudo apt-get install -y curl
+
+        if ! command -v curl >/dev/null 2>&1; then
+            echo -e "${RED}Gagal menginstall curl.${RESET}"
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+# =========================================================
+# JALANKAN SCRIPT RAW
+# =========================================================
+
+run_raw_script() {
+    local SCRIPT_URL="$1"
+    local SCRIPT_NAME="$2"
+
+    header
+
+    echo -e "${CYAN}${BOLD}  $SCRIPT_NAME${RESET}"
+    echo
+    echo -e "${YELLOW}Menghubungkan ke GitHub RAW...${RESET}"
+    echo
+
+    if ! check_curl; then
+        pause
+        return
+    fi
+
+    bash <(curl -fsSL "$SCRIPT_URL")
+
+    echo
+    echo -e "${GREEN}Proses script selesai.${RESET}"
+
+    pause
 }
 
 # =========================================================
@@ -52,16 +104,18 @@ while true; do
     echo -e "${WHITE}${BOLD}  MENU UTAMA${RESET}"
     echo
     echo -e "  ${GREEN}[1]${RESET} Jalankan Windows baru"
-    echo -e "  ${GREEN}[2]${RESET} Jalankan Ubuntu Desktop (VNC)"
-    echo -e "  ${GREEN}[3]${RESET} Lihat Windows aktif"
-    echo -e "  ${GREEN}[4]${RESET} Masuk ke Windows"
-    echo -e "  ${RED}[5]${RESET} Hapus Windows"
+    echo -e "  ${GREEN}[2]${RESET} Desktop Linux"
+    echo -e "  ${GREEN}[3]${RESET} Desktop Ubuntu"
+    echo
+    echo -e "  ${BLUE}[4]${RESET} Lihat Windows aktif"
+    echo -e "  ${BLUE}[5]${RESET} Masuk ke Windows"
+    echo -e "  ${RED}[6]${RESET} Hapus Windows"
     echo
     echo -e "  ${YELLOW}[0]${RESET} Keluar"
     echo
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 
-    read -rp "  Pilih menu [0-5]: " SISTEM
+    read -rp "  Pilih menu [0-6]: " SISTEM
 
     # =====================================================
     # MENU 0: KELUAR
@@ -69,6 +123,7 @@ while true; do
 
     if [[ "$SISTEM" == "0" ]]; then
         clear
+
         echo -e "${GREEN}${BOLD}"
         echo "╔══════════════════════════════════════════════╗"
         echo "║                                              ║"
@@ -77,6 +132,7 @@ while true; do
         echo "║                                              ║"
         echo "╚══════════════════════════════════════════════╝"
         echo -e "${RESET}"
+
         exit 0
     fi
 
@@ -133,7 +189,9 @@ while true; do
         read -rp "Disk kedua (default: 20G): " DISK2
         DISK2=${DISK2:-20G}
 
-        # Download VB-CABLE
+        # -------------------------------------------------
+        # DOWNLOAD VB-CABLE
+        # -------------------------------------------------
 
         echo
         echo -e "${YELLOW}Mempersiapkan shared folder...${RESET}"
@@ -142,20 +200,25 @@ while true; do
 
         if [[ ! -f "./shared_data/VBCABLE_Driver_Pack45.zip" ]]; then
 
-            if ! curl -fL \
+            if curl -fL \
                 -o ./shared_data/VBCABLE_Driver_Pack45.zip \
                 https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip; then
 
+                echo -e "${GREEN}VB-CABLE berhasil didownload.${RESET}"
+
+            else
                 echo -e "${RED}Download VB-CABLE gagal.${RESET}"
                 pause
                 continue
             fi
 
-            echo -e "${GREEN}VB-CABLE berhasil didownload.${RESET}"
-
         else
             echo "VB-CABLE sudah tersedia, melewati download."
         fi
+
+        # -------------------------------------------------
+        # BUAT DOCKER COMPOSE WINDOWS
+        # -------------------------------------------------
 
         YAML_FILE="windows${VERSION}.yml"
 
@@ -195,53 +258,39 @@ EOL
 
         echo
         echo -e "${GREEN}Windows berhasil dijalankan.${RESET}"
-        echo "Gunakan menu 4 untuk masuk ke Windows."
+        echo "Gunakan menu 5 untuk masuk ke Windows."
 
         pause
         continue
     fi
 
     # =====================================================
-    # MENU 2: UBUNTU DESKTOP
+    # MENU 2: DESKTOP LINUX
     # =====================================================
 
     if [[ "$SISTEM" == "2" ]]; then
 
-        header
+        run_raw_script "$LINUX_URL" "DESKTOP LINUX"
 
-        echo -e "${CYAN}${BOLD}  UBUNTU DESKTOP INSTALLER${RESET}"
-        echo
-        echo -e "${GREEN}Menghubungkan ke Ubuntu Desktop installer...${RESET}"
-        echo
-
-        if ! command -v curl >/dev/null 2>&1; then
-            echo -e "${YELLOW}Curl belum tersedia. Menginstall curl...${RESET}"
-
-            sudo apt-get update &&
-            sudo apt-get install -y curl
-
-            if ! command -v curl >/dev/null 2>&1; then
-                echo -e "${RED}Gagal memasang curl.${RESET}"
-                pause
-                continue
-            fi
-        fi
-
-        # Menjalankan installer Ubuntu dari GitHub RAW
-        bash <(curl -fsSL "$UBUNTU_URL")
-
-        echo
-        echo -e "${GREEN}Proses Ubuntu Desktop selesai.${RESET}"
-
-        pause
         continue
     fi
 
     # =====================================================
-    # MENU 3: WINDOWS AKTIF
+    # MENU 3: DESKTOP UBUNTU
     # =====================================================
 
     if [[ "$SISTEM" == "3" ]]; then
+
+        run_raw_script "$UBUNTU_URL" "DESKTOP UBUNTU"
+
+        continue
+    fi
+
+    # =====================================================
+    # MENU 4: WINDOWS AKTIF
+    # =====================================================
+
+    if [[ "$SISTEM" == "4" ]]; then
 
         header
 
@@ -259,10 +308,10 @@ EOL
     fi
 
     # =====================================================
-    # MENU 4: MASUK WINDOWS
+    # MENU 5: MASUK WINDOWS
     # =====================================================
 
-    if [[ "$SISTEM" == "4" ]]; then
+    if [[ "$SISTEM" == "5" ]]; then
 
         header
 
@@ -316,10 +365,10 @@ EOL
     fi
 
     # =====================================================
-    # MENU 5: HAPUS WINDOWS
+    # MENU 6: HAPUS WINDOWS
     # =====================================================
 
-    if [[ "$SISTEM" == "5" ]]; then
+    if [[ "$SISTEM" == "6" ]]; then
 
         header
 
@@ -390,7 +439,8 @@ EOL
     # =====================================================
 
     echo
-    echo -e "${RED}Pilihan tidak valid! Silakan pilih 0-5.${RESET}"
+    echo -e "${RED}Pilihan tidak valid! Silakan pilih 0-6.${RESET}"
+
     sleep 1
 
 done
