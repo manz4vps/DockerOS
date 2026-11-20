@@ -7,7 +7,6 @@ const readline = require("readline");
 const BASE = __dirname;
 const PROOT = path.join(BASE, "proot");
 const LAST_DISTRO_FILE = path.join(BASE, ".last-distro");
-
 const IMAGE_SERVER = "https://images.linuxcontainers.org";
 
 // =====================================
@@ -21,6 +20,7 @@ const ARCH_MAP = {
     aarch64: "arm64",
     arm: "armhf",
     armhf: "armhf",
+    armv7l: "armhf",
     ia32: "i386",
     i386: "i386",
     x86: "i386"
@@ -64,15 +64,11 @@ const ARCH = detectArchitecture();
 
 if (!ARCH) {
     console.log("Arsitektur tidak didukung!");
-    console.log("process.arch:", process.arch);
-    console.log("HOSTTYPE:", process.env.HOSTTYPE || "unknown");
-    console.log("ARCH:", process.env.ARCH || "unknown");
     process.exit(1);
 }
 
 // =====================================
 // DAFTAR DISTRO
-// VERSI TERBARU NOMOR 1
 // =====================================
 
 const DISTROS = {
@@ -106,16 +102,10 @@ function ask(question) {
     return new Promise(resolve => {
         const rl = readline.createInterface({
             input: process.stdin,
-            output: process.stdout,
-            terminal: true
+            output: process.stdout
         });
 
-        // Input ditampilkan di baris berikutnya.
-        const prompt = question.endsWith("\n")
-            ? question
-            : question + "\n";
-
-        rl.question(prompt, answer => {
+        rl.question(question + " ", answer => {
             rl.close();
             resolve(answer.trim());
         });
@@ -127,31 +117,40 @@ function clearTerminal() {
 }
 
 function fakeEnter() {
-    process.stdout.write("\r\n\r\n");
+    process.stdout.write("\r\n");
 }
 
 // =====================================
 // HTTP REQUEST
 // =====================================
 
-function request(url, redirects = 8, method = "GET") {
+function request(url, redirects = 10, method = "GET") {
     return new Promise((resolve, reject) => {
-        const req = https.request(url, {
+        let parsed;
+
+        try {
+            parsed = new URL(url);
+        } catch (error) {
+            return reject(error);
+        }
+
+        if (parsed.protocol !== "https:") {
+            return reject(new Error("URL harus menggunakan HTTPS."));
+        }
+
+        const req = https.request(parsed, {
             method,
             headers: {
-                "User-Agent": "Linux-Rootfs-Installer"
-            }
+                "User-Agent": "Linux-Rootfs-Installer/3.0"
+            },
+            timeout: 60000
         }, res => {
             if ([301, 302, 303, 307, 308].includes(res.statusCode)) {
                 const location = res.headers.location;
                 res.resume();
 
-                if (!redirects) {
-                    return reject(new Error("Terlalu banyak redirect"));
-                }
-
-                if (!location) {
-                    return reject(new Error("Redirect tidak memiliki alamat tujuan"));
+                if (!redirects || !location) {
+                    return reject(new Error("Redirect gagal."));
                 }
 
                 return resolve(
@@ -165,13 +164,14 @@ function request(url, redirects = 8, method = "GET") {
 
             if (res.statusCode < 200 || res.statusCode >= 300) {
                 res.resume();
-
-                return reject(
-                    new Error("HTTP " + res.statusCode + " saat mengakses " + url)
-                );
+                return reject(new Error("HTTP " + res.statusCode + ": " + url));
             }
 
             resolve(res);
+        });
+
+        req.on("timeout", () => {
+            req.destroy(new Error("Koneksi timeout."));
         });
 
         req.on("error", reject);
@@ -179,22 +179,15 @@ function request(url, redirects = 8, method = "GET") {
     });
 }
 
-async function checkURL(url) {
-    try {
-        const response = await request(url, 8, "HEAD");
-        response.resume();
-        return true;
-    } catch {
-        return false;
-    }
-}
-
 // =====================================
 // DOWNLOAD
 // =====================================
 
 async function download(url, destination) {
-    console.log("\nDownload:", url);
+    console.log("\n================================");
+    console.log("MEMULAI DOWNLOAD");
+    console.log("================================");
+    console.log(url);
 
     const response = await request(url);
 
@@ -219,14 +212,19 @@ async function download(url, destination) {
         });
     });
 
-    if (!fs.existsSync(destination) || fs.statSync(destination).size === 0) {
+    if (
+        !fs.existsSync(destination) ||
+        fs.statSync(destination).size === 0
+    ) {
         fs.rmSync(destination, { force: true });
-        throw new Error("File download kosong.");
+        throw new Error("Download kosong.");
     }
+
+    console.log("\nDownload berhasil!");
 }
 
 // =====================================
-// CEK ROOTFS TERSEDIA
+// ROOTFS URL
 // =====================================
 
 async function findRootfsURL(config) {
@@ -237,114 +235,160 @@ async function findRootfsURL(config) {
     const base =
         `${IMAGE_SERVER}/images/${config.distro}/${config.version}/${ARCH}/default/`;
 
-    let response;
+    console.log("\nMengambil daftar build rootfs...");
+    console.log("Distro:", config.name);
+    console.log("Arsitektur:", ARCH);
 
-    try {
-        response = await request(base);
-    } catch {
-        ROOTFS_CACHE.set(config.id, null);
-        return null;
-    }
+    const response = await request(base);
 
     let html = "";
 
     for await (const chunk of response) {
-        html += chunk;
+        html += chunk.toString();
     }
 
     const versions = [
-        ...html.matchAll(/href=["'](20\d{6}_[^"'/]+)\/["']/g)
+        ...html.matchAll(/href=["']?(20\d{6}_[^"'/?]+)\/?["']?/g)
     ]
         .map(match => match[1])
+        .filter((value, index, array) => array.indexOf(value) === index)
         .sort()
         .reverse();
 
     if (!versions.length) {
-        ROOTFS_CACHE.set(config.id, null);
-        return null;
+        throw new Error("Tidak ditemukan direktori build untuk " + config.name);
     }
 
-    for (const version of versions) {
-        const url = `${base}${version}/rootfs.tar.xz`;
+    const selectedVersion = versions[0];
+    const url = `${base}${selectedVersion}/rootfs.tar.xz`;
 
-        if (await checkURL(url)) {
-            ROOTFS_CACHE.set(config.id, url);
-            return url;
-        }
-    }
+    ROOTFS_CACHE.set(config.id, url);
 
-    ROOTFS_CACHE.set(config.id, null);
-    return null;
-}
-
-async function getRootfsURL(config) {
-    console.log("\nMemeriksa rootfs:", config.name);
-    console.log("Arsitektur:", ARCH);
-
-    const url = await findRootfsURL(config);
-
-    if (!url) {
-        throw new Error(
-            `${config.name} tidak tersedia untuk arsitektur ${ARCH}.`
-        );
-    }
-
-    console.log("Rootfs ditemukan:", url);
+    console.log("\nBuild terbaru ditemukan:");
+    console.log(selectedVersion);
+    console.log("\nURL ROOTFS:");
+    console.log(url);
 
     return url;
 }
 
-async function getAvailableDistros(type) {
-    const available = [];
-
-    console.log("\nMemeriksa ketersediaan rootfs...");
+async function getRootfsURL(config) {
+    console.log("\nMenyiapkan rootfs:", config.name);
     console.log("Arsitektur:", ARCH);
 
-    for (const config of DISTROS[type]) {
-        process.stdout.write(`Memeriksa ${config.name}... `);
+    return await findRootfsURL(config);
+}
 
-        const url = await findRootfsURL(config);
+// =====================================
+// PROOT MULTI ARCHITECTURE
+// =====================================
 
-        if (url) {
-            console.log("TERSEDIA");
-            available.push(config);
-        } else {
-            console.log("TIDAK TERSEDIA");
+const PROOT_URLS = {
+    amd64:
+        "https://github.com/upleung/proot-releases/releases/latest/download/proot-v5.5.0-x86_64-static",
+
+    arm64:
+        "https://github.com/upleung/proot-releases/releases/latest/download/proot-v5.5.0-aarch64-static",
+
+    armhf:
+        "https://github.com/upleung/proot-releases/releases/latest/download/proot-v5.5.0-arm-static"
+};
+
+// =====================================
+// VALIDASI PROOT
+// =====================================
+
+function validateProot(binary) {
+    if (!fs.existsSync(binary)) {
+        return false;
+    }
+
+    try {
+        const result = spawnSync(binary, ["--version"], {
+            encoding: "utf8",
+            timeout: 15000,
+            stdio: ["ignore", "pipe", "pipe"]
+        });
+
+        return !result.error && result.status === 0;
+    } catch {
+        return false;
+    }
+}
+
+// =====================================
+// INSTALL PROOT
+// =====================================
+
+async function installProot() {
+    console.log("\n================================");
+    console.log("PROOT INSTALLER");
+    console.log("================================");
+    console.log("Arsitektur:", ARCH);
+
+    const url = PROOT_URLS[ARCH];
+
+    if (!url) {
+        throw new Error(
+            "Binary PRoot tidak tersedia untuk arsitektur " +
+            ARCH +
+            ". Arsitektur yang didukung: AMD64, ARM64, ARMHF."
+        );
+    }
+
+    if (fs.existsSync(PROOT)) {
+        console.log("\nMemeriksa PRoot lokal...");
+
+        if (validateProot(PROOT)) {
+            console.log("PRoot lokal cocok dan bisa dijalankan!");
+            return PROOT;
+        }
+
+        console.log("PRoot lokal tidak cocok atau rusak.");
+        console.log("Mengunduh binary yang sesuai...");
+
+        fs.rmSync(PROOT, { force: true });
+    }
+
+    const systemProot = spawnSync(
+        "sh",
+        ["-c", "command -v proot"],
+        { encoding: "utf8" }
+    );
+
+    if (systemProot.status === 0) {
+        const systemPath = systemProot.stdout.trim();
+
+        if (systemPath && validateProot(systemPath)) {
+            console.log("Menggunakan PRoot sistem yang kompatibel.");
+            return systemPath;
         }
     }
 
-    return available;
-}
+    console.log("\nMengunduh PRoot khusus:", ARCH);
+    console.log("Sumber:", url);
 
-// =====================================
-// PROOT
-// =====================================
-
-function commandExists(cmd) {
-    return spawnSync("sh", ["-c", `command -v ${cmd}`], {
-        stdio: "ignore"
-    }).status === 0;
-}
-
-async function installProot() {
-    if (commandExists("proot")) return "proot";
-
-    if (fs.existsSync(PROOT)) return PROOT;
-
-    console.log("\nMengunduh PRoot...");
-
-    await download(
-        "https://proot.gitlab.io/proot/bin/proot",
-        PROOT
-    );
-
+    await download(url, PROOT);
     fs.chmodSync(PROOT, 0o755);
+
+    console.log("\nMemeriksa binary PRoot...");
+
+    if (!validateProot(PROOT)) {
+        fs.rmSync(PROOT, { force: true });
+
+        throw new Error(
+            "PRoot gagal dijalankan. Binary mungkin tidak cocok dengan arsitektur server."
+        );
+    }
+
+    console.log("\nPRoot berhasil dipasang!");
+    console.log("Arsitektur PRoot:", ARCH);
 
     return PROOT;
 }
 
 // =====================================
-// KONFIGURASI LINUX
+// KONFIGURASI DNS
 // =====================================
 
 function configureDNS(rootfs) {
@@ -362,6 +406,10 @@ function configureDNS(rootfs) {
     );
 }
 
+// =====================================
+// HOSTNAME
+// =====================================
+
 function configureHostname(rootfs, config) {
     const etc = path.join(rootfs, "etc");
 
@@ -374,14 +422,24 @@ function configureHostname(rootfs, config) {
 
     fs.writeFileSync(
         path.join(etc, "hosts"),
-        `127.0.0.1 localhost\n127.0.1.1 ${config.id}\n\n::1 localhost ip6-localhost ip6-loopback\n`
+        `127.0.0.1 localhost
+127.0.1.1 ${config.id}
+
+::1 localhost ip6-localhost ip6-loopback
+`
     );
 }
+
+// =====================================
+// GROUPS
+// =====================================
 
 function configureGroups(rootfs) {
     const groupFile = path.join(rootfs, "etc", "group");
 
-    fs.mkdirSync(path.dirname(groupFile), { recursive: true });
+    fs.mkdirSync(path.dirname(groupFile), {
+        recursive: true
+    });
 
     if (!fs.existsSync(groupFile)) {
         fs.writeFileSync(groupFile, "");
@@ -449,6 +507,7 @@ function configureGroups(rootfs) {
 
 // =====================================
 // BASH TERMINAL
+// FIX PROMPT PERMANEN
 // =====================================
 
 function configureBash(rootfs, config) {
@@ -456,9 +515,51 @@ function configureBash(rootfs, config) {
 
     fs.mkdirSync(root, { recursive: true });
 
+    const bashrc = path.join(root, ".bashrc");
     const terminalRC = path.join(root, ".rootfs-terminal.bashrc");
 
-    const content = `
+    const markerStart = "# ROOTFS_INSTALLER_PROMPT_START";
+    const markerEnd = "# ROOTFS_INSTALLER_PROMPT_END";
+
+    const promptConfig = `
+${markerStart}
+case "$-" in
+    *i*) ;;
+    *) return ;;
+esac
+
+unset PROMPT_COMMAND
+PS1='root@${config.id}:~#\\nroot@${config.id}:~# '
+PS2='> '
+${markerEnd}
+`;
+
+    // Baca .bashrc bawaan distro.
+    let bashrcContent = "";
+
+    if (fs.existsSync(bashrc)) {
+        bashrcContent = fs.readFileSync(bashrc, "utf8");
+    }
+
+    // Hapus konfigurasi prompt installer yang lama.
+    const escapedStart = markerStart.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedEnd = markerEnd.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const managedBlock = new RegExp(
+        `${escapedStart}[\\s\\S]*?${escapedEnd}`,
+        "g"
+    );
+
+    bashrcContent = bashrcContent.replace(managedBlock, "").trimEnd();
+
+    // Pasang konfigurasi prompt di bagian paling akhir .bashrc.
+    bashrcContent += "\n\n" + promptConfig.trim() + "\n";
+
+    fs.writeFileSync(bashrc, bashrcContent);
+    fs.chmodSync(bashrc, 0o644);
+
+    // RC khusus untuk terminal yang dijalankan installer.
+    const terminalContent = `
 export HOME=/root
 export USER=root
 export LOGNAME=root
@@ -467,30 +568,36 @@ export TERM=xterm-256color
 export CLICOLOR=1
 export FORCE_COLOR=1
 
-export PS0=''
-
-# Prompt di baris pertama, input di baris kedua.
-export PS1='root@${config.id}:~# \\n'
-
-export PS2='> '
-
-unset PROMPT_COMMAND
-
 shopt -s checkwinsize
 shopt -s cmdhist
 shopt -s histappend
+
+# Muat konfigurasi bash utama.
+if [ -f /root/.bashrc ]; then
+    source /root/.bashrc
+fi
+
+# Pastikan prompt installer tetap digunakan.
+unset PROMPT_COMMAND
+PS1='root@${config.id}:~#\\nroot@${config.id}:~# '
+PS2='> '
 `;
 
-    fs.writeFileSync(terminalRC, content);
+    fs.writeFileSync(terminalRC, terminalContent);
     fs.chmodSync(terminalRC, 0o644);
 }
 
 // =====================================
-// APT TERMINAL CONFIGURATION
+// APT CONFIGURATION
 // =====================================
 
 function configureAPT(rootfs) {
-    const aptConfig = path.join(rootfs, "etc", "apt", "apt.conf.d");
+    const aptConfig = path.join(
+        rootfs,
+        "etc",
+        "apt",
+        "apt.conf.d"
+    );
 
     fs.mkdirSync(aptConfig, { recursive: true });
 
@@ -586,7 +693,9 @@ function getInstalledDistros() {
 function getExistingContainer() {
     const installed = getInstalledDistros();
 
-    return installed.length > 0 ? installed[0] : null;
+    return installed.length > 0
+        ? installed[0]
+        : null;
 }
 
 function getLastDistro() {
@@ -597,9 +706,14 @@ function getLastDistro() {
     }
 
     try {
-        const lastId = fs.readFileSync(LAST_DISTRO_FILE, "utf8").trim();
+        const lastId = fs.readFileSync(
+            LAST_DISTRO_FILE,
+            "utf8"
+        ).trim();
 
-        const last = installed.find(distro => distro.id === lastId);
+        const last = installed.find(
+            distro => distro.id === lastId
+        );
 
         if (last) return last;
     } catch {}
@@ -608,7 +722,10 @@ function getLastDistro() {
 }
 
 function saveLastDistro(config) {
-    fs.writeFileSync(LAST_DISTRO_FILE, config.id);
+    fs.writeFileSync(
+        LAST_DISTRO_FILE,
+        config.id
+    );
 }
 
 // =====================================
@@ -617,10 +734,18 @@ function saveLastDistro(config) {
 
 async function installRootfs(config) {
     const rootfs = path.join(BASE, config.id);
-    const archive = path.join(BASE, config.id + ".tar.xz");
+
+    const archive = path.join(
+        BASE,
+        config.id + ".tar.xz"
+    );
 
     if (isInstalled(config)) {
-        console.log(config.name + " sudah terinstall. Membuka instalasi yang ada.");
+        console.log(
+            config.name +
+            " sudah terinstall. Membuka instalasi yang ada."
+        );
+
         return rootfs;
     }
 
@@ -628,7 +753,8 @@ async function installRootfs(config) {
 
     if (existing) {
         throw new Error(
-            `Container ${existing.name} sudah terpasang. Tidak boleh memasang distro lain.`
+            `Container ${existing.name} sudah terpasang. ` +
+            "Gunakan Reset All untuk mengganti distro."
         );
     }
 
@@ -639,7 +765,9 @@ async function installRootfs(config) {
         });
     }
 
-    fs.mkdirSync(rootfs, { recursive: true });
+    fs.mkdirSync(rootfs, {
+        recursive: true
+    });
 
     const url = await getRootfsURL(config);
 
@@ -658,11 +786,18 @@ async function installRootfs(config) {
 
     if (result.status !== 0) {
         fs.rmSync(archive, { force: true });
-        fs.rmSync(rootfs, { recursive: true, force: true });
+
+        fs.rmSync(rootfs, {
+            recursive: true,
+            force: true
+        });
+
         throw new Error("Ekstraksi rootfs gagal.");
     }
 
-    fs.rmSync(archive, { force: true });
+    fs.rmSync(archive, {
+        force: true
+    });
 
     if (!isInstalled(config)) {
         fs.rmSync(rootfs, {
@@ -673,7 +808,7 @@ async function installRootfs(config) {
         throw new Error("Rootfs tidak lengkap setelah ekstraksi.");
     }
 
-    console.log("Rootfs berhasil dipasang!");
+    console.log("\nRootfs berhasil dipasang!");
 
     return rootfs;
 }
@@ -701,6 +836,8 @@ async function startLinux(config) {
     console.log("================================");
     console.log("MEMULAI " + config.name);
     console.log("================================");
+    console.log("Host architecture:", ARCH);
+    console.log("PRoot:", prootPath);
 
     const child = spawn(prootPath, [
         "-0",
@@ -710,10 +847,8 @@ async function startLinux(config) {
         "-b", "/proc",
         "-b", "/sys",
         "-b", "/tmp",
-
         "/usr/bin/env",
         "-i",
-
         "HOME=/root",
         "USER=root",
         "LOGNAME=root",
@@ -722,7 +857,6 @@ async function startLinux(config) {
         "FORCE_COLOR=1",
         "DEBIAN_FRONTEND=readline",
         "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-
         "/bin/bash",
         "--noprofile",
         "--rcfile",
@@ -734,7 +868,11 @@ async function startLinux(config) {
     });
 
     await new Promise((resolve, reject) => {
-        child.once("error", reject);
+        child.once("error", error => {
+            reject(
+                new Error("Gagal menjalankan PRoot: " + error.message)
+            );
+        });
 
         child.once("exit", (code, signal) => {
             clearTerminal();
@@ -762,7 +900,7 @@ async function loginDirect() {
 
     if (!config) {
         console.log("Belum ada container yang terinstall.");
-        await ask("\nTekan Enter untuk kembali...");
+        await ask("Tekan Enter untuk kembali...");
         return;
     }
 
@@ -770,8 +908,13 @@ async function loginDirect() {
         await startLinux(config);
     } catch (error) {
         clearTerminal();
-        console.error("GAGAL MASUK:", error.message);
-        await ask("\nTekan Enter untuk kembali...");
+
+        console.error(
+            "GAGAL MASUK:",
+            error.message
+        );
+
+        await ask("Tekan Enter untuk kembali...");
     }
 }
 
@@ -785,12 +928,13 @@ async function resetAll() {
     console.log("========== RESET ALL ==========");
     console.log("Semua isi folder akan dihapus kecuali index.js!");
 
-    const answer = await ask("\nKetik RESET untuk melanjutkan: ");
+    const answer = await ask("Ketik RESET untuk melanjutkan:");
+
     fakeEnter();
 
     if (answer !== "RESET") {
         console.log("Reset dibatalkan.");
-        await ask("\nTekan Enter untuk kembali...");
+        await ask("Tekan Enter untuk kembali...");
         return;
     }
 
@@ -809,14 +953,19 @@ async function resetAll() {
 
             console.log("Dihapus:", item);
         } catch (error) {
-            console.log("Gagal:", item, error.message);
+            console.log(
+                "Gagal:",
+                item,
+                error.message
+            );
         }
     }
 
     ROOTFS_CACHE.clear();
 
     console.log("\nReset selesai! index.js aman.");
-    await ask("\nTekan Enter untuk kembali...");
+
+    await ask("Tekan Enter untuk kembali...");
 }
 
 // =====================================
@@ -826,17 +975,7 @@ async function resetAll() {
 async function versionMenu(type) {
     clearTerminal();
 
-    console.log("========== CEK DISTRO ==========");
-
-    let versions;
-
-    try {
-        versions = await getAvailableDistros(type);
-    } catch (error) {
-        console.log("\nGagal memeriksa daftar distro:", error.message);
-        await ask("\nTekan Enter untuk kembali...");
-        return;
-    }
+    const versions = DISTROS[type];
 
     while (true) {
         clearTerminal();
@@ -847,13 +986,6 @@ async function versionMenu(type) {
         console.log("Arsitektur:", ARCH);
         console.log("");
 
-        if (!versions.length) {
-            console.log("Tidak ada rootfs yang tersedia untuk arsitektur ini.");
-            console.log("Silakan coba lagi nanti.");
-            await ask("\nTekan Enter untuk kembali...");
-            return;
-        }
-
         versions.forEach((distro, index) => {
             let status = "";
 
@@ -863,12 +995,16 @@ async function versionMenu(type) {
                 status = " [DIKUNCI]";
             }
 
-            console.log(`${index + 1}. ${distro.name}${status}`);
+            console.log(
+                `${index + 1}. ${distro.name}${status}`
+            );
         });
 
+        console.log("");
         console.log("0. Kembali");
 
-        const choice = await ask("Pilih versi: ");
+        const choice = await ask("Pilih versi:");
+
         fakeEnter();
 
         if (choice === "0") return;
@@ -877,19 +1013,24 @@ async function versionMenu(type) {
 
         if (!config) {
             console.log("Pilihan tidak valid.");
-            await ask("\nTekan Enter untuk lanjut...");
+            await ask("Tekan Enter untuk lanjut...");
             continue;
         }
 
         if (isInstalled(config)) {
-            console.log("\n" + config.name + " sudah terinstall!");
-            console.log("Membuka terminal yang sudah terpasang...");
+            console.log(
+                "\n" + config.name + " sudah terinstall!"
+            );
+
+            console.log(
+                "Membuka terminal yang sudah terpasang..."
+            );
 
             try {
                 await startLinux(config);
             } catch (error) {
                 console.error("ERROR:", error.message);
-                await ask("\nTekan Enter untuk kembali...");
+                await ask("Tekan Enter untuk kembali...");
             }
 
             continue;
@@ -899,11 +1040,21 @@ async function versionMenu(type) {
 
         if (current) {
             console.log("\nINSTALLASI DITOLAK!");
-            console.log("Container yang sudah terpasang:", current.name);
-            console.log("Kamu hanya boleh menggunakan satu container.");
-            console.log("Gunakan Reset All jika ingin mengganti distro.");
 
-            await ask("\nTekan Enter untuk kembali...");
+            console.log(
+                "Container yang sudah terpasang:",
+                current.name
+            );
+
+            console.log(
+                "Kamu hanya boleh menggunakan satu container."
+            );
+
+            console.log(
+                "Gunakan Reset All jika ingin mengganti distro."
+            );
+
+            await ask("Tekan Enter untuk kembali...");
             continue;
         }
 
@@ -911,8 +1062,13 @@ async function versionMenu(type) {
             await startLinux(config);
         } catch (error) {
             clearTerminal();
-            console.error("ERROR:", error.message);
-            await ask("\nTekan Enter untuk kembali...");
+
+            console.error(
+                "\nINSTALLASI GAGAL:",
+                error.message
+            );
+
+            await ask("Tekan Enter untuk kembali...");
         }
     }
 }
@@ -931,23 +1087,31 @@ async function main() {
         console.log("       LINUX ROOTFS INSTALLER");
         console.log("================================");
 
-        console.log("Arsitektur terdeteksi:", ARCH);
-        console.log("");
+        console.log(
+            "Arsitektur terdeteksi:",
+            ARCH
+        );
 
+        console.log("");
         console.log("1. Debian");
         console.log("2. Ubuntu");
 
         if (current) {
-            console.log(`3. Masuk Terminal (${current.name})`);
+            console.log(
+                `3. Masuk Terminal (${current.name})`
+            );
         } else {
-            console.log("3. Masuk Terminal [BELUM ADA CONTAINER]");
+            console.log(
+                "3. Masuk Terminal [BELUM ADA CONTAINER]"
+            );
         }
 
         console.log("4. Reset All");
         console.log("0. Keluar");
         console.log("================================");
 
-        const choice = await ask("Pilih: ");
+        const choice = await ask("Pilih:");
+
         fakeEnter();
 
         if (choice === "0") {
@@ -966,12 +1130,20 @@ async function main() {
             await resetAll();
         } else {
             console.log("Pilihan tidak valid.");
-            await ask("\nTekan Enter untuk lanjut...");
+            await ask("Tekan Enter untuk lanjut...");
         }
     }
 }
 
+// =====================================
+// RUN
+// =====================================
+
 main().catch(error => {
     clearTerminal();
-    console.error("\nERROR:", error.message);
+
+    console.error(
+        "\nERROR:",
+        error.message
+    );
 });
