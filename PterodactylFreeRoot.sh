@@ -439,7 +439,7 @@ function configureGroups(rootfs) {
 
 // =====================================
 // BASH TERMINAL
-// FIX DYNAMIC DIRECTORY PROMPT
+// DUA BARIS + DIREKTORI DINAMIS
 // =====================================
 
 function configureBash(rootfs, config) {
@@ -462,7 +462,7 @@ esac
 
 unset PROMPT_COMMAND
 
-PS1='root@${config.id}:\\w# '
+PS1='root@${config.id}:\\w#\\nroot@${config.id}:\\w# '
 PS2='> '
 ${markerEnd}
 `;
@@ -506,7 +506,7 @@ fi
 
 unset PROMPT_COMMAND
 
-PS1='root@${config.id}:\\w# '
+PS1='root@${config.id}:\\w#\\nroot@${config.id}:\\w# '
 PS2='> '
 `;
 
